@@ -1,0 +1,111 @@
+{
+  "lastUpdated": "2024-01-15T10:30:00Z",
+  "player": {
+    "steamid": "76561198000000000",
+    "personaname": "Gamer",
+    "profileurl": "https://steamcommunity.com/id/gamer/",
+    "avatar": "https://avatars.steamstatic.com/default_avatar.jpg",
+    "avatarmedium": "https://avatars.steamstatic.com/default_avatar_medium.jpg",
+    "avatarfull": "https://avatars.steamstatic.com/default_avatar_full.jpg",
+    "personastate": 1,
+    "communityvisibilitystate": 3
+  },
+  "games": [
+    {
+      "appid": 730,
+      "name": "Counter-Strike 2",
+      "playtime_forever": 12500,
+      "playtime_2weeks": 480,
+      "img_icon_url": "69f7ebe2735c366c65c0b33dae00e12dc40edbe4",
+      "rtime_last_played": 1705315200
+    },
+    {
+      "appid": 570,
+      "name": "Dota 2",
+      "playtime_forever": 8900,
+      "playtime_2weeks": 120,
+      "img_icon_url": "0bbb630d63262dd66d2fdd0f7d37e8661a410075",
+      "rtime_last_played": 1705228800
+    },
+    {
+      "appid": 1245620,
+      "name": "Elden Ring",
+      "playtime_forever": 3200,
+      "playtime_2weeks": 600,
+      "img_icon_url": "9e3e3c3d3b9b3b9b3b9b3b9b3b9b3b9b3b9b3b9b",
+      "rtime_last_played": 1705401600
+    },
+    {
+      "appid": 1091500,
+      "name": "Cyberpunk 2077",
+      "playtime_forever": 2800,
+      "playtime_2weeks": 0,
+      "img_icon_url": "1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e",
+      "rtime_last_played": 1702000000
+    },
+    {
+      "appid": 1174180,
+      "name": "Red Dead Redemption 2",
+      "playtime_forever": 4500,
+      "playtime_2weeks": 0,
+      "img_icon_url": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+      "rtime_last_played": 1700000000
+    },
+    {
+      "appid": 892970,
+      "name": "Valheim",
+      "playtime_forever": 1800,
+      "playtime_2weeks": 240,
+      "img_icon_url": "3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b",
+      "rtime_last_played": 1705142400
+    },
+    {
+      "appid": 1449850,
+      "name": "Monster Hunter Rise",
+      "playtime_forever": 2100,
+      "playtime_2weeks": 180,
+      "img_icon_url": "4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c",
+      "rtime_last_played": 1705056000
+    },
+    {
+      "appid": 413150,
+      "name": "Stardew Valley",
+      "playtime_forever": 1500,
+      "playtime_2weeks": 0,
+      "img_icon_url": "5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d",
+      "rtime_last_played": 1695000000
+    },
+    {
+      "appid": 1817070,
+      "name": "Hogwarts Legacy",
+      "playtime_forever": 850,
+      "playtime_2weeks": 0,
+      "img_icon_url": "6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e",
+      "rtime_last_played": 1690000000
+    },
+    {
+      "appid": 1938090,
+      "name": "Call of Duty®",
+      "playtime_forever": 600,
+      "playtime_2weeks": 60,
+      "img_icon_url": "7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f",
+      "rtime_last_played": 1704969600
+    },
+    {
+      "appid": 105600,
+      "name": "Terraria",
+      "playtime_forever": 950,
+      "playtime_2weeks": 0,
+      "img_icon_url": "8g8g8g8g8g8g8g8g8g8g8g8g8g8g8g8g8g8g8g8g",
+      "rtime_last_played": 1685000000
+    },
+    {
+      "appid": 367520,
+      "name": "Hollow Knight",
+      "playtime_forever": 720,
+      "playtime_2weeks": 0,
+      "img_icon_url": "9h9h9h9h9h9h9h9h9h9h9h9h9h9h9h9h9h9h9h9h",
+      "rtime_last_played": 1680000000
+    }
+  ]
+}
