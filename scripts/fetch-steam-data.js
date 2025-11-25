@@ -2,8 +2,12 @@
  * Steam 数据获取脚本
  * 用于 GitHub Actions 定时获取 Steam 游戏数据
  */
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 配置 - 私人仓库直接配置
 const STEAM_API_KEY = "09EDFE628D0F16EDE4A1FFD4F5DDC2E9";
