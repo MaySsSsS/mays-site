@@ -159,10 +159,14 @@ const connectionLines = computed(() => {
   const visited = props.visitedCities.filter((city) => cityCoordinates[city]);
 
   for (let i = 0; i < visited.length - 1; i++) {
-    const from = cityCoordinates[visited[i]];
-    const to = cityCoordinates[visited[i + 1]];
-    if (from && to) {
-      lines.push({ coords: [from, to] });
+    const currentCity = visited[i];
+    const nextCity = visited[i + 1];
+    if (currentCity && nextCity) {
+      const from = cityCoordinates[currentCity];
+      const to = cityCoordinates[nextCity];
+      if (from && to) {
+        lines.push({ coords: [from, to] });
+      }
     }
   }
   return lines;
