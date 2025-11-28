@@ -86,8 +86,7 @@ function formatLastPlayed(timestamp: number): string {
 .game-card:hover {
   transform: translateY(-10px) scale(1.02);
   border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 
-    0 25px 50px rgba(99, 102, 241, 0.15),
+  box-shadow: 0 25px 50px rgba(99, 102, 241, 0.15),
     0 0 0 1px rgba(99, 102, 241, 0.1);
 }
 
@@ -120,7 +119,8 @@ function formatLastPlayed(timestamp: number): string {
 }
 
 @keyframes glow-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(1);
   }
@@ -135,7 +135,8 @@ function formatLastPlayed(timestamp: number): string {
 }
 
 @keyframes glow-pulse-hover {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.8;
     transform: scale(1);
   }
@@ -152,7 +153,7 @@ function formatLastPlayed(timestamp: number): string {
 }
 
 .card-image::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -204,15 +205,15 @@ function formatLastPlayed(timestamp: number): string {
   font-size: 1.5rem;
   color: #6366f1;
   padding-left: 6px;
-  box-shadow: 
-    0 8px 25px rgba(99, 102, 241, 0.3),
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3),
     0 0 0 4px rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
   animation: play-pulse 2s ease-in-out infinite;
 }
 
 @keyframes play-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -230,7 +231,11 @@ function formatLastPlayed(timestamp: number): string {
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 600;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.85)
+  );
   color: #6366f1;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
   border: 1px solid rgba(99, 102, 241, 0.1);

@@ -4,7 +4,7 @@
 </template>
 
 <script setup lang="ts">
-import CursorEffect from '@/components/common/CursorEffect.vue';
+import CursorEffect from "@/components/common/CursorEffect.vue";
 </script>
 
 <style>

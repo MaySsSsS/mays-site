@@ -50,7 +50,7 @@ export const useSteamStore = defineStore("steam", () => {
 
     try {
       // 从静态 JSON 文件加载数据（由 GitHub Actions 生成）
-      const baseUrl = import.meta.env.BASE_URL || '/';
+      const baseUrl = import.meta.env.BASE_URL || "/";
       const response = await fetch(`${baseUrl}data/steam-games.json`);
       if (!response.ok) {
         throw new Error("无法加载游戏数据");

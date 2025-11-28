@@ -403,7 +403,7 @@ const formatDate = (dateStr: string): string => {
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) minmax(0, 1.3fr);
+  grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1.6fr);
   gap: 1.5rem;
 }
 
@@ -629,20 +629,29 @@ const formatDate = (dateStr: string): string => {
 
 /* 地图区域 */
 .map-section {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
   border-radius: 20px;
   padding: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-  min-height: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .current-city {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   font-weight: 400;
+}
+
+/* 强制地图组件适配卡片高度 */
+.map-section > .china-map-container, .map-section .china-map-container {
+  height: 100%;
+  min-height: 420px;
 }
 
 /* 照片区域 */

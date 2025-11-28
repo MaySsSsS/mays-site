@@ -174,6 +174,7 @@ const chartOption = computed(() => ({
   backgroundColor: "transparent",
   tooltip: {
     trigger: "item",
+    confine: true,
     formatter: (params: { name?: string; value?: number[] }) => {
       if (params.value && params.value[2] !== undefined) {
         return `<div style="font-weight: 600">${params.name}</div>
@@ -216,6 +217,15 @@ const chartOption = computed(() => ({
         areaColor: "#dbeafe",
       },
     },
+    // 避免标签重叠时超出视图
+    label: {
+      show: false,
+    },
+  },
+  // 尝试让标签自动避免重叠
+  labelLayout: {
+    hideOverlap: true,
+    moveOverlap: true,
   },
   series: [
     // 足迹连线
@@ -263,6 +273,8 @@ const chartOption = computed(() => ({
         show: true,
         formatter: "{b}",
         position: "right",
+        distance: 8,
+        align: "left",
         fontSize: 11,
         color: "#475569",
         fontWeight: 500,
@@ -336,12 +348,20 @@ watch(
   () => props.activeCity,
   (city) => {
     if (city && cityCoordinates[city] && chartRef.value) {
-      const chart = chartRef.value;
-      chart.dispatchAction({
-        type: "geoRoam",
-        zoom: 2,
-        center: cityCoordinates[city],
-      });
+      // 使用 VChart 提供的实例 API 来更新视图（设置 center/zoom）
+      const instance = (chartRef.value as any).getEchartsInstance?.() ||
+        (chartRef.value as any).chart;
+      if (instance && instance.setOption) {
+        instance.setOption(
+          {
+            geo: {
+              center: cityCoordinates[city],
+              zoom: 2,
+            },
+          },
+          { replaceMerge: ["geo"] }
+        );
+      }
     }
   }
 );
@@ -358,12 +378,15 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   min-height: 400px;
+  overflow: hidden;
 }
 
 .chart {
   width: 100%;
   height: 100%;
   min-height: 400px;
+  border-radius: 12px;
+  background: transparent;
 }
 
 .map-legend {
