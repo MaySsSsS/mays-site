@@ -1,23 +1,25 @@
 <template>
   <div class="cursor-container" v-if="!isMobile">
     <!-- 主光标 -->
-    <div 
-      class="cursor-main" 
-      :style="{ 
-        left: `${cursorPos.x}px`, 
+    <div
+      class="cursor-main"
+      :style="{
+        left: `${cursorPos.x}px`,
         top: `${cursorPos.y}px`,
         transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`,
-        backgroundColor: isHovering ? 'rgba(99, 102, 241, 0.3)' : 'rgba(99, 102, 241, 0.15)'
+        backgroundColor: isHovering
+          ? 'rgba(99, 102, 241, 0.3)'
+          : 'rgba(99, 102, 241, 0.15)',
       }"
     />
     <!-- 跟随光标 -->
-    <div 
-      class="cursor-follower" 
-      :style="{ 
-        left: `${followerPos.x}px`, 
+    <div
+      class="cursor-follower"
+      :style="{
+        left: `${followerPos.x}px`,
         top: `${followerPos.y}px`,
         transform: `translate(-50%, -50%) scale(${isHovering ? 0.5 : 1})`,
-        borderColor: isHovering ? '#ec4899' : '#6366f1'
+        borderColor: isHovering ? '#ec4899' : '#6366f1',
       }"
     />
     <!-- 点击波纹 -->
@@ -27,14 +29,14 @@
       class="cursor-ripple"
       :style="{
         left: `${ripple.x}px`,
-        top: `${ripple.y}px`
+        top: `${ripple.y}px`,
       }"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, onMounted, onUnmounted } from "vue";
 
 interface Ripple {
   id: number;
@@ -52,7 +54,7 @@ let animationFrame: number;
 
 // 检测是否为移动设备
 const checkMobile = () => {
-  isMobile.value = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  isMobile.value = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 };
 
 // 鼠标移动处理
@@ -72,9 +74,13 @@ const updateFollower = () => {
 // 鼠标进入可交互元素
 const handleMouseOver = (e: MouseEvent) => {
   const target = e.target as HTMLElement;
-  if (target && target.matches && (
-    target.matches('a, button, [role="button"], .clickable, input, select, textarea, .game-card, .photo-item, .nav-link, .glass-card')
-  )) {
+  if (
+    target &&
+    target.matches &&
+    target.matches(
+      'a, button, [role="button"], .clickable, input, select, textarea, .game-card, .photo-item, .nav-link, .glass-card'
+    )
+  ) {
     isHovering.value = true;
   }
 };
@@ -87,60 +93,62 @@ const handleMouseOut = () => {
 // 点击波纹效果
 const handleClick = (e: MouseEvent) => {
   if (!e || !e.clientX || !e.clientY) return;
-  
+
   const id = ++rippleId;
   ripples.value.push({ id, x: e.clientX, y: e.clientY });
-  
+
   // 动画结束后移除
   setTimeout(() => {
-    ripples.value = ripples.value.filter(r => r.id !== id);
+    ripples.value = ripples.value.filter((r) => r.id !== id);
   }, 600);
 };
 
 onMounted(() => {
   checkMobile();
-  
+
   if (!isMobile.value) {
     // 等待DOM完全加载
     const initCursor = () => {
       // 初始化位置
       followerPos.x = cursorPos.x;
       followerPos.y = cursorPos.y;
-      
+
       // 添加事件监听
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseover', handleMouseOver);
-      document.addEventListener('mouseout', handleMouseOut);
-      document.addEventListener('click', handleClick);
-      
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseover", handleMouseOver);
+      document.addEventListener("mouseout", handleMouseOut);
+      document.addEventListener("click", handleClick);
+
       // 启动跟随动画
       updateFollower();
-      
+
       // 隐藏默认光标
-      document.body.style.cursor = 'none';
-      document.querySelectorAll('a, button, input, select, textarea').forEach(el => {
-        (el as HTMLElement).style.cursor = 'none';
-      });
+      document.body.style.cursor = "none";
+      document
+        .querySelectorAll("a, button, input, select, textarea")
+        .forEach((el) => {
+          (el as HTMLElement).style.cursor = "none";
+        });
     };
-    
+
     // 如果DOM已经加载完成，直接初始化
-    if (document.readyState === 'complete') {
+    if (document.readyState === "complete") {
       initCursor();
     } else {
       // 否则等待DOM加载完成
-      window.addEventListener('load', initCursor);
+      window.addEventListener("load", initCursor);
     }
   }
 });
 
 onUnmounted(() => {
   if (!isMobile.value) {
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseover', handleMouseOver);
-    document.removeEventListener('mouseout', handleMouseOut);
-    document.removeEventListener('click', handleClick);
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseover", handleMouseOver);
+    document.removeEventListener("mouseout", handleMouseOut);
+    document.removeEventListener("click", handleClick);
     cancelAnimationFrame(animationFrame);
-    document.body.style.cursor = 'auto';
+    document.body.style.cursor = "auto";
   }
 });
 </script>
@@ -205,7 +213,7 @@ onUnmounted(() => {
 
 /* 悬浮发光效果 */
 .cursor-main::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -218,7 +226,8 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
