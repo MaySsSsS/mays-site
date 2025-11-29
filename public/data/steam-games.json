@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-11-29T02:48:29.231Z",
+  "lastUpdated": "2025-11-29T02:57:29.976Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -17,6 +17,8 @@
     "primaryclanid": "103582791429521408",
     "timecreated": 1491720729,
     "personastateflags": 0,
+    "gameextrainfo": "Battlefield™ 6",
+    "gameid": "2807960",
     "loccountrycode": "CN",
     "locstatecode": "32",
     "loccityid": 10460
@@ -2136,7 +2138,7 @@
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1762659870,
+      "rtime_last_played": 1764384712,
       "playtime_disconnected": 0,
       "playtime_2weeks": 0
     },
