@@ -1,207 +1,219 @@
 <template>
   <MainLayout>
     <div class="photos-page">
-      <section class="hero">
-        <div class="hero-content">
-          <h1 class="title">照片 · 足迹</h1>
-          <p class="subtitle">
-            把日常和旅行照片按地点分组，用地图的方式记录自己的足迹
-          </p>
-          <div class="hero-stats">
-            <div class="stat-item">
-              <span class="stat-value">{{ photoStore.groups.length }}</span>
-              <span class="stat-label">个分组</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ photoStore.totalPhotos }}</span>
-              <span class="stat-label">张照片</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ photoStore.cities.length }}</span>
-              <span class="stat-label">个城市</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <!-- 未认证时显示登录 -->
+      <PhotoAuth v-if="!isAuthed" @success="handleAuthSuccess" />
 
-      <section class="content">
-        <div class="layout">
-          <!-- 左侧：分组和城市选择 -->
-          <aside class="sidebar">
-            <div class="sidebar-section">
-              <h2 class="section-title">
-                分组
-                <span class="section-count">{{
-                  photoStore.groups.length
-                }}</span>
-              </h2>
-              <ul class="group-list">
-                <li
-                  v-for="group in photoStore.groups"
-                  :key="group.id"
-                  :class="[
-                    'group-item',
-                    { active: group.id === activeGroupId },
-                  ]"
-                  @click="selectGroup(group.id)"
-                >
-                  <div class="group-main">
-                    <span class="group-name">{{ group.name }}</span>
-                    <span class="group-meta">
-                      {{ group.city }} · {{ group.photos.length }} 张
-                    </span>
-                  </div>
-                  <button
-                    class="group-delete"
-                    @click.stop="deleteGroup(group.id)"
-                    title="删除分组"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
-                  </button>
-                </li>
-              </ul>
-              <button class="btn btn-outline" @click="showCreateGroup = true">
-                + 新建分组
-              </button>
-            </div>
-
-            <div class="sidebar-section">
-              <h2 class="section-title">
-                城市筛选
-                <button
-                  v-if="activeCity"
-                  class="clear-filter"
-                  @click="activeCity = null"
-                >
-                  清除
-                </button>
-              </h2>
-              <div class="city-tags">
-                <button
-                  v-for="city in photoStore.cities"
-                  :key="city"
-                  :class="['tag', { active: city === activeCity }]"
-                  @click="selectCity(city)"
-                >
-                  {{ city }}
-                  <span class="tag-count">{{ getCityPhotoCount(city) }}</span>
-                </button>
+      <!-- 已认证时显示照片内容 -->
+      <template v-else>
+        <section class="hero">
+          <div class="hero-content">
+            <h1 class="title">照片 · 足迹</h1>
+            <p class="subtitle">
+              把日常和旅行照片按地点分组，用地图的方式记录自己的足迹
+            </p>
+            <div class="hero-stats">
+              <div class="stat-item">
+                <span class="stat-value">{{ photoStore.groups.length }}</span>
+                <span class="stat-label">个分组</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">{{ photoStore.totalPhotos }}</span>
+                <span class="stat-label">张照片</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">{{ photoStore.cities.length }}</span>
+                <span class="stat-label">个城市</span>
               </div>
             </div>
-          </aside>
+            <button class="btn-logout" @click="handleLogout" title="退出登录">
+              🔓 退出
+            </button>
+          </div>
+        </section>
 
-          <!-- 中间：中国地图 -->
-          <section class="map-section">
-            <h2 class="section-title">
-              足迹地图
-              <span v-if="activeCity" class="current-city">
-                当前：{{ activeCity }}
-              </span>
-            </h2>
-            <ChinaMap
-              :activeCity="activeCity"
-              :visitedCities="photoStore.cities"
-              :cityPhotoCounts="cityPhotoCounts"
-              :showConnections="true"
-              @select="selectCity"
-            />
-          </section>
+        <section class="content">
+          <div class="layout">
+            <!-- 左侧：分组和城市选择 -->
+            <aside class="sidebar">
+              <div class="sidebar-section">
+                <h2 class="section-title">
+                  分组
+                  <span class="section-count">{{
+                    photoStore.groups.length
+                  }}</span>
+                </h2>
+                <ul class="group-list">
+                  <li
+                    v-for="group in photoStore.groups"
+                    :key="group.id"
+                    :class="[
+                      'group-item',
+                      { active: group.id === activeGroupId },
+                    ]"
+                    @click="selectGroup(group.id)"
+                  >
+                    <div class="group-main">
+                      <span class="group-name">{{ group.name }}</span>
+                      <span class="group-meta">
+                        {{ group.city }} · {{ group.photos.length }} 张
+                      </span>
+                    </div>
+                    <button
+                      class="group-delete"
+                      @click.stop="deleteGroup(group.id)"
+                      title="删除分组"
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </li>
+                </ul>
+                <button class="btn btn-outline" @click="showCreateGroup = true">
+                  + 新建分组
+                </button>
+              </div>
 
-          <!-- 右侧：照片网格 -->
-          <section class="photos-section">
-            <div class="section-header">
+              <div class="sidebar-section">
+                <h2 class="section-title">
+                  城市筛选
+                  <button
+                    v-if="activeCity"
+                    class="clear-filter"
+                    @click="activeCity = null"
+                  >
+                    清除
+                  </button>
+                </h2>
+                <div class="city-tags">
+                  <button
+                    v-for="city in photoStore.cities"
+                    :key="city"
+                    :class="['tag', { active: city === activeCity }]"
+                    @click="selectCity(city)"
+                  >
+                    {{ city }}
+                    <span class="tag-count">{{ getCityPhotoCount(city) }}</span>
+                  </button>
+                </div>
+              </div>
+            </aside>
+
+            <!-- 中间：中国地图 -->
+            <section class="map-section">
               <h2 class="section-title">
-                照片
-                <span v-if="activeGroup" class="current-group">
-                  · {{ activeGroup.name }}（{{ activeGroup.photos.length }} 张）
+                足迹地图
+                <span v-if="activeCity" class="current-city">
+                  当前：{{ activeCity }}
                 </span>
               </h2>
-              <button
-                v-if="activeGroup"
-                class="btn btn-primary btn-sm"
-                @click="showUploader = !showUploader"
-              >
-                {{ showUploader ? "取消" : "+ 添加照片" }}
-              </button>
-            </div>
+              <ChinaMap
+                :activeCity="activeCity"
+                :visitedCities="photoStore.cities"
+                :cityPhotoCounts="cityPhotoCounts"
+                :showConnections="true"
+                @select="selectCity"
+              />
+            </section>
 
-            <!-- 照片上传区域 -->
-            <PhotoUploader
-              v-if="showUploader && activeGroup"
-              @upload="handlePhotoUpload"
-              class="uploader-area"
-            />
+            <!-- 右侧：照片网格 -->
+            <section class="photos-section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  照片
+                  <span v-if="activeGroup" class="current-group">
+                    · {{ activeGroup.name }}（{{
+                      activeGroup.photos.length
+                    }}
+                    张）
+                  </span>
+                </h2>
+                <button
+                  v-if="activeGroup"
+                  class="btn btn-primary btn-sm"
+                  @click="showUploader = !showUploader"
+                >
+                  {{ showUploader ? "取消" : "+ 添加照片" }}
+                </button>
+              </div>
 
-            <div v-if="!activeGroup" class="empty-state">
-              <div class="empty-icon">📷</div>
-              <p>还没有选择分组</p>
-              <p class="empty-hint">在左侧选择一个分组，或者创建一个新的</p>
-            </div>
+              <!-- 照片上传区域 -->
+              <PhotoUploader
+                v-if="showUploader && activeGroup"
+                @upload="handlePhotoUpload"
+                class="uploader-area"
+              />
 
-            <div
-              v-else-if="activeGroup.photos.length === 0"
-              class="empty-state"
-            >
-              <div class="empty-icon">🖼️</div>
-              <p>这个分组还没有照片</p>
-              <p class="empty-hint">点击上方「添加照片」开始上传</p>
-            </div>
+              <div v-if="!activeGroup" class="empty-state">
+                <div class="empty-icon">📷</div>
+                <p>还没有选择分组</p>
+                <p class="empty-hint">在左侧选择一个分组，或者创建一个新的</p>
+              </div>
 
-            <div v-else class="photos-grid">
               <div
-                v-for="(photo, index) in activeGroup.photos"
-                :key="photo.id"
-                class="photo-item"
-                @click="openLightbox(index)"
+                v-else-if="activeGroup.photos.length === 0"
+                class="empty-state"
               >
-                <div class="photo-thumb">
-                  <img
-                    v-if="photo.url"
-                    :src="photo.url"
-                    :alt="photo.title"
-                    loading="lazy"
-                  />
-                  <div v-else class="photo-placeholder">
-                    <span>{{ photo.title }}</span>
+                <div class="empty-icon">🖼️</div>
+                <p>这个分组还没有照片</p>
+                <p class="empty-hint">点击上方「添加照片」开始上传</p>
+              </div>
+
+              <div v-else class="photos-grid">
+                <div
+                  v-for="(photo, index) in activeGroup.photos"
+                  :key="photo.id"
+                  class="photo-item"
+                  @click="openLightbox(index)"
+                >
+                  <div class="photo-thumb">
+                    <img
+                      v-if="photo.url"
+                      :src="photo.url"
+                      :alt="photo.title"
+                      loading="lazy"
+                    />
+                    <div v-else class="photo-placeholder">
+                      <span>{{ photo.title }}</span>
+                    </div>
                   </div>
-                </div>
-                <div class="photo-meta">
-                  <div class="photo-title">{{ photo.title }}</div>
-                  <div v-if="photo.description" class="photo-desc">
-                    {{ photo.description }}
-                  </div>
-                  <div v-if="photo.date" class="photo-date">
-                    {{ formatDate(photo.date) }}
+                  <div class="photo-meta">
+                    <div class="photo-title">{{ photo.title }}</div>
+                    <div v-if="photo.description" class="photo-desc">
+                      {{ photo.description }}
+                    </div>
+                    <div v-if="photo.date" class="photo-date">
+                      {{ formatDate(photo.date) }}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-        </div>
-      </section>
+            </section>
+          </div>
+        </section>
 
-      <!-- 新建分组弹窗 -->
-      <CitySelector
-        v-model:visible="showCreateGroup"
-        @select="handleCitySelect"
-      />
+        <!-- 新建分组弹窗 -->
+        <CitySelector
+          v-model:visible="showCreateGroup"
+          @select="handleCitySelect"
+        />
 
-      <!-- 照片详情弹窗 -->
-      <PhotoLightbox
-        v-model:visible="showLightbox"
-        :photos="activeGroup?.photos || []"
-        :initialIndex="lightboxIndex"
-        @delete="handlePhotoDelete"
-      />
+        <!-- 照片详情弹窗 -->
+        <PhotoLightbox
+          v-model:visible="showLightbox"
+          :photos="activeGroup?.photos || []"
+          :initialIndex="lightboxIndex"
+          @delete="handlePhotoDelete"
+        />
+      </template>
     </div>
   </MainLayout>
 </template>
@@ -213,10 +225,13 @@ import ChinaMap from "@/components/photos/ChinaMapEcharts.vue";
 import CitySelector from "@/components/photos/CitySelector.vue";
 import PhotoUploader from "@/components/photos/PhotoUploader.vue";
 import PhotoLightbox from "@/components/photos/PhotoLightbox.vue";
+import PhotoAuth from "@/components/photos/PhotoAuth.vue";
 import { usePhotoStore } from "@/stores/photos";
+import { isAuthenticated, clearToken } from "@/api/photoApi";
 
 const photoStore = usePhotoStore();
 
+const isAuthed = ref(false);
 const activeGroupId = ref<string | null>(null);
 const activeCity = ref<string | null>(null);
 const showCreateGroup = ref(false);
@@ -224,15 +239,35 @@ const showUploader = ref(false);
 const showLightbox = ref(false);
 const lightboxIndex = ref(0);
 
-// 初始化
+// 检查认证状态
 onMounted(() => {
-  photoStore.initSampleData();
+  isAuthed.value = isAuthenticated();
+  if (isAuthed.value) {
+    initPhotoData();
+  }
+});
+
+// 认证成功后初始化数据
+const handleAuthSuccess = () => {
+  isAuthed.value = true;
+  initPhotoData();
+};
+
+// 退出登录
+const handleLogout = () => {
+  clearToken();
+  isAuthed.value = false;
+};
+
+// 初始化照片数据
+const initPhotoData = async () => {
+  await photoStore.fetchFromApi();
   const firstGroup = photoStore.groups[0];
   if (firstGroup) {
     activeGroupId.value = firstGroup.id;
     activeCity.value = firstGroup.city;
   }
-});
+};
 
 const activeGroup = computed(() => {
   return photoStore.groups.find((g) => g.id === activeGroupId.value) || null;
@@ -336,6 +371,7 @@ const formatDate = (dateStr: string): string => {
 
 /* Hero 区域 - 毛玻璃风格 */
 .hero {
+  position: relative;
   padding: 2.5rem 1.5rem 2rem;
   margin-bottom: 1.5rem;
 }
@@ -392,6 +428,26 @@ const formatDate = (dateStr: string): string => {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   margin-top: 0.25rem;
+}
+
+.btn-logout {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.3);
+  color: #f43f5e;
 }
 
 /* 内容区域 */

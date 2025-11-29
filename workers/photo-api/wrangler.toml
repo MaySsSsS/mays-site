@@ -1,0 +1,13 @@
+name = "mays-photo-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+account_id = "f765f7402dd95272d6c8f6ba76a1f306"
+
+# R2 存储桶绑定
+[[r2_buckets]]
+binding = "PHOTO_BUCKET"
+bucket_name = "my-photos"
+
+# 环境变量（密码通过 wrangler secret put 设置）
+[vars]
+CORS_ORIGIN = "https://maysssss.cn"

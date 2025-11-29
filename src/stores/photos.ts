@@ -1,23 +1,15 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import {
+  fetchGroups,
+  saveGroups,
+  uploadPhoto,
+  deletePhoto as deletePhotoApi,
+  type PhotoGroup,
+  type Photo,
+} from "@/api/photoApi";
 
-export interface Photo {
-  id: string;
-  title: string;
-  description?: string;
-  date?: string;
-  url?: string;
-}
-
-export interface PhotoGroup {
-  id: string;
-  name: string;
-  city: string;
-  location?: { lat: number; lng: number };
-  coverUrl?: string;
-  photos: Photo[];
-  createdAt: string;
-}
+export type { PhotoGroup, Photo };
 
 // 中国主要城市坐标（用于地图定位）
 export const CHINA_CITIES: Record<
@@ -64,7 +56,7 @@ export const CHINA_CITIES: Record<
 const STORAGE_KEY = "mays_photo_groups";
 
 export const usePhotoStore = defineStore("photos", () => {
-  // 从 localStorage 加载数据
+  // 从 localStorage 加载数据（离线备份）
   const loadFromStorage = (): PhotoGroup[] => {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
@@ -74,12 +66,14 @@ export const usePhotoStore = defineStore("photos", () => {
     }
   };
 
-  // 保存到 localStorage
+  // 保存到 localStorage（离线备份）
   const saveToStorage = (data: PhotoGroup[]) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   };
 
   const groups = ref<PhotoGroup[]>(loadFromStorage());
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
   // 所有城市列表
   const cities = computed(() => {
@@ -106,6 +100,34 @@ export const usePhotoStore = defineStore("photos", () => {
     return groups.value.reduce((sum, g) => sum + g.photos.length, 0);
   });
 
+  // 从 API 获取数据
+  const fetchFromApi = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const data = await fetchGroups();
+      groups.value = data.groups || [];
+      saveToStorage(groups.value); // 同步到本地缓存
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "加载失败";
+      // 加载失败时使用本地缓存
+      groups.value = loadFromStorage();
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // 保存到 API
+  const saveToApi = async () => {
+    try {
+      await saveGroups(groups.value);
+      saveToStorage(groups.value); // 同步到本地缓存
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "保存失败";
+      throw e;
+    }
+  };
+
   // 添加分组
   const addGroup = (name: string, city: string): PhotoGroup => {
     const cityInfo = CHINA_CITIES[city];
@@ -118,7 +140,7 @@ export const usePhotoStore = defineStore("photos", () => {
       createdAt: new Date().toISOString(),
     };
     groups.value.unshift(newGroup);
-    saveToStorage(groups.value);
+    saveToApi(); // 同步到云端
     return newGroup;
   };
 
@@ -127,7 +149,7 @@ export const usePhotoStore = defineStore("photos", () => {
     const index = groups.value.findIndex((g) => g.id === id);
     if (index !== -1) {
       groups.value.splice(index, 1);
-      saveToStorage(groups.value);
+      saveToApi(); // 同步到云端
     }
   };
 
@@ -136,36 +158,61 @@ export const usePhotoStore = defineStore("photos", () => {
     const group = groups.value.find((g) => g.id === id);
     if (group) {
       Object.assign(group, updates);
-      saveToStorage(groups.value);
+      saveToApi(); // 同步到云端
     }
   };
 
-  // 添加照片到分组
-  const addPhoto = (
+  // 添加照片到分组（上传到 R2）
+  const addPhoto = async (
     groupId: string,
-    photo: Omit<Photo, "id">
-  ): Photo | null => {
+    photo: Omit<Photo, "id"> & { file?: File }
+  ): Promise<Photo | null> => {
     const group = groups.value.find((g) => g.id === groupId);
     if (!group) return null;
 
+    const photoId = `photo-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
+
+    // 如果有文件，上传到 R2
+    if (photo.file) {
+      try {
+        await uploadPhoto(photo.file, groupId, photoId);
+      } catch (e) {
+        error.value = "上传失败";
+        throw e;
+      }
+    }
+
     const newPhoto: Photo = {
-      ...photo,
-      id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: photoId,
+      title: photo.title,
+      description: photo.description,
+      date: photo.date,
+      url: photo.url, // 本地预览 URL 或空
     };
+
     group.photos.push(newPhoto);
-    saveToStorage(groups.value);
+    await saveToApi(); // 同步到云端
     return newPhoto;
   };
 
   // 删除照片
-  const removePhoto = (groupId: string, photoId: string) => {
+  const removePhoto = async (groupId: string, photoId: string) => {
     const group = groups.value.find((g) => g.id === groupId);
     if (!group) return;
 
     const index = group.photos.findIndex((p) => p.id === photoId);
     if (index !== -1) {
+      // 从 R2 删除图片
+      try {
+        await deletePhotoApi(groupId, photoId);
+      } catch (e) {
+        console.error("删除图片失败:", e);
+      }
+
       group.photos.splice(index, 1);
-      saveToStorage(groups.value);
+      await saveToApi(); // 同步到云端
     }
   };
 
@@ -224,9 +271,13 @@ export const usePhotoStore = defineStore("photos", () => {
 
   return {
     groups,
+    loading,
+    error,
     cities,
     groupsByCity,
     totalPhotos,
+    fetchFromApi,
+    saveToApi,
     addGroup,
     removeGroup,
     updateGroup,
