@@ -108,10 +108,8 @@ export async function uploadPhoto(
   return response.json();
 }
 
-// 获取照片 URL
+// 获取照片 URL（需要通过 fetchPhotoBlob 获取，因为需要认证）
 export function getPhotoUrl(groupId: string, photoId: string): string {
-  const token = getToken();
-  // 注意：图片请求需要 token，通过 URL 参数传递或使用 fetch
   return `${API_BASE}/api/image/${groupId}/${photoId}`;
 }
 

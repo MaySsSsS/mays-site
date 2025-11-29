@@ -8,18 +8,18 @@
     <!-- GitHub Pages SPA 路由支持 -->
     <script type="text/javascript">
       (function (l) {
-        if (l.search[1] === "/") {
-          var decoded = l.search
-            .slice(1)
-            .split("&")
-            .map(function (s) {
-              return s.replace(/~and~/g, "&");
-            })
-            .join("?");
+        // 处理 404.html 重定向传递的路径参数
+        var params = new URLSearchParams(l.search);
+        var path = params.get("p");
+        if (path) {
+          var search = params.get("q") || "";
+          var hash = params.get("h") || "";
           window.history.replaceState(
             null,
             null,
-            l.pathname.slice(0, -1) + decoded + l.hash
+            decodeURIComponent(path) +
+              (search ? decodeURIComponent(search) : "") +
+              (hash ? decodeURIComponent(hash) : "")
           );
         }
       })(window.location);
