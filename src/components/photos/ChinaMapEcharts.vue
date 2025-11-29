@@ -1,18 +1,11 @@
 <template>
   <div class="china-map-container">
-    <div v-if="!mapLoaded" class="map-loading">
+    <div v-if="loading" class="map-loading">
       <div class="loading-spinner"></div>
-      <p>加载地图中...</p>
+      <p>{{ loadingText }}</p>
     </div>
-    <v-chart
-      v-else
-      ref="chartRef"
-      class="chart"
-      :option="chartOption"
-      :autoresize="true"
-      @click="handleMapClick"
-    />
-    <div class="map-legend" v-if="mapLoaded">
+    <div v-show="!loading" ref="chartDom" class="chart"></div>
+    <div class="map-legend" v-if="!loading">
       <div class="legend-item">
         <span class="legend-dot visited"></span>
         <span>已去过</span>
@@ -26,30 +19,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
-import VChart from "vue-echarts";
-import { use } from "echarts/core";
-import { MapChart, EffectScatterChart, LinesChart } from "echarts/charts";
-import {
-  TitleComponent,
-  TooltipComponent,
-  GeoComponent,
-  VisualMapComponent,
-} from "echarts/components";
-import { CanvasRenderer } from "echarts/renderers";
-import { registerMap } from "echarts/core";
-
-// 注册 ECharts 组件
-use([
-  MapChart,
-  EffectScatterChart,
-  LinesChart,
-  TitleComponent,
-  TooltipComponent,
-  GeoComponent,
-  VisualMapComponent,
-  CanvasRenderer,
-]);
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
+import * as echarts from "echarts";
 
 // 城市坐标数据
 const cityCoordinates: Record<string, [number, number]> = {
@@ -119,8 +90,10 @@ const emit = defineEmits<{
   (e: "select", city: string): void;
 }>();
 
-const chartRef = ref();
-const mapLoaded = ref(false);
+const chartDom = ref<HTMLElement | null>(null);
+const loading = ref(true);
+const loadingText = ref("加载地图中...");
+let chartInstance: echarts.ECharts | null = null;
 
 // 获取已访问城市的数据
 const visitedCityData = computed(() => {
@@ -170,7 +143,8 @@ const connectionLines = computed(() => {
   return lines;
 });
 
-const chartOption = computed(() => ({
+// 图表配置
+const getChartOption = () => ({
   backgroundColor: "transparent",
   tooltip: {
     trigger: "item",
@@ -217,15 +191,9 @@ const chartOption = computed(() => ({
         areaColor: "#dbeafe",
       },
     },
-    // 避免标签重叠时超出视图
     label: {
       show: false,
     },
-  },
-  // 尝试让标签自动避免重叠
-  labelLayout: {
-    hideOverlap: true,
-    moveOverlap: true,
   },
   series: [
     // 足迹连线
@@ -309,67 +277,150 @@ const chartOption = computed(() => ({
       data: activeCityData.value,
     },
   ],
-}));
+});
 
-// 加载中国地图
-const loadChinaMap = async () => {
+// 加载中国地图 GeoJSON
+const loadChinaMap = async (): Promise<boolean> => {
   try {
-    // 从阿里云 DataV 获取中国地图数据
-    const response = await fetch(
-      "https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json"
-    );
+    console.log("[ChinaMap] 开始加载中国地图 GeoJSON...");
+    loadingText.value = "正在获取地图数据...";
+    
+    // 使用本地文件，避免外部 API 的 CORS/403 问题
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    const response = await fetch(`${baseUrl}data/china.json`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const geoJSON = await response.json();
-    registerMap("china", geoJSON);
-    mapLoaded.value = true;
+    console.log("[ChinaMap] GeoJSON 加载成功, 特征数量:", geoJSON.features?.length);
+    
+    loadingText.value = "正在注册地图...";
+    echarts.registerMap("china", geoJSON);
+    console.log("[ChinaMap] 地图注册成功");
+    
+    return true;
   } catch (error) {
-    console.error("Failed to load China map:", error);
-    // 使用备用方案 - 简化的中国地图轮廓
-    registerMap("china", {
+    console.error("[ChinaMap] 加载地图失败:", error);
+    loadingText.value = "地图加载失败，使用备用数据...";
+    
+    // 注册空地图作为备用
+    echarts.registerMap("china", {
       type: "FeatureCollection",
       features: [],
     });
-    mapLoaded.value = true;
+    
+    return false;
   }
 };
 
-// 处理地图点击
-const handleMapClick = (params: { componentType?: string; name?: string }) => {
-  if (
-    params.componentType === "series" &&
-    params.name &&
-    props.visitedCities.includes(params.name)
-  ) {
-    emit("select", params.name);
+// 初始化图表
+const initChart = async () => {
+  console.log("[ChinaMap] 开始初始化图表...");
+  
+  // 1. 先加载地图数据
+  await loadChinaMap();
+  
+  // 2. 等待 DOM 更新
+  await nextTick();
+  
+  // 3. 确保 DOM 元素存在
+  if (!chartDom.value) {
+    console.error("[ChinaMap] 图表容器不存在");
+    return;
+  }
+  
+  // 4. 先隐藏加载状态，让图表容器可见
+  loading.value = false;
+  
+  // 5. 等待 DOM 更新，确保容器可见
+  await nextTick();
+  
+  console.log("[ChinaMap] 图表容器尺寸:", chartDom.value.offsetWidth, "x", chartDom.value.offsetHeight);
+  
+  // 6. 初始化 ECharts 实例
+  try {
+    chartInstance = echarts.init(chartDom.value);
+    console.log("[ChinaMap] ECharts 实例创建成功");
+    
+    // 7. 设置配置
+    const option = getChartOption();
+    console.log("[ChinaMap] 图表配置:", JSON.stringify(option.geo, null, 2));
+    chartInstance.setOption(option);
+    
+    // 8. 绑定点击事件
+    chartInstance.on("click", (params: any) => {
+      if (
+        params.componentType === "series" &&
+        params.name &&
+        props.visitedCities.includes(params.name)
+      ) {
+        emit("select", params.name);
+      }
+    });
+    
+    console.log("[ChinaMap] 图表初始化完成");
+  } catch (error) {
+    console.error("[ChinaMap] 图表初始化失败:", error);
   }
 };
+
+// 更新图表数据
+const updateChart = () => {
+  if (chartInstance) {
+    chartInstance.setOption(getChartOption());
+  }
+};
+
+// 监听数据变化更新图表
+watch(
+  () => [props.visitedCities, props.cityPhotoCounts, props.showConnections],
+  () => {
+    updateChart();
+  },
+  { deep: true }
+);
 
 // 监听 activeCity 变化，更新地图视图
 watch(
   () => props.activeCity,
   (city) => {
-    if (city && cityCoordinates[city] && chartRef.value) {
-      // 使用 VChart 提供的实例 API 来更新视图（设置 center/zoom）
-      const instance =
-        (chartRef.value as any).getEchartsInstance?.() ||
-        (chartRef.value as any).chart;
-      if (instance && instance.setOption) {
-        instance.setOption(
-          {
-            geo: {
-              center: cityCoordinates[city],
-              zoom: 2,
-            },
-          },
-          { replaceMerge: ["geo"] }
-        );
-      }
+    if (!chartInstance) return;
+    
+    // 更新选中城市的数据
+    updateChart();
+    
+    // 如果有选中城市，平移到该城市
+    if (city && cityCoordinates[city]) {
+      chartInstance.setOption({
+        geo: {
+          center: cityCoordinates[city],
+          zoom: 2,
+        },
+      });
     }
   }
 );
 
-// 组件挂载时加载地图
+// 窗口大小变化时重新调整图表
+const handleResize = () => {
+  chartInstance?.resize();
+};
+
+// 组件挂载
 onMounted(() => {
-  loadChinaMap();
+  console.log("[ChinaMap] 组件已挂载");
+  initChart();
+  window.addEventListener("resize", handleResize);
+});
+
+// 组件卸载
+onUnmounted(() => {
+  console.log("[ChinaMap] 组件卸载，销毁图表实例");
+  window.removeEventListener("resize", handleResize);
+  chartInstance?.dispose();
+  chartInstance = null;
 });
 </script>
 
@@ -377,17 +428,42 @@ onMounted(() => {
 .china-map-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 500px;
   min-height: 400px;
   overflow: hidden;
 }
 
-.chart {
-  width: 100%;
+.map-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: 100%;
   min-height: 400px;
+  color: #64748b;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.chart {
+  width: 100%;
+  height: 500px;
+  min-height: 400px;
   border-radius: 12px;
-  background: transparent;
+  background: #fafafa;
 }
 
 .map-legend {
@@ -404,6 +480,7 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   font-size: 12px;
   color: #64748b;
+  z-index: 10;
 }
 
 .legend-item {
