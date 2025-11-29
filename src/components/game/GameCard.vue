@@ -48,9 +48,15 @@ function openSteamPage() {
   );
 }
 
+// 占位图片 - 使用 base64 SVG 避免 404
+const placeholderImage =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NjAiIGhlaWdodD0iMjE1IiB2aWV3Qm94PSIwIDAgNDYwIDIxNSI+PHJlY3QgZmlsbD0iIzFmMjkzNyIgd2lkdGg9IjQ2MCIgaGVpZ2h0PSIyMTUiLz48dGV4dCBmaWxsPSIjNjM2NmYxIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDAiIHg9IjUwJSIgeT0iNDUlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7wn46uPC90ZXh0Pjx0ZXh0IGZpbGw9IiM5Y2EzYWYiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgeD0iNTAlIiB5PSI2NSUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuWwgemdouWKoOi9veWksei0pTwvdGV4dD48L3N2Zz4=";
+
 function handleImageError(e: Event) {
   const img = e.target as HTMLImageElement;
-  img.src = "/placeholder-game.png";
+  // 防止无限循环：如果已经是占位图则不再处理
+  if (img.src === placeholderImage) return;
+  img.src = placeholderImage;
 }
 
 function formatLastPlayed(timestamp: number): string {
