@@ -6,13 +6,14 @@
 export interface Env {
   GAME_BUCKET: R2Bucket;
   CORS_ORIGIN: string;
+  UPLOAD_SECRET: string; // 上传密钥
 }
 
 function corsHeaders(origin: string): HeadersInit {
   return {
     "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",
   };
 }
@@ -74,6 +75,35 @@ export default {
       // === 健康检查 ===
       if (path === "/health" && method === "GET") {
         return new Response(JSON.stringify({ status: "ok" }), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders(origin),
+          },
+        });
+      }
+
+      // === 上传 Steam 数据（需要密钥） ===
+      if (path === "/api/upload" && method === "POST") {
+        const authHeader = request.headers.get("Authorization");
+        const token = authHeader?.replace("Bearer ", "");
+
+        if (!token || token !== env.UPLOAD_SECRET) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders(origin),
+            },
+          });
+        }
+
+        const data = await request.text();
+        await env.GAME_BUCKET.put("steam-games.json", data, {
+          httpMetadata: { contentType: "application/json" },
+        });
+
+        return new Response(JSON.stringify({ success: true }), {
           status: 200,
           headers: {
             "Content-Type": "application/json",
