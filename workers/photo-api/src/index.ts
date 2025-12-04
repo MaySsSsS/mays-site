@@ -127,13 +127,15 @@ export default {
     // 允许的来源（开发环境和生产环境）
     const allowedOrigins = [
       env.CORS_ORIGIN,
+      "https://photo.maysssss.cn",
+      "https://maysssss.cn",
       "http://localhost:5173",
       "http://localhost:3000",
     ];
-    const requestOrigin = request.headers.get("Origin") || "*";
+    const requestOrigin = request.headers.get("Origin") || "";
     const origin = allowedOrigins.includes(requestOrigin)
       ? requestOrigin
-      : env.CORS_ORIGIN;
+      : allowedOrigins[0];
 
     // 处理 CORS 预检
     if (method === "OPTIONS") {
