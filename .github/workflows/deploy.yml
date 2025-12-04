@@ -1,4 +1,4 @@
-name: Build & Deploy to Multiple Domains
+name: Update Steam Data
 
 on:
   # 每天 UTC 时间 2:00 运行（北京时间 10:00）
@@ -6,10 +6,6 @@ on:
     - cron: "0 2 * * *"
   # 支持手动触发
   workflow_dispatch:
-  # 推送到 main 分支时触发
-  push:
-    branches:
-      - main
 
 jobs:
   # 更新Steam数据
@@ -47,62 +43,13 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          # 同时更新根目录和Game站的数据
           mkdir -p apps/game/public/data
           cp public/data/steam-games.json apps/game/public/data/
           git add public/data/steam-games.json apps/game/public/data/steam-games.json
-          git diff --staged --quiet || git commit -m "🎮 Update Steam games data [skip ci]"
+          git diff --staged --quiet || git commit -m "🎮 Update Steam games data"
           git push || echo "No changes to push"
 
-  # 构建并部署Game站到game.maysssss.cn
-  deploy-game:
-    runs-on: ubuntu-latest
-    needs: update-steam-data
-    if: always()
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    environment:
-      name: game-production
-      url: https://game.maysssss.cn
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build Game App
-        run: pnpm build:game
-
-      - name: Add CNAME for game subdomain
-        run: echo "game.maysssss.cn" > apps/game/dist/CNAME
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "./apps/game/dist"
-
-      - name: Deploy to GitHub Pages (Game)
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-  # Photo 站点已改用 Cloudflare Pages 自动部署
-  # 访问 https://dash.cloudflare.com 管理 mays-photo 项目
+  # 站点部署说明：
+  # - Game 站点: Cloudflare Pages (mays-game) -> game.maysssss.cn
+  # - Photo 站点: Cloudflare Pages (mays-photo) -> photo.maysssss.cn
+  # 推送到 main 分支会自动触发 Cloudflare Pages 构建
