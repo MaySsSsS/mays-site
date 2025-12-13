@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-12-12T03:17:14.261Z",
+  "lastUpdated": "2025-12-13T03:10:23.532Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -11,8 +11,8 @@
     "avatarmedium": "https://avatars.steamstatic.com/6889e542266ff1eca9c32d7f405a723a0e19f756_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/6889e542266ff1eca9c32d7f405a723a0e19f756_full.jpg",
     "avatarhash": "6889e542266ff1eca9c32d7f405a723a0e19f756",
-    "lastlogoff": 1765415723,
-    "personastate": 4,
+    "lastlogoff": 1765593744,
+    "personastate": 3,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
     "timecreated": 1491720729,
@@ -2133,7 +2133,7 @@
     {
       "appid": 2807960,
       "name": "Battlefield™ 6",
-      "playtime_2weeks": 36,
+      "playtime_2weeks": 18,
       "playtime_forever": 3887,
       "img_icon_url": "f07be1624106283c0d85e1bc9211d431caa9b4b8",
       "has_community_visible_stats": true,
