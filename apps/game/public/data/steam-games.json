@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-11T04:02:21.401Z",
+  "lastUpdated": "2026-03-12T04:06:23.416Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -453,6 +453,7 @@
       "playtime_deck_forever": 0,
       "rtime_last_played": 1603775520,
       "content_descriptorids": [
+        1,
         2,
         5
       ],
