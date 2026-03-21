@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-20T04:06:33.397Z",
+  "lastUpdated": "2026-03-21T03:57:45.705Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -303,6 +303,10 @@
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
       "rtime_last_played": 0,
+      "content_descriptorids": [
+        2,
+        5
+      ],
       "playtime_disconnected": 0,
       "playtime_2weeks": 0
     },
@@ -600,6 +604,11 @@
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
       "rtime_last_played": 1541168237,
+      "content_descriptorids": [
+        1,
+        2,
+        5
+      ],
       "playtime_disconnected": 0,
       "playtime_2weeks": 0
     },
