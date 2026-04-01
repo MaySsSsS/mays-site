@@ -25,7 +25,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  document.title = `${to.meta.title || "首页"} | Mays Games`;
+  document.title = `${to.meta.title || "HOME"} // MAYS GAME SYSTEM`;
   next();
 });
 
