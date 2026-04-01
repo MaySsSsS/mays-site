@@ -1,82 +1,87 @@
 <template>
   <div class="app-layout">
-    <!-- 导航栏 -->
-    <header class="navbar">
-      <div class="navbar-container">
+    <!-- 终端顶部栏 -->
+    <header class="top-bar">
+      <div class="top-bar-inner">
         <router-link to="/" class="logo">
-          <span class="logo-icon">🎮</span>
-          <span class="logo-text">Mays Games</span>
+          <span class="logo-prompt">&gt;</span>
+          <span class="logo-text">MAYS://GAME</span>
+          <span class="status-dot online"></span>
         </router-link>
 
         <nav class="nav-links">
           <router-link to="/" class="nav-link">
-            <span class="nav-icon">🏠</span>
-            首页
+            <span class="nav-arrow">&#9656;</span>
+            HOME
           </router-link>
           <router-link to="/games" class="nav-link">
-            <span class="nav-icon">🎯</span>
-            游戏库
+            <span class="nav-arrow">&#9656;</span>
+            LIBRARY
           </router-link>
         </nav>
 
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
-          <span></span>
-          <span></span>
-          <span></span>
+          <span class="menu-icon">{{ mobileMenuOpen ? '&#10005;' : '&#9776;' }}</span>
         </button>
       </div>
 
-      <!-- 移动端菜单 -->
       <div class="mobile-menu" :class="{ active: mobileMenuOpen }">
-        <router-link
-          to="/"
-          class="mobile-nav-link"
-          @click="mobileMenuOpen = false"
-          >首页</router-link
-        >
-        <router-link
-          to="/games"
-          class="mobile-nav-link"
-          @click="mobileMenuOpen = false"
-          >游戏库</router-link
-        >
+        <router-link to="/" class="mobile-nav-link" @click="mobileMenuOpen = false">
+          <span class="nav-arrow">&#9656;</span> HOME
+        </router-link>
+        <router-link to="/games" class="mobile-nav-link" @click="mobileMenuOpen = false">
+          <span class="nav-arrow">&#9656;</span> LIBRARY
+        </router-link>
       </div>
     </header>
 
-    <!-- 主内容区 -->
     <main class="main-content">
       <slot />
     </main>
 
-    <!-- 页脚 -->
-    <footer class="footer">
-      <div class="footer-container">
-        <div class="footer-info">
-          <p>© 2024 Mays Games. Steam 游戏库展示</p>
-          <p class="footer-sub">Built with Vue 3 + TypeScript + Pinia</p>
-        </div>
-        <div class="footer-links">
-          <a
-            href="https://store.steampowered.com"
-            target="_blank"
-            rel="noopener"
-            >Steam</a
-          >
-          <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
-        </div>
+    <!-- 底部状态栏 -->
+    <footer class="status-bar">
+      <div class="status-bar-inner">
+        <span class="status-item">
+          <span class="status-dot online"></span>
+          STEAM:ONLINE
+        </span>
+        <span class="status-divider">|</span>
+        <span class="status-item status-dim">V2.0.1</span>
+        <span class="status-divider">|</span>
+        <span class="status-item status-dim">{{ currentTime }}</span>
+        <span class="status-spacer"></span>
+        <span class="status-item status-dim">BUILT WITH VUE3 + TS</span>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 
 const mobileMenuOpen = ref(false);
+const currentTime = ref("--:--:--");
+
+let timeInterval: number | null = null;
 
 function toggleMobileMenu() {
   mobileMenuOpen.value = !mobileMenuOpen.value;
 }
+
+function updateTime() {
+  const now = new Date();
+  currentTime.value = now.toLocaleTimeString("en-GB", { hour12: false });
+}
+
+onMounted(() => {
+  updateTime();
+  timeInterval = window.setInterval(updateTime, 1000);
+});
+
+onUnmounted(() => {
+  if (timeInterval) clearInterval(timeInterval);
+});
 </script>
 
 <style scoped>
@@ -86,126 +91,77 @@ function toggleMobileMenu() {
   flex-direction: column;
 }
 
-/* 导航栏 - 赛博朋克风格 */
-.navbar {
+/* ========== 顶部栏 ========== */
+.top-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 2px solid rgba(0, 240, 255, 0.2);
-  box-shadow: 0 4px 30px rgba(0, 240, 255, 0.1);
+  background: rgba(4, 6, 12, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-dim);
 }
 
-.navbar-container {
+.top-bar-inner {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem;
-  height: 72px;
+  padding: 0 1.5rem;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
+/* Logo */
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   text-decoration: none;
-  font-size: 1.4rem;
-  font-weight: 700;
-  transition: transform 0.3s ease;
-}
-
-.logo:hover {
-  transform: scale(1.05);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  transition: all 0.2s ease;
 }
 
 .logo::after {
   display: none;
 }
 
-.logo-icon {
-  font-size: 1.6rem;
-  filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3));
-  animation: bounce-soft 3s ease-in-out infinite;
+.logo:hover {
+  text-shadow: 0 0 8px var(--neon-green);
 }
 
-@keyframes bounce-soft {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
+.logo-prompt {
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
 .logo-text {
-  background: linear-gradient(
-    135deg,
-    var(--neon-cyan) 0%,
-    var(--neon-pink) 100%
-  );
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradient-flow 3s ease infinite;
-  text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+  color: var(--neon-green);
 }
 
-@keyframes gradient-flow {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
+/* 导航 */
 .nav-links {
   display: flex;
-  gap: 0.5rem;
-  background: rgba(15, 15, 25, 0.6);
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  gap: 0.25rem;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-decoration: none;
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 0.85rem;
-  font-family: var(--font-display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-radius: 6px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.nav-link::before {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
-  transition: width 0.3s ease;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
 }
 
 .nav-link::after {
@@ -213,81 +169,67 @@ function toggleMobileMenu() {
 }
 
 .nav-link:hover {
-  color: var(--neon-cyan);
-  text-shadow: 0 0 10px var(--neon-cyan);
-}
-
-.nav-link:hover::before {
-  width: 100%;
+  color: var(--neon-green);
+  border-color: var(--border-dim);
 }
 
 .nav-link.router-link-active {
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.1);
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2),
-    inset 0 0 20px rgba(0, 240, 255, 0.05);
-  text-shadow: 0 0 10px var(--neon-cyan);
+  color: var(--neon-green);
+  background: rgba(0, 255, 159, 0.05);
+  border-color: var(--border-subtle);
 }
 
-.nav-link.router-link-active::before {
-  width: 100%;
+.nav-arrow {
+  font-size: 0.6rem;
+  opacity: 0.5;
 }
 
-.nav-icon {
-  font-size: 1rem;
-  transition: transform 0.3s ease;
-}
-
-.nav-link:hover .nav-icon {
-  transform: scale(1.2) rotate(-5deg);
+.nav-link.router-link-active .nav-arrow {
+  opacity: 1;
 }
 
 /* 移动端菜单按钮 */
 .mobile-menu-btn {
   display: none;
-  flex-direction: column;
-  gap: 5px;
-  padding: 10px;
-  background: rgba(15, 15, 25, 0.8);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  color: var(--neon-green);
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
 }
 
 .mobile-menu-btn:hover {
-  background: rgba(0, 240, 255, 0.1);
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-  transform: scale(1.05);
+  border-color: var(--neon-green);
+  box-shadow: var(--glow-green);
 }
 
-.mobile-menu-btn span {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
-  border-radius: 2px;
-  box-shadow: 0 0 5px var(--neon-cyan);
-  transition: all 0.3s ease;
+.menu-icon {
+  line-height: 1;
 }
 
+/* 移动端菜单 */
 .mobile-menu {
   display: none;
-  padding: 1rem 1.5rem 1.5rem;
-  background: rgba(10, 10, 15, 0.95);
-  backdrop-filter: blur(20px);
-  border-top: 2px solid rgba(0, 240, 255, 0.3);
+  padding: 0.5rem 1rem 1rem;
+  background: rgba(4, 6, 12, 0.98);
+  border-top: 1px solid var(--border-dim);
 }
 
 .mobile-menu.active {
   display: block;
-  animation: slide-down 0.3s ease;
+  animation: slide-in 0.2s ease;
 }
 
-@keyframes slide-down {
+@keyframes slide-in {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
@@ -296,119 +238,72 @@ function toggleMobileMenu() {
 }
 
 .mobile-nav-link {
-  display: block;
-  padding: 0.9rem 1rem;
-  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.5rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
   text-decoration: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-family: var(--font-display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  transition: all 0.3s ease;
   border-left: 2px solid transparent;
+  transition: all 0.2s ease;
 }
 
 .mobile-nav-link:hover,
 .mobile-nav-link.router-link-active {
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.1);
-  border-left-color: var(--neon-cyan);
-  text-shadow: 0 0 10px var(--neon-cyan);
-  transform: translateX(5px);
+  color: var(--neon-green);
+  border-left-color: var(--neon-green);
+  background: rgba(0, 255, 159, 0.03);
 }
 
 /* 主内容 */
 .main-content {
   flex: 1;
-  margin-top: 72px;
+  margin-top: 48px;
 }
 
-/* 页脚 - 赛博朋克风格 */
-.footer {
-  background: rgba(10, 10, 15, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 2px solid rgba(0, 240, 255, 0.2);
-  padding: 2rem;
-  position: relative;
+/* ========== 底部状态栏 ========== */
+.status-bar {
+  background: rgba(4, 6, 12, 0.92);
+  border-top: 1px solid var(--border-dim);
+  padding: 0.4rem 0;
 }
 
-.footer::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--neon-cyan),
-    var(--neon-pink),
-    transparent
-  );
-  opacity: 0.5;
-}
-
-.footer-container {
+.status-bar-inner {
   max-width: 1400px;
   margin: 0 auto;
+  padding: 0 1.5rem;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.footer-info p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  gap: 0.5rem;
   font-family: var(--font-mono);
-}
-
-.footer-sub {
-  margin-top: 0.4rem !important;
-  font-size: 0.8rem !important;
-  color: var(--text-muted) !important;
-}
-
-.footer-links {
-  display: flex;
-  gap: 1rem;
-}
-
-.footer-links a {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-weight: 600;
-  font-family: var(--font-display);
+  font-size: 0.65rem;
+  color: var(--text-muted);
   letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  background: rgba(15, 15, 25, 0.5);
-  border: 1px solid rgba(0, 240, 255, 0.2);
 }
 
-.footer-links a::after {
-  display: none;
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-secondary);
 }
 
-.footer-links a:hover {
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.1);
-  border-color: var(--neon-cyan);
-  text-shadow: 0 0 10px var(--neon-cyan);
-  transform: translateY(-3px);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+.status-dim {
+  color: var(--text-muted);
 }
 
-/* 响应式 */
+.status-divider {
+  color: var(--border-dim);
+}
+
+.status-spacer {
+  flex: 1;
+}
+
+/* ========== 响应式 ========== */
 @media (max-width: 768px) {
   .nav-links {
     display: none;
@@ -418,13 +313,13 @@ function toggleMobileMenu() {
     display: flex;
   }
 
-  .navbar-container {
+  .top-bar-inner {
     padding: 0 1rem;
   }
 
-  .footer-container {
-    flex-direction: column;
-    text-align: center;
+  .status-bar-inner {
+    font-size: 0.55rem;
+    gap: 0.35rem;
   }
 }
 </style>

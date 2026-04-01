@@ -1,56 +1,62 @@
 <template>
   <MainLayout>
     <div class="games-page">
-      <!-- Page Header -->
+      <!-- 页头 -->
       <section class="page-header">
-        <h1 class="page-title">
-          <span class="title-icon">🎮</span>
-          我的游戏库
-        </h1>
-        <p class="page-subtitle">
-          收藏了 {{ steamStore.gameStats.totalGames }} 款游戏， 累计游玩
-          {{ formatTotalHours }} 小时
-        </p>
-      </section>
-
-      <!-- Filters & Sort -->
-      <section class="filters-section">
         <div class="container">
-          <div class="filters-bar">
-            <div class="search-box">
-              <span class="search-icon">🔍</span>
-              <input
-                type="text"
-                v-model="searchQuery"
-                placeholder="搜索游戏..."
-                class="search-input"
-              />
-            </div>
-            <div class="sort-options">
-              <label class="sort-label">排序：</label>
-              <select v-model="sortBy" class="sort-select">
-                <option value="playtime">游玩时长</option>
-                <option value="name">名称</option>
-                <option value="recent">最近游玩</option>
-              </select>
-            </div>
-            <div class="filter-options">
-              <button
-                class="filter-btn"
-                :class="{ active: showOnlyPlayed }"
-                @click="showOnlyPlayed = !showOnlyPlayed"
-              >
-                仅显示玩过的
-              </button>
-            </div>
+          <div class="terminal-header">
+            <span>GAME_LIBRARY</span>
+            <span class="header-line"></span>
+            <span class="header-status"
+              >{{ steamStore.gameStats.totalGames }} MODULES /
+              {{ formatTotalHours }}H TOTAL</span
+            >
           </div>
         </div>
       </section>
 
-      <!-- Games Grid -->
+      <!-- 筛选栏 -->
+      <section class="filters-section">
+        <div class="container">
+          <div class="filters-bar">
+            <div class="search-box">
+              <span class="search-prompt">&gt;</span>
+              <input
+                type="text"
+                v-model="searchQuery"
+                placeholder="SEARCH"
+                class="search-input"
+              />
+              <span class="search-cursor" v-if="!searchQuery">_</span>
+            </div>
+            <div class="sort-options">
+              <select v-model="sortBy" class="sort-select">
+                <option value="playtime">BY_PLAYTIME</option>
+                <option value="name">BY_NAME</option>
+                <option value="recent">BY_RECENT</option>
+              </select>
+            </div>
+            <button
+              class="filter-btn"
+              :class="{ active: showOnlyPlayed }"
+              @click="showOnlyPlayed = !showOnlyPlayed"
+            >
+              <span class="filter-indicator">{{
+                showOnlyPlayed ? "[x]" : "[ ]"
+              }}</span>
+              PLAYED_ONLY
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 游戏列表 -->
       <section class="games-section">
         <div class="container">
-          <div class="games-count">显示 {{ filteredGames.length }} 款游戏</div>
+          <div class="result-count">
+            // DISPLAYING {{ filteredGames.length }} OF
+            {{ steamStore.gameStats.totalGames }} MODULES
+          </div>
 
           <div class="games-grid" v-if="!steamStore.loading">
             <GameCard
@@ -62,35 +68,34 @@
 
           <div class="loading-state" v-else>
             <div class="loader"></div>
-            <p>加载游戏数据中...</p>
+            <span>LOADING<span class="blink-cursor"></span></span>
           </div>
 
           <div
             class="empty-state"
             v-if="!steamStore.loading && filteredGames.length === 0"
           >
-            <span class="empty-icon">🎯</span>
-            <p>没有找到匹配的游戏</p>
+            <span>// NO_RESULTS_FOUND</span>
           </div>
 
-          <!-- Pagination -->
+          <!-- 分页 -->
           <div class="pagination" v-if="totalPages > 1">
             <button
               class="page-btn"
               :disabled="currentPage === 1"
               @click="currentPage--"
             >
-              ← 上一页
+              [PREV]
             </button>
             <span class="page-info">
-              {{ currentPage }} / {{ totalPages }}
+              {{ currentPage }}/{{ totalPages }}
             </span>
             <button
               class="page-btn"
               :disabled="currentPage === totalPages"
               @click="currentPage++"
             >
-              下一页 →
+              [NEXT]
             </button>
           </div>
         </div>
@@ -119,18 +124,15 @@ const formatTotalHours = computed(() => {
 const filteredGames = computed(() => {
   let games = [...steamStore.games];
 
-  // 搜索过滤
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     games = games.filter((g) => g.name.toLowerCase().includes(query));
   }
 
-  // 只显示玩过的
   if (showOnlyPlayed.value) {
     games = games.filter((g) => g.playtime_forever > 0);
   }
 
-  // 排序
   switch (sortBy.value) {
     case "playtime":
       games.sort((a, b) => b.playtime_forever - a.playtime_forever);
@@ -148,16 +150,15 @@ const filteredGames = computed(() => {
   return games;
 });
 
-const totalPages = computed(() => {
-  return Math.ceil(filteredGames.value.length / gamesPerPage);
-});
+const totalPages = computed(() =>
+  Math.ceil(filteredGames.value.length / gamesPerPage)
+);
 
 const paginatedGames = computed(() => {
   const start = (currentPage.value - 1) * gamesPerPage;
   return filteredGames.value.slice(start, start + gamesPerPage);
 });
 
-// 重置分页当过滤条件改变时
 watch([searchQuery, sortBy, showOnlyPlayed], () => {
   currentPage.value = 1;
 });
@@ -172,237 +173,206 @@ onMounted(() => {
 <style scoped>
 .games-page {
   min-height: 100vh;
-  padding-bottom: 4rem;
-  background: #f8fafc;
+  padding-bottom: 3rem;
+  background: var(--bg-darker);
 }
 
-/* Page Header */
+/* ========== 页头 ========== */
 .page-header {
-  padding: 4rem 2rem;
-  text-align: center;
-  background: linear-gradient(
-    180deg,
-    rgba(59, 130, 246, 0.08) 0%,
-    transparent 100%
-  );
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border-dim);
 }
 
-.page-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 1rem;
-}
-
-.title-icon {
-  font-size: 2rem;
-}
-
-.page-subtitle {
-  color: #64748b;
-  font-size: 1.1rem;
-}
-
-/* Filters Section */
+/* ========== 筛选栏 ========== */
 .filters-section {
-  padding: 0 2rem;
-  margin-bottom: 2rem;
-}
-
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border-dim);
 }
 
 .filters-bar {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
-  padding: 1.5rem;
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* 搜索框 */
 .search-box {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   flex: 1;
-  min-width: 250px;
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 0 1rem;
-  border: 1px solid #e2e8f0;
-  transition: border-color 0.3s ease;
+  min-width: 200px;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-medium);
+  border: 1px solid var(--border-dim);
+  font-family: var(--font-mono);
+  transition: border-color 0.2s ease;
 }
 
 .search-box:focus-within {
-  border-color: #3b82f6;
+  border-color: var(--neon-green);
+  box-shadow: 0 0 8px rgba(0, 255, 159, 0.1);
 }
 
-.search-icon {
-  font-size: 1.1rem;
+.search-prompt {
+  color: var(--text-muted);
+  margin-right: 0.5rem;
+  font-size: 0.8rem;
 }
 
 .search-input {
   flex: 1;
   background: none;
   border: none;
-  padding: 0.875rem 0;
-  color: #1e293b;
-  font-size: 1rem;
+  color: var(--neon-green);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
   outline: none;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .search-input::placeholder {
-  color: #94a3b8;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-.sort-options {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.search-cursor {
+  color: var(--neon-green);
+  animation: cursor-blink 1s step-end infinite;
 }
 
-.sort-label {
-  color: #64748b;
-  font-size: 0.9rem;
-}
-
+/* 排序 */
 .sort-select {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.625rem 1rem;
-  color: #1e293b;
-  font-size: 0.9rem;
+  background: var(--bg-medium);
+  border: 1px solid var(--border-dim);
+  padding: 0.5rem 0.75rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
   cursor: pointer;
   outline: none;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.2s ease;
 }
 
 .sort-select:hover,
 .sort-select:focus {
-  border-color: #3b82f6;
+  border-color: var(--neon-green);
 }
 
+.sort-select option {
+  background: var(--bg-dark);
+}
+
+/* 筛选按钮 */
 .filter-btn {
-  background: rgba(59, 130, 246, 0.08);
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.625rem 1rem;
-  color: #64748b;
-  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-medium);
+  border: 1px solid var(--border-dim);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .filter-btn:hover {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3b82f6;
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
 }
 
 .filter-btn.active {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: #3b82f6;
-  color: #3b82f6;
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+  background: rgba(0, 255, 159, 0.05);
 }
 
-/* Games Section */
+.filter-indicator {
+  font-size: 0.7rem;
+}
+
+/* ========== 游戏列表 ========== */
 .games-section {
-  padding: 0 2rem;
+  padding: 1.25rem 0;
 }
 
-.games-count {
-  color: #64748b;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
+.result-count {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
 }
 
 .games-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  gap: 1px;
+  background: var(--border-dim);
 }
 
-/* Loading & Empty State */
+/* 加载/空状态 */
 .loading-state,
 .empty-state {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
   padding: 4rem;
-  color: #64748b;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
 }
 
-.loader {
-  width: 50px;
-  height: 50px;
-  border: 3px solid rgba(59, 130, 246, 0.2);
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  margin: 0 auto 1rem;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.empty-icon {
-  font-size: 4rem;
-  display: block;
-  margin-bottom: 1rem;
-}
-
-/* Pagination */
+/* ========== 分页 ========== */
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  margin-top: 3rem;
-  padding: 1.5rem;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  font-family: var(--font-mono);
 }
 
 .page-btn {
-  background: rgba(59, 130, 246, 0.08);
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  color: #3b82f6;
-  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+  background: var(--bg-medium);
+  border: 1px solid var(--border-dim);
+  color: var(--neon-green);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .page-btn:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--neon-green);
+  box-shadow: var(--glow-green);
 }
 
 .page-btn:disabled {
-  opacity: 0.5;
+  color: var(--text-muted);
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .page-info {
-  color: #64748b;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
 }
 
-/* Responsive */
+/* ========== 响应式 ========== */
 @media (max-width: 768px) {
-  .page-title {
-    font-size: 1.75rem;
-  }
-
   .filters-bar {
     flex-direction: column;
     align-items: stretch;

@@ -1,31 +1,31 @@
 <template>
   <div class="featured-game" @click="openSteamPage">
+    <div class="card-top">
+      <span class="card-pid">PID:{{ game.appid }}</span>
+    </div>
     <div class="game-image">
       <img
         :src="`https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`"
         :alt="game.name"
       />
-      <div class="play-overlay">
-        <span class="play-icon">▶</span>
+      <div class="run-overlay">
+        <span class="run-text">&#9654; RUN</span>
       </div>
     </div>
     <div class="game-info">
       <h3 class="game-name">{{ game.name }}</h3>
       <div class="game-stats">
         <div class="stat">
-          <span class="stat-icon">🕐</span>
-          <span class="stat-value">{{ formatPlaytime }}</span>
+          <span class="stat-key">TIME:</span>
+          <span class="stat-val">{{ formatPlaytime }}</span>
         </div>
         <div class="stat" v-if="game.rtime_last_played">
-          <span class="stat-icon">📅</span>
-          <span class="stat-value">{{ formatLastPlayed }}</span>
+          <span class="stat-key">LAST:</span>
+          <span class="stat-val">{{ formatLastPlayed }}</span>
         </div>
       </div>
-      <div class="progress-bar" v-if="maxPlaytime && maxPlaytime > 0">
-        <div
-          class="progress-fill"
-          :style="{ width: progressPercent + '%' }"
-        ></div>
+      <div class="bar-track" v-if="maxPlaytime && maxPlaytime > 0">
+        <div class="bar-fill" :style="{ width: progressPercent + '%' }"></div>
       </div>
     </div>
   </div>
@@ -48,26 +48,20 @@ const props = defineProps<{
 
 const formatPlaytime = computed(() => {
   const hours = Math.floor(props.game.playtime_forever / 60);
-  if (hours >= 1000) {
-    return `${(hours / 1000).toFixed(1)}k 小时`;
-  }
-  return `${hours} 小时`;
+  if (hours >= 1000) return `${(hours / 1000).toFixed(1)}k_h`;
+  return `${hours}h`;
 });
 
 const formatLastPlayed = computed(() => {
   if (!props.game.rtime_last_played) return "";
-  const date = new Date(props.game.rtime_last_played * 1000);
-  const now = new Date();
   const diffDays = Math.floor(
-    (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+    (Date.now() / 1000 - props.game.rtime_last_played) / 86400
   );
-
-  if (diffDays === 0) return "今天";
-  if (diffDays === 1) return "昨天";
-  if (diffDays < 7) return `${diffDays} 天前`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} 周前`;
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} 个月前`;
-  return `${Math.floor(diffDays / 365)} 年前`;
+  if (diffDays === 0) return "today";
+  if (diffDays === 1) return "1d";
+  if (diffDays < 30) return `${diffDays}d`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo`;
+  return `${Math.floor(diffDays / 365)}y`;
 });
 
 const progressPercent = computed(() => {
@@ -85,21 +79,40 @@ const openSteamPage = () => {
 
 <style scoped>
 .featured-game {
-  background: #ffffff;
-  border-radius: 16px;
+  background: var(--bg-card);
   overflow: hidden;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-dim);
+  transition: all 0.25s ease;
 }
 
 .featured-game:hover {
-  transform: translateY(-4px);
-  border-color: #3b82f6;
-  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15);
+  border-color: var(--border-subtle);
+  background: rgba(10, 14, 22, 0.95);
 }
 
+.featured-game:hover .game-name {
+  color: var(--neon-green);
+}
+
+.featured-game:hover .game-image img {
+  filter: brightness(1.1);
+}
+
+/* 顶部条 */
+.card-top {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  background: var(--bg-medium);
+  border-bottom: 1px solid var(--border-dim);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+/* 图片 */
 .game-image {
   position: relative;
   aspect-ratio: 460 / 215;
@@ -110,90 +123,70 @@ const openSteamPage = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  filter: brightness(0.8) saturate(0.75);
+  transition: filter 0.3s ease;
 }
 
-.featured-game:hover .game-image img {
-  transform: scale(1.05);
-}
-
-.play-overlay {
+.run-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
-.featured-game:hover .play-overlay {
+.featured-game:hover .run-overlay {
   opacity: 1;
 }
 
-.play-icon {
-  width: 60px;
-  height: 60px;
-  background: rgba(59, 130, 246, 0.95);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: #ffffff;
-  padding-left: 4px;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+.run-text {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--neon-green);
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--neon-green);
+  letter-spacing: 0.1em;
 }
 
+/* 信息 */
 .game-info {
-  padding: 1.25rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--border-dim);
 }
 
 .game-name {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 0.75rem 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--font-ui);
+  transition: color 0.2s ease;
 }
 
 .game-stats {
   display: flex;
   gap: 1rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .stat {
   display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  color: #64748b;
+  gap: 0.3rem;
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
 }
 
-.stat-icon {
-  font-size: 0.9rem;
+.stat-key {
+  color: var(--text-muted);
 }
 
-.stat-value {
-  color: #3b82f6;
-  font-weight: 500;
-}
-
-.progress-bar {
-  height: 4px;
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
-  border-radius: 2px;
-  transition: width 0.5s ease;
+.stat-val {
+  color: var(--neon-green);
 }
 </style>

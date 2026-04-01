@@ -16,21 +16,28 @@
       </div>
     </div>
 
-    <!-- 渐变遮罩 -->
+    <!-- 深色遮罩 -->
     <div class="overlay"></div>
 
-    <!-- 浮动游戏元素装饰 -->
-    <div class="floating-elements">
-      <div class="float-icon icon-1">🎮</div>
-      <div class="float-icon icon-2">🏆</div>
-      <div class="float-icon icon-3">⚔️</div>
-      <div class="float-icon icon-4">🎯</div>
-      <div class="float-icon icon-5">💎</div>
+    <!-- 数字雨粒子 -->
+    <div class="matrix-rain">
+      <div
+        v-for="col in rainColumns"
+        :key="col.id"
+        class="rain-column"
+        :style="{
+          left: col.x + '%',
+          animationDuration: col.speed + 's',
+          animationDelay: col.delay + 's',
+        }"
+      >
+        {{ col.chars }}
+      </div>
     </div>
 
     <!-- 当前游戏名称 -->
     <div class="current-game-name" v-if="featuredGames.length > 0">
-      <span class="now-featuring">Now Featuring</span>
+      <span class="featuring-label">&gt; FEATURING:</span>
       <span class="game-title">{{ featuredGames[currentIndex]?.name }}</span>
     </div>
   </div>
@@ -39,7 +46,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 
-// 你最常玩的游戏 appid 列表
 const featuredGames = ref([
   { appid: 730, name: "Counter-Strike 2" },
   { appid: 1172470, name: "Apex Legends" },
@@ -54,23 +60,34 @@ const featuredGames = ref([
 const currentIndex = ref(0);
 let intervalId: number | null = null;
 
+// 生成数字雨列
+const chars = "01ABCDEF0123456789";
+const rainColumns = ref(
+  Array.from({ length: 18 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    speed: 8 + Math.random() * 15,
+    delay: Math.random() * 10,
+    chars: Array.from(
+      { length: 8 + Math.floor(Math.random() * 8) },
+      () => chars[Math.floor(Math.random() * chars.length)]
+    ).join("\n"),
+  }))
+);
+
 const handleImageError = (event: Event, appid: number) => {
-  // 如果 library_hero 图片加载失败，使用 header 图片作为备用
   const img = event.target as HTMLImageElement;
   img.src = `https://steamcdn-a.akamaihd.net/steam/apps/${appid}/header.jpg`;
 };
 
 onMounted(() => {
-  // 每5秒切换一次背景
   intervalId = window.setInterval(() => {
     currentIndex.value = (currentIndex.value + 1) % featuredGames.value.length;
-  }, 5000);
+  }, 6000);
 });
 
 onUnmounted(() => {
-  if (intervalId) {
-    clearInterval(intervalId);
-  }
+  if (intervalId) clearInterval(intervalId);
 });
 </script>
 
@@ -90,7 +107,7 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 1.5s ease-in-out;
+  transition: opacity 2s ease-in-out;
 }
 
 .cover-slide.active {
@@ -101,7 +118,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: blur(2px) brightness(0.4);
+  filter: blur(4px) brightness(0.2) saturate(0.5);
   transform: scale(1.05);
 }
 
@@ -109,107 +126,78 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-      180deg,
-      rgba(13, 17, 23, 0.7) 0%,
-      rgba(13, 17, 23, 0.4) 50%,
-      rgba(13, 17, 23, 0.95) 100%
-    ),
-    radial-gradient(
-      ellipse at 30% 20%,
-      rgba(102, 192, 244, 0.15) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 70% 80%,
-      rgba(168, 85, 247, 0.1) 0%,
-      transparent 50%
-    );
+    180deg,
+    rgba(2, 2, 4, 0.6) 0%,
+    rgba(2, 2, 4, 0.3) 40%,
+    rgba(2, 2, 4, 0.95) 100%
+  );
 }
 
-/* 浮动装饰元素 */
-.floating-elements {
+/* 数字雨 */
+.matrix-rain {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   pointer-events: none;
+  opacity: 0.12;
 }
 
-.float-icon {
+.rain-column {
   position: absolute;
-  font-size: 2rem;
-  opacity: 0.1;
-  animation: float 20s infinite ease-in-out;
+  top: -100%;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1.2;
+  color: var(--neon-green);
+  white-space: pre;
+  animation: rain-fall linear infinite;
 }
 
-.icon-1 {
-  top: 10%;
-  left: 10%;
-  animation-delay: 0s;
-}
-.icon-2 {
-  top: 20%;
-  right: 15%;
-  animation-delay: -4s;
-}
-.icon-3 {
-  bottom: 30%;
-  left: 20%;
-  animation-delay: -8s;
-}
-.icon-4 {
-  top: 40%;
-  right: 25%;
-  animation-delay: -12s;
-}
-.icon-5 {
-  bottom: 20%;
-  right: 10%;
-  animation-delay: -16s;
-}
-
-@keyframes float {
-  0%,
+@keyframes rain-fall {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
   100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-20px) rotate(5deg);
-  }
-  50% {
-    transform: translateY(0) rotate(0deg);
-  }
-  75% {
-    transform: translateY(20px) rotate(-5deg);
+    transform: translateY(calc(100vh + 100%));
+    opacity: 0;
   }
 }
 
 /* 当前游戏名称 */
 .current-game-name {
   position: absolute;
-  bottom: 2rem;
-  right: 2rem;
+  bottom: 1.5rem;
+  right: 1.5rem;
   text-align: right;
-  opacity: 0.6;
+  opacity: 0.4;
   transition: opacity 0.3s ease;
+  font-family: var(--font-mono);
 }
 
 .current-game-name:hover {
-  opacity: 1;
+  opacity: 0.8;
 }
 
-.now-featuring {
+.featuring-label {
   display: block;
-  font-size: 0.75rem;
-  color: #66c0f4;
+  font-size: 0.55rem;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-bottom: 0.25rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.15rem;
 }
 
 .game-title {
   display: block;
-  font-size: 1rem;
-  color: #e6edf3;
-  font-weight: 500;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {
@@ -218,8 +206,8 @@ onUnmounted(() => {
     right: 1rem;
   }
 
-  .float-icon {
-    font-size: 1.5rem;
+  .rain-column {
+    font-size: 0.5rem;
   }
 }
 </style>
