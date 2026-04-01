@@ -70,6 +70,15 @@ body {
   font-size: 14px;
 }
 
+/* 桌面端统一使用自定义光标，隐藏原生 pointer */
+@media (pointer: fine) {
+  *,
+  *::before,
+  *::after {
+    cursor: none !important;
+  }
+}
+
 /* ========== 扫描线 ========== */
 body::before {
   content: "";
