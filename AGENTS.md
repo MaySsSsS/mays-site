@@ -1,4 +1,4 @@
-> **同步警告**：本文件与 AGENTS.md 内容完全一致。修改本文件时，必须同步更新 AGENTS.md。
+> **同步警告**：本文件与 CLAUDE.md 内容完全一致。修改本文件时，必须同步更新 CLAUDE.md。
 
 # mays-site
 
