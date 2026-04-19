@@ -7,13 +7,13 @@ const portalItems = [
     title: "Game",
     href: "/game",
     domain: "game.maysssss.cn",
-    description: "Steam 游戏仪表盘与游戏库，保持原来的独立子站定位。"
+    description: "查看游戏时长、最近在玩什么，以及完整游戏库。"
   },
   {
     title: "Photos",
     href: "/photos",
     domain: "photo.maysssss.cn",
-    description: "照片分组、城市筛选与中国地图足迹。"
+    description: "按城市浏览照片、分组和地图上的足迹。"
   }
 ];
 
@@ -23,11 +23,10 @@ export default function PortalPage() {
       <section className={styles.hero}>
         <p className={styles.kicker}>MAYS SITE</p>
         <h1 className={styles.title}>
-          主站只做入口，Game 与 Photos 继续保持各自的子站语义。
+          游戏和照片，各自独立，也都能一眼找到。
         </h1>
         <p className={styles.description}>
-          这次重构统一的是技术栈，不是把 `game.maysssss.cn` 的内容硬塞到主站首页。
-          主站 `/` 现在作为门户页，业务模块仍然分开访问。
+          从这里进入 Game 或 Photos。一个看游戏记录，一个看照片和足迹。
         </p>
       </section>
 

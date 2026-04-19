@@ -142,7 +142,7 @@ export function PhotosClient() {
             <p className={styles.eyebrow}>PHOTO JOURNAL</p>
             <h1 className={styles.heroTitle}>把照片按城市重新归档</h1>
             <p className={styles.heroText}>
-              登录后查看照片分组、城市地图和时间线，继续按原来的方式管理足迹。
+              登录后查看按城市整理的照片、地图和时间线。
             </p>
           </div>
         </section>
@@ -158,7 +158,7 @@ export function PhotosClient() {
           <p className={styles.eyebrow}>PHOTO JOURNAL</p>
           <h1 className={styles.heroTitle}>照片 · 足迹</h1>
           <p className={styles.heroText}>
-            按城市整理照片，在地图上查看足迹，继续维护分组、上传和删除。
+            按城市整理照片，在地图上查看足迹，管理分组、上传和删除。
           </p>
 
           <div className={styles.stats}>

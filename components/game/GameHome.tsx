@@ -78,10 +78,10 @@ export function GameHome({
           </div>
 
           <div className={styles.heroCopy}>
-            <p className={styles.kicker}>STEAM DASHBOARD</p>
-            <h1 className={styles.title}>Steam 仪表盘</h1>
+            <p className={styles.kicker}>GAME</p>
+            <h1 className={styles.title}>最近在玩什么</h1>
             <p className={styles.subtitle}>
-              记录游戏时长、最近活动和常驻收藏，保持原来的终端化浏览体验。
+              看总时长、最近游玩和最常打开的游戏，快速回到熟悉的作品。
             </p>
           </div>
         </div>

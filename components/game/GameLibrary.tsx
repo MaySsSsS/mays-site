@@ -86,7 +86,7 @@ export function GameLibrary({
             </span>
           </div>
           <p className={styles.headerText}>
-            按游戏时长、最近游玩和名称检索整个游戏库，快速定位常玩的作品。
+            按时长、最近游玩和名称筛选整个游戏库。
           </p>
         </div>
       </section>
