@@ -142,7 +142,7 @@ export function PhotosClient() {
             <p className={styles.eyebrow}>PHOTO JOURNAL</p>
             <h1 className={styles.heroTitle}>把照片按城市重新归档</h1>
             <p className={styles.heroText}>
-              这个页面现在已经迁移到 Next.js，认证之后仍然通过原有 Worker 同步照片分组和地图标记。
+              登录后查看照片分组、城市地图和时间线，继续按原来的方式管理足迹。
             </p>
           </div>
         </section>
@@ -158,7 +158,7 @@ export function PhotosClient() {
           <p className={styles.eyebrow}>PHOTO JOURNAL</p>
           <h1 className={styles.heroTitle}>照片 · 足迹</h1>
           <p className={styles.heroText}>
-            保留照片分组、地图点位和上传删除能力，同时把前端应用收敛到一个统一的 Next.js 路由树。
+            按城市整理照片，在地图上查看足迹，继续维护分组、上传和删除。
           </p>
 
           <div className={styles.stats}>

@@ -78,10 +78,10 @@ export function GameHome({
           </div>
 
           <div className={styles.heroCopy}>
-            <p className={styles.kicker}>SYSTEM REBUILD</p>
-            <h1 className={styles.title}>Steam 仪表盘迁移到 Next.js</h1>
+            <p className={styles.kicker}>STEAM DASHBOARD</p>
+            <h1 className={styles.title}>Steam 仪表盘</h1>
             <p className={styles.subtitle}>
-              保留原来的赛博朋克终端视觉，使用新的 App Router 和服务端取数重建首页。
+              记录游戏时长、最近活动和常驻收藏，保持原来的终端化浏览体验。
             </p>
           </div>
         </div>

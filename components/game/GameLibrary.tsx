@@ -86,7 +86,7 @@ export function GameLibrary({
             </span>
           </div>
           <p className={styles.headerText}>
-            使用 Next.js 统一游戏库和照片站点之后，筛选与分页逻辑也被迁移到 React 端。
+            按游戏时长、最近游玩和名称检索整个游戏库，快速定位常玩的作品。
           </p>
         </div>
       </section>

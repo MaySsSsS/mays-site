@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     default: "Mays Site",
     template: "%s | Mays Site"
   },
-  description: "统一到 Next.js 的个人网站，包含 Steam 游戏仪表盘和照片足迹。"
+  description: "个人网站，包含 Steam 游戏仪表盘和照片足迹。"
 };
 
 export default function RootLayout({
