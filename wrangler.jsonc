@@ -19,20 +19,6 @@
       "service": "mays-site-web"
     }
   ],
-  "routes": [
-    {
-      "pattern": "maysssss.cn/*",
-      "zone_name": "maysssss.cn"
-    },
-    {
-      "pattern": "game.maysssss.cn/*",
-      "zone_name": "maysssss.cn"
-    },
-    {
-      "pattern": "photo.maysssss.cn/*",
-      "zone_name": "maysssss.cn"
-    }
-  ],
   "observability": {
     "enabled": true
   }
