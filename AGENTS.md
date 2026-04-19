@@ -14,7 +14,7 @@
 | L2 代码规范 | `pnpm lint` | ESLint 无错误 |
 | L3 可构建 | `pnpm build` | Next.js 生产构建成功 |
 
-**全量验证**：`pnpm typecheck && pnpm lint && pnpm build`
+**全量验证**：`make check`（等价于依次执行 typecheck → lint → build，任一失败即停止）
 
 **Definition of Done**：功能完成 = L1-L3 全通过 + 无调试代码残留（console.log / debugger / TODO）
 

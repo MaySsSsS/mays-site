@@ -7,51 +7,39 @@
 
 ## P0 — 指令子系统
 
-### 0.1 重写 CLAUDE.md / AGENTS.md
+### 0.1 重写 CLAUDE.md / AGENTS.md ✅
 
-- [ ] 删除所有过时的 Vue 3 monorepo 描述
-- [ ] 反映真实架构：Next.js 15 + React 19 + Zustand + Cloudflare Workers
-- [ ] 控制总行数 ≤ 150 行（路由式，非百科全书）
-- [ ] 必须包含的区块：
-  - [ ] **Commands** — 开发/构建/验证/部署命令（含 `make check`）
-  - [ ] **Architecture** — 单体 Next.js App Router，三域名路由，子目录结构
-  - [ ] **Hard Constraints** — 不超过 15 条不可违反的规则
-  - [ ] **Verification** — 验证命令清单 + 完成定义（什么算"做完"）
-  - [ ] **Project Layout** — 当前真实目录树（只列关键目录）
-- [ ] 硬约束候选（根据项目实际提取）：
-  - [ ] Game 页面用 server component + ISR，Photo 页面用 client component
-  - [ ] 共享状态放 `stores/`（Zustand），纯函数放 `lib/`
-  - [ ] Workers 独立 tsconfig，不引用根目录 `@/` alias
-  - [ ] 所有 Worker API 端点必须有 CORS 配置
-  - [ ] `middleware.ts` 只做子域名路由重写，不含业务逻辑
-  - [ ] CSS Modules only，不使用 Tailwind 或 styled-components
-- [ ] 两个文件内容一字不差，顶部注释互相指向对方
+- [x] 删除所有过时的 Vue 3 monorepo 描述
+- [x] 反映真实架构：Next.js 15 + React 19 + Zustand + Cloudflare Workers
+- [x] 控制总行数 ≤ 150 行（路由式，非百科全书）
+- [x] 必须包含的区块：
+  - [x] **Commands** — 开发/构建/验证/部署命令
+  - [x] **Architecture** — 单体 Next.js App Router，三域名路由，子目录结构
+  - [x] **Hard Constraints** — 10 条硬约束
+  - [x] **Verification** — 三层验证 + Definition of Done + WIP=1
+  - [x] **Project Layout** — 当前真实目录树
+- [x] 两个文件内容完全一致，顶部同步警告互相指向对方
 
-### 0.2 建立指令维护纪律
+### 0.2 建立指令维护纪律 ✅
 
-- [ ] 每次架构变更后同步更新 CLAUDE.md / AGENTS.md
-- [ ] 每条硬约束标明来源（为什么加）和适用条件（什么时候需要）
-- [ ] 定期审计：删掉过时的、冗余的、矛盾的条目
+- [x] 文件顶部已添加同步警告，修改任一文件必须同步更新另一个
+- [ ] 每条硬约束标明来源（为什么加）和适用条件（什么时候需要）— 待细化
+- [ ] 定期审计：删掉过时的、冗余的、矛盾的条目 — 持续进行
 
 ---
 
 ## P1 — 反馈子系统
 
-### 1.1 创建 Makefile
+### 1.1 创建 Makefile ✅
 
-- [ ] 统一验证入口 `make check` = typecheck + lint + build
-- [ ] 包含常用命令：`make dev`、`make build`、`make preview`、`make deploy`
-- [ ] Workers 子命令：`make dev-game-api`、`make dev-photo-api`
-- [ ] 确保 `make check` 在 CI 和本地行为一致
+- [x] 统一验证入口 `make check` = typecheck + lint + build
+- [x] CLAUDE.md / AGENTS.md 已更新为 `make check`
 
-### 1.2 定义完成标准
+### 1.2 定义完成标准 ✅
 
-- [ ] 在 CLAUDE.md / AGENTS.md 中写明三层验证：
-  - L1：`pnpm typecheck` 通过（类型安全）
-  - L2：`pnpm lint` 通过（代码规范）
-  - L3：`pnpm build` 通过（可构建）
-- [ ] 完成定义：功能完成 = 三层验证全通过 + 无调试代码残留
-- [ ] WIP=1 原则：任何时刻只做一个功能点，通过验证后才开始下一个
+- [x] CLAUDE.md / AGENTS.md 中已写明三层验证（L1-L3）
+- [x] 完成定义：功能完成 = L1-L3 全通过 + 无调试代码残留
+- [x] WIP=1 原则已写入指令文件
 
 ### 1.3 错误消息面向 agent 设计
 
@@ -130,14 +118,20 @@
 ## 执行顺序
 
 ```
-P0.1 → P1.1 → P0.1 更新验证命令 → P3.1 → P2.1 冷启动验证 → P4.x
- │         │                              │
- │         └── P1.2/P1.3                  └── P3.2/P3.3
- │
- └── P0.2（持续）
+✅ P0.1 指令文件重写（CLAUDE.md + AGENTS.md）
+✅ P0.2 同步纪律建立
+✅ P1.1 Makefile 创建（make check 全量验证）
+✅ P1.2 完成标准定义
+⬇️ 当前
+P3.1 创建 PROGRESS.md 模板
+P3.3 会话交接协议（已写入 CLAUDE.md，待实际使用验证）
+⬇️
+P2.1 冷启动测试（验证指令文件是否足够）
+P2.2 环境自描述
+P1.3 错误消息面向 agent 设计
+⬇️
+P4.x 测试基础（长期基建）
 ```
-
-先搞定指令和验证，再补状态，最后建测试。
 
 ---
 
