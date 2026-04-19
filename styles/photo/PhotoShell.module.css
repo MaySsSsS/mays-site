@@ -1,0 +1,146 @@
+.shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(213, 132, 82, 0.16), transparent 24%),
+    linear-gradient(180deg, #f5efe1 0%, #efe5d4 100%);
+  color: var(--photo-text);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(12px);
+  background: rgba(245, 239, 225, 0.88);
+  border-bottom: 1px solid var(--photo-border);
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  min-height: 74px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.logoMark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(54, 95, 72, 0.12);
+  color: var(--photo-primary);
+}
+
+.logoText {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  color: var(--photo-primary);
+}
+
+.nav {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.35rem;
+  background: rgba(255, 250, 242, 0.72);
+  border: 1px solid rgba(123, 96, 59, 0.08);
+  border-radius: 999px;
+}
+
+.navLink,
+.mobileLink {
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  color: var(--photo-muted);
+  transition: 160ms ease;
+}
+
+.navLink:hover,
+.navLinkActive,
+.mobileLink:hover {
+  color: var(--photo-primary);
+  background: rgba(54, 95, 72, 0.08);
+}
+
+.mobileButton {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--photo-border);
+  background: rgba(255, 250, 242, 0.86);
+  color: var(--photo-primary);
+}
+
+.mobileMenu {
+  display: none;
+}
+
+.main {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.footer {
+  border-top: 1px solid var(--photo-border);
+  background: rgba(255, 250, 242, 0.86);
+}
+
+.footerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.footerTitle {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--photo-primary);
+}
+
+.footerText {
+  margin: 0.3rem 0 0;
+  color: var(--photo-muted);
+}
+
+.footerLink {
+  color: var(--photo-primary);
+}
+
+@media (max-width: 860px) {
+  .nav {
+    display: none;
+  }
+
+  .mobileButton {
+    display: grid;
+    place-items: center;
+  }
+
+  .mobileMenu {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 1.5rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .footerInner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

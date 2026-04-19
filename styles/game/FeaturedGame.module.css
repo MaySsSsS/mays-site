@@ -1,0 +1,79 @@
+.card {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--game-border);
+  background: rgba(8, 13, 24, 0.88);
+}
+
+.card:hover {
+  border-color: var(--game-border-strong);
+}
+
+.topBar {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--game-border);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--game-muted);
+}
+
+.imageWrap {
+  position: relative;
+  aspect-ratio: 460 / 215;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.78) saturate(0.84);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.38);
+  color: var(--game-primary);
+  font-family: var(--font-mono);
+  letter-spacing: 0.16em;
+}
+
+.card:hover .overlay {
+  opacity: 1;
+}
+
+.content {
+  padding: 0.9rem;
+}
+
+.name {
+  margin: 0 0 0.55rem;
+  font-size: 1rem;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--game-muted);
+}
+
+.stat {
+  color: var(--game-primary);
+}
+
+.barTrack {
+  height: 6px;
+  background: rgba(141, 164, 191, 0.12);
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, #169b74 0%, #32f7ba 100%);
+}

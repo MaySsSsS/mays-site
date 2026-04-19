@@ -1,0 +1,57 @@
+:root {
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", "SFMono-Regular", "SF Mono",
+    ui-monospace, monospace;
+  --font-ui: "Space Grotesk", "PingFang SC", "Segoe UI", sans-serif;
+  --font-serif: "Fraunces", "Noto Serif SC", "Songti SC", serif;
+  --game-bg: #050814;
+  --game-surface: rgba(9, 13, 24, 0.92);
+  --game-surface-strong: #0d1221;
+  --game-border: rgba(116, 139, 164, 0.2);
+  --game-border-strong: rgba(54, 255, 181, 0.38);
+  --game-primary: #32f7ba;
+  --game-text: #ecf7ff;
+  --game-muted: #8da4bf;
+  --photo-bg: #f5efe1;
+  --photo-paper: rgba(255, 250, 242, 0.92);
+  --photo-card: rgba(255, 253, 249, 0.96);
+  --photo-border: rgba(123, 96, 59, 0.14);
+  --photo-primary: #365f48;
+  --photo-accent: #d58452;
+  --photo-text: #253128;
+  --photo-muted: #6d7869;
+  --shadow-soft: 0 18px 50px rgba(10, 14, 20, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #050814;
+  color: #ecf7ff;
+  font-family: var(--font-ui);
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}

@@ -1,0 +1,163 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.header,
+.filters,
+.library {
+  border: 1px solid var(--game-border);
+  background: rgba(9, 13, 24, 0.92);
+}
+
+.headerInner,
+.filtersBar,
+.library {
+  padding: 1.25rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+}
+
+.sectionLine {
+  flex: 1;
+  height: 1px;
+  background: var(--game-border);
+}
+
+.sectionStatus {
+  color: var(--game-primary);
+}
+
+.headerText {
+  margin: 0.85rem 0 0;
+  max-width: 620px;
+  color: var(--game-muted);
+  line-height: 1.7;
+}
+
+.filtersBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex: 1;
+  min-width: 240px;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--game-border);
+  background: rgba(13, 18, 33, 0.82);
+}
+
+.searchPrompt {
+  color: var(--game-muted);
+  font-family: var(--font-mono);
+}
+
+.searchInput,
+.sortSelect {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--game-text);
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+.sortSelect {
+  width: auto;
+  min-width: 180px;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--game-border);
+  background: rgba(13, 18, 33, 0.82);
+}
+
+.filterButton,
+.pageButton {
+  border: 1px solid var(--game-border);
+  background: rgba(13, 18, 33, 0.82);
+  color: var(--game-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  padding: 0.8rem 1rem;
+}
+
+.filterButtonActive,
+.filterButton:hover,
+.pageButton:hover:not(:disabled) {
+  color: var(--game-primary);
+  border-color: var(--game-border-strong);
+}
+
+.resultCount,
+.pageInfo,
+.loadingState,
+.emptyState,
+.errorBanner {
+  font-family: var(--font-mono);
+}
+
+.resultCount {
+  margin-bottom: 1rem;
+  color: var(--game-muted);
+}
+
+.errorBanner {
+  margin-bottom: 1rem;
+  color: #ff9c90;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.emptyState,
+.loadingState {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  color: var(--game-muted);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.pageButton:disabled {
+  opacity: 0.45;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,77 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(34, 28, 24, 0.35);
+}
+
+.panel {
+  width: min(100%, 720px);
+  max-height: min(80vh, 720px);
+  overflow: auto;
+  padding: 1.5rem;
+  border: 1px solid var(--photo-border);
+  background: rgba(255, 250, 242, 0.96);
+  box-shadow: var(--shadow-soft);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  color: var(--photo-accent);
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  color: var(--photo-primary);
+}
+
+.close {
+  border: 0;
+  background: transparent;
+  color: var(--photo-primary);
+}
+
+.search {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--photo-border);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.cityButton {
+  border: 1px solid var(--photo-border);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.9rem 1rem;
+  color: var(--photo-text);
+}
+
+.cityButton:hover {
+  border-color: rgba(54, 95, 72, 0.3);
+  color: var(--photo-primary);
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

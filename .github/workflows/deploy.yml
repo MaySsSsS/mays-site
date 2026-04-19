@@ -7,6 +7,10 @@ on:
   # 支持手动触发
   workflow_dispatch:
 
+concurrency:
+  group: steam-data-update
+  cancel-in-progress: false
+
 jobs:
   # 更新Steam数据
   update-steam-data:
@@ -20,9 +24,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,7 +35,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Fetch Steam data and upload to Worker
         env:
@@ -44,13 +48,13 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          mkdir -p apps/game/public/data
-          cp public/data/steam-games.json apps/game/public/data/
-          git add public/data/steam-games.json apps/game/public/data/steam-games.json
-          git diff --staged --quiet || git commit -m "🎮 Update Steam games data"
+          git add public/data/steam-games.json
+          git diff --staged --quiet && exit 0
+          git commit -m "chore(data): update Steam games snapshot"
           git push || echo "No changes to push"
 
-  # 站点部署说明：
-  # - Game 站点: Cloudflare Pages (mays-game) -> game.maysssss.cn
-  # - Photo 站点: Cloudflare Pages (mays-photo) -> photo.maysssss.cn
-  # 推送到 main 分支会自动触发 Cloudflare Pages 构建
+  # 说明：
+  # - 这个 workflow 只负责 Steam 数据同步，不负责前端部署。
+  # - 前端已经改为根目录的单一 Next.js 应用。
+  # - 当前代码包含 middleware 子域名路由，按 Cloudflare 当前文档更适合通过
+  #   Workers + OpenNext / Workers Builds 部署，而不是 Pages 静态导出。

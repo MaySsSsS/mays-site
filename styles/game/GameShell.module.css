@@ -1,0 +1,161 @@
+.shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(35, 255, 182, 0.16), transparent 24%),
+    linear-gradient(180deg, #050814 0%, #03050c 100%);
+  color: var(--game-text);
+}
+
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(14px);
+  background: rgba(5, 8, 20, 0.88);
+  border-bottom: 1px solid var(--game-border);
+}
+
+.topBarInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  min-height: 68px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+}
+
+.logoPrompt {
+  color: var(--game-muted);
+}
+
+.logoText {
+  color: var(--game-primary);
+}
+
+.statusDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--game-primary);
+  box-shadow: 0 0 14px rgba(50, 247, 186, 0.85);
+}
+
+.navLinks {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.navLink,
+.mobileLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid transparent;
+  padding: 0.7rem 0.95rem;
+  color: var(--game-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  transition: 180ms ease;
+}
+
+.navLink:hover,
+.navLinkActive,
+.mobileLink:hover,
+.mobileLinkActive {
+  color: var(--game-primary);
+  border-color: var(--game-border-strong);
+  background: rgba(50, 247, 186, 0.08);
+}
+
+.navArrow {
+  font-size: 0.65rem;
+}
+
+.mobileMenuButton {
+  display: none;
+  border: 1px solid var(--game-border);
+  background: rgba(16, 20, 34, 0.85);
+  color: var(--game-primary);
+  width: 42px;
+  height: 42px;
+}
+
+.mobileMenu {
+  display: none;
+}
+
+.main {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 6rem;
+}
+
+.statusBar {
+  border-top: 1px solid var(--game-border);
+  background: rgba(5, 8, 20, 0.9);
+}
+
+.statusBarInner {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.statusItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.statusDivider,
+.statusMuted {
+  color: var(--game-muted);
+}
+
+.statusSpacer {
+  flex: 1;
+}
+
+@media (max-width: 860px) {
+  .navLinks {
+    display: none;
+  }
+
+  .mobileMenuButton {
+    display: grid;
+    place-items: center;
+  }
+
+  .mobileMenu {
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 1.5rem 1.25rem;
+    border-top: 1px solid var(--game-border);
+    gap: 0.5rem;
+  }
+
+  .statusBarInner {
+    flex-wrap: wrap;
+  }
+
+  .statusSpacer {
+    display: none;
+  }
+}

@@ -1,0 +1,76 @@
+.wrapper {
+  display: grid;
+  place-items: center;
+  padding: 1rem 0 3rem;
+}
+
+.card {
+  width: min(100%, 460px);
+  padding: 2rem;
+  border: 1px solid var(--photo-border);
+  background: rgba(255, 250, 242, 0.9);
+  box-shadow: var(--shadow-soft);
+}
+
+.eyebrow {
+  margin: 0 0 0.55rem;
+  color: var(--photo-accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--photo-primary);
+}
+
+.description {
+  margin: 0.9rem 0 0;
+  line-height: 1.7;
+  color: var(--photo-muted);
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.inputWrap {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  padding: 1rem 4.2rem 1rem 1rem;
+  border: 1px solid var(--photo-border);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.7rem;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--photo-primary);
+}
+
+.error {
+  margin: 0;
+  color: #b84c3b;
+}
+
+.submit {
+  padding: 0.95rem 1rem;
+  border: 0;
+  background: linear-gradient(135deg, #365f48 0%, #d58452 100%);
+  color: #fff;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+}

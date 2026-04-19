@@ -1,96 +1,67 @@
-# 🌐 Mays Site - Monorepo
+# Mays Site
 
-个人网站项目，采用 Monorepo 架构，包含游戏库展示和照片足迹两个独立应用。
+当前仓库已经直接切换为单一的 Next.js 应用，不再保留旧的 Vue 前端目录。主站 `/` 作为入口页，Game 与 Photos 保持独立子站语义。
 
-## 📁 项目结构
+## 项目结构
 
-```
+```text
 mays-site/
-├── apps/                   # 应用目录
-│   ├── game/              # 游戏库应用 (game.maysssss.cn)
-│   └── photo/             # 照片应用 (photo.maysssss.cn)
-├── packages/              # 共享代码包
-│   └── shared/           # 组件、状态、API 等共享代码
-├── workers/              # Cloudflare Workers
-│   └── photo-api/       # 照片 API
-└── pnpm-workspace.yaml  # pnpm workspace 配置
+├── app/                   # Next.js App Router 页面
+├── components/            # React 组件
+├── lib/                   # 数据与工具函数
+├── stores/                # Zustand 状态管理
+├── styles/                # CSS Modules
+├── types/                 # 类型定义
+├── public/                # 静态资源与本地数据快照
+├── workers/
+│   ├── game-api/          # Steam 数据 Worker
+│   └── photo-api/         # 照片管理 Worker
+└── scripts/               # 数据抓取脚本
 ```
 
-## 🎮 子站点
+## 当前重构状态
 
-| 站点      | 域名                | 说明                           |
-| --------- | ------------------- | ------------------------------ |
-| **Game**  | `game.maysssss.cn`  | Steam 游戏库展示，赛博朋克风格 |
-| **Photo** | `photo.maysssss.cn` | 照片与足迹，旅游风格           |
+- `Game` 首页、`/games` 游戏库与主站入口页已迁移到 Next.js App Router。
+- `/photos` 页面已迁移到 React + Zustand，继续复用现有 Photo Worker。
+- 旧版 Vue 前端目录已删除，仓库以单一 Next.js 应用为准。
 
-## ✨ 功能特点
-
-### Game 站点
-
-- 📊 Steam 游戏库和游玩统计
-- 🎯 游戏时长排行
-- 🕐 最近游玩的游戏
-- 🎨 赛博朋克 UI 风格
-
-### Photo 站点
-
-- 🗺️ 中国地图足迹可视化
-- 📸 照片分组管理
-- ☁️ Cloudflare R2 云存储
-- 🎨 温暖旅游风格
-
-## 🛠️ 技术栈
-
-- **Vue 3** - 渐进式 JavaScript 框架
-- **TypeScript** - 类型安全
-- **Pinia** - 状态管理
-- **Vue Router** - 路由管理
-- **Vite** - 构建工具
-- **pnpm workspace** - Monorepo 管理
-- **Cloudflare Workers** - 照片 API
-- **GitHub Pages** - 静态托管
-
-## 🚀 本地开发
+## 本地开发
 
 ```bash
-# 安装依赖
 pnpm install
 
-# 运行游戏应用
-pnpm dev:game
+pnpm dev
 
-# 运行照片应用
-pnpm dev:photo
-
-# 构建所有应用
+# 类型检查与构建
+pnpm typecheck
+pnpm lint
 pnpm build
 
-# 单独构建
-pnpm build:game
-pnpm build:photo
+# Cloudflare Workers 本地预览 / 部署
+pnpm preview
+pnpm deploy
 ```
 
-## 📦 共享包使用
+## 路由
 
-两个应用通过 `@mays/shared` 共享代码：
+- `/`：主站入口页
+- `/game`：Game 仪表盘首页
+- `/games`：游戏库
+- `/photos`：照片与足迹
 
-```typescript
-// 导入共享组件
-import { CursorEffect, HeroBackground, GameCard } from "@mays/shared";
+## 技术栈
 
-// 导入共享状态
-import { useSteamStore, usePhotoStore } from "@mays/shared";
+- Next.js 14
+- React 18
+- TypeScript
+- Zustand
+- ECharts
+- Cloudflare Workers
 
-// 导入共享 API
-import { fetchGroups, authenticate } from "@mays/shared";
-```
+## 备注
 
-## 🌐 部署
-
-- Game App 部署到 `game.maysssss.cn`
-- Photo App 部署到 `photo.maysssss.cn`
-- Photo API 部署到 Cloudflare Workers
-
-## 📄 许可证
-
-MIT License
+- `public/data/steam-games.json` 和中国地图 GeoJSON 来自原项目快照。
+- 照片和游戏接口仍然复用当前 Workers，不影响线上 API。
+- `middleware.ts` 会在 `game.*` 和 `photo.*` 子域名下把根路径分别映射到 Game 首页和照片页。
+- GitHub 与 Cloudflare 的联动说明见 [DEPLOYMENT.md](/Volumes/KIOXIA+MAIWO/projects/mays-site/DEPLOYMENT.md)。
+- 前端 Cloudflare 配置见 [wrangler.jsonc](/Volumes/KIOXIA+MAIWO/projects/mays-site/wrangler.jsonc) 和 [open-next.config.ts](/Volumes/KIOXIA+MAIWO/projects/mays-site/open-next.config.ts)。

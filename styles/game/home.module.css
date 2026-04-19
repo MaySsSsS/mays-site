@@ -1,0 +1,279 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 340px;
+  border: 1px solid var(--game-border);
+  background: linear-gradient(135deg, rgba(4, 9, 17, 0.95), rgba(7, 13, 26, 0.82));
+}
+
+.heroBackdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 25%, rgba(50, 247, 186, 0.18), transparent 22%),
+    radial-gradient(circle at 80% 20%, rgba(72, 127, 255, 0.15), transparent 25%);
+}
+
+.heroGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(141, 164, 191, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(141, 164, 191, 0.08) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent);
+}
+
+.heroContent {
+  position: relative;
+  display: grid;
+  align-content: space-between;
+  gap: 2rem;
+  height: 100%;
+  padding: 2rem;
+}
+
+.heroProfile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatarFrame {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  border: 1px solid rgba(236, 247, 255, 0.18);
+}
+
+.avatarDot {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--game-primary);
+  border: 2px solid #07131d;
+}
+
+.statusPath {
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  color: var(--game-primary);
+}
+
+.statusMeta {
+  margin-top: 0.35rem;
+  color: var(--game-muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.heroCopy {
+  max-width: 720px;
+}
+
+.kicker {
+  margin: 0 0 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  color: var(--game-primary);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.2rem, 4vw, 4.2rem);
+  line-height: 0.95;
+}
+
+.subtitle {
+  max-width: 560px;
+  margin: 1rem 0 0;
+  color: var(--game-muted);
+  line-height: 1.7;
+}
+
+.section {
+  border: 1px solid var(--game-border);
+  background: rgba(9, 13, 24, 0.92);
+  padding: 1.25rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: var(--game-text);
+}
+
+.sectionLine {
+  flex: 1;
+  height: 1px;
+  background: var(--game-border);
+}
+
+.sectionStatus {
+  color: var(--game-primary);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.statCard {
+  border: 1px solid var(--game-border);
+  background: rgba(13, 18, 33, 0.82);
+  padding: 1.1rem;
+}
+
+.statValue {
+  display: block;
+  margin-bottom: 0.55rem;
+  font-size: clamp(1.65rem, 3vw, 2.3rem);
+  color: var(--game-primary);
+  font-family: var(--font-mono);
+}
+
+.statLabel {
+  color: var(--game-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+}
+
+.processList,
+.activityList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.processItem,
+.activityItem {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid var(--game-border);
+  padding: 0.95rem 1rem;
+  background: rgba(13, 18, 33, 0.74);
+}
+
+.processItem {
+  grid-template-columns: auto 1fr;
+}
+
+.processRank,
+.activityDate {
+  font-family: var(--font-mono);
+  color: var(--game-muted);
+}
+
+.processBody,
+.activityBody {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.processMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.processHours,
+.activityPlaytime {
+  color: var(--game-primary);
+  font-family: var(--font-mono);
+}
+
+.processName,
+.activityName {
+  font-weight: 600;
+}
+
+.barTrack {
+  height: 6px;
+  background: rgba(141, 164, 191, 0.12);
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, #19765a 0%, #32f7ba 100%);
+}
+
+.activityItem {
+  grid-template-columns: auto auto 1fr;
+}
+
+.activityMarker {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--game-primary);
+  box-shadow: 0 0 12px rgba(50, 247, 186, 0.8);
+}
+
+.activityMeta {
+  color: var(--game-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.featuredGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.loadingOverlay,
+.errorBanner {
+  padding: 0.95rem 1.2rem;
+  border: 1px solid var(--game-border);
+  background: rgba(13, 18, 33, 0.92);
+  font-family: var(--font-mono);
+}
+
+.errorBanner {
+  color: #ff9c90;
+}
+
+@media (max-width: 980px) {
+  .statsGrid,
+  .featuredGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .heroContent {
+    padding: 1.25rem;
+  }
+
+  .statsGrid,
+  .featuredGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .processMeta,
+  .activityItem {
+    grid-template-columns: 1fr;
+  }
+}

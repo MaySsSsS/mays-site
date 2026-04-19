@@ -1,31 +1,36 @@
 {
   "name": "mays-site",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev:game": "pnpm --filter @mays/game dev",
-    "dev:photo": "pnpm --filter @mays/photo dev",
-    "build": "pnpm -r --filter '@mays/*' build",
-    "build:game": "pnpm --filter @mays/game build",
-    "build:photo": "pnpm --filter @mays/photo build",
-    "preview:game": "pnpm --filter @mays/game preview",
-    "preview:photo": "pnpm --filter @mays/photo preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "dev:game-api": "pnpm --dir workers/game-api dev",
+    "dev:photo-api": "pnpm --dir workers/photo-api dev"
   },
   "dependencies": {
-    "axios": "^1.13.2",
     "echarts": "^6.0.0",
-    "pinia": "^3.0.4",
-    "vue": "^3.5.24",
-    "vue-echarts": "^8.0.1",
-    "vue-router": "^4.6.3"
+    "next": "15.5.15",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "zustand": "5.0.12"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.19.1",
     "@types/node": "^24.10.1",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "@vue/tsconfig": "^0.8.1",
-    "typescript": "~5.9.3",
-    "vite": "^7.2.4",
-    "vue-tsc": "^3.1.4"
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "15.5.15",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.81.1"
   }
 }
