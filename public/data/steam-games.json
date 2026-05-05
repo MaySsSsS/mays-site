@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-04T05:27:01.277Z",
+  "lastUpdated": "2026-05-05T04:54:54.555Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -11,7 +11,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/6889e542266ff1eca9c32d7f405a723a0e19f756_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/6889e542266ff1eca9c32d7f405a723a0e19f756_full.jpg",
     "avatarhash": "6889e542266ff1eca9c32d7f405a723a0e19f756",
-    "lastlogoff": 1777544049,
+    "lastlogoff": 1777956671,
     "personastate": 0,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -442,6 +442,9 @@
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
       "rtime_last_played": 1605077197,
+      "content_descriptorids": [
+        5
+      ],
       "playtime_disconnected": 0,
       "playtime_2weeks": 0
     },
