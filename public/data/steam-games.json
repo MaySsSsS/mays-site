@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-10T05:30:58.115Z",
+  "lastUpdated": "2026-05-11T05:51:51.219Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -2146,7 +2146,6 @@
     {
       "appid": 2807960,
       "name": "Battlefield™ 6",
-      "playtime_2weeks": 144,
       "playtime_forever": 4134,
       "img_icon_url": "8b06f13e9fd82e1a436ffdca4e1de118ee4a9ed2",
       "has_community_visible_stats": true,
@@ -2159,7 +2158,8 @@
         2,
         5
       ],
-      "playtime_disconnected": 0
+      "playtime_disconnected": 0,
+      "playtime_2weeks": 0
     },
     {
       "appid": 3065170,
