@@ -5,12 +5,13 @@ import process from "node:process";
 
 import {
   buildSourceUrl,
+  entryForAiFailure,
   extractJsonObject,
   normalizeAiEntry,
   parseSourceHtml,
   readArchive,
+  readEntry,
   sourceTextForModel,
-  toMirrorFallbackEntry,
   writeEntryFiles
 } from "./ai-daily-core.mjs";
 
@@ -41,7 +42,8 @@ async function main() {
   const parsed = parseSourceHtml(html, date);
   const updatedAt = new Date().toISOString();
   const archive = await readArchive(ARCHIVE_PATH);
-  const entry = await createEntry(parsed, date, updatedAt);
+  const existingEntry = await readEntry(ENTRIES_DIR, date);
+  const entry = await createEntry(parsed, date, updatedAt, existingEntry);
 
   await writeEntryFiles({
     archivePath: ARCHIVE_PATH,
@@ -53,13 +55,17 @@ async function main() {
   console.log(`[ai-daily] wrote ${date} in ${entry.mode} mode`);
 }
 
-async function createEntry(parsed, date, updatedAt) {
+async function createEntry(parsed, date, updatedAt, existingEntry) {
   try {
     const aiPayload = await generateAiPayload(parsed);
     return normalizeAiEntry(parsed, aiPayload, date, updatedAt);
   } catch (error) {
     console.log(`[ai-daily] AI unavailable, using fallback: ${toSafeReason(error)}`);
-    return toMirrorFallbackEntry(parsed, date, updatedAt);
+    const entry = entryForAiFailure({ existingEntry, parsed, date, updatedAt });
+    if (entry === existingEntry) {
+      console.log(`[ai-daily] preserving existing AI summary for ${date}`);
+    }
+    return entry;
   }
 }
 

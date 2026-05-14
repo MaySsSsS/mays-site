@@ -40,6 +40,14 @@ export function toMirrorFallbackEntry(parsed, date, updatedAt) {
   };
 }
 
+export function entryForAiFailure({ existingEntry, parsed, date, updatedAt }) {
+  if (existingEntry?.mode === "ai_summary") {
+    return existingEntry;
+  }
+
+  return toMirrorFallbackEntry(parsed, date, updatedAt);
+}
+
 export function normalizeAiEntry(parsed, aiPayload, date, updatedAt) {
   const title = asCleanString(aiPayload.title) || toSiteTitle(parsed.title, date);
   const summary = normalizeStringArray(aiPayload.summary);
@@ -104,6 +112,15 @@ export async function readArchive(archivePath) {
       latestDate: null,
       entries: []
     };
+  }
+}
+
+export async function readEntry(entriesDir, date) {
+  try {
+    const content = await readFile(path.join(entriesDir, `${date}.json`), "utf8");
+    return JSON.parse(content);
+  } catch {
+    return null;
   }
 }
 

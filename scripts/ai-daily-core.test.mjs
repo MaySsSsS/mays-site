@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   buildArchiveEntry,
   buildSourceUrl,
+  entryForAiFailure,
   extractJsonObject,
   parseSourceHtml,
   toMirrorFallbackEntry,
@@ -142,6 +143,33 @@ test("toMirrorFallbackEntry creates a renderable fallback entry", () => {
   assert.equal(entry.mode, "mirror_fallback");
   assert.equal(entry.date, "2026-05-10");
   assert.equal(entry.sections[0].items[1].title, "产品 B 发布");
+});
+
+test("entryForAiFailure preserves an existing AI summary instead of downgrading it", () => {
+  const parsed = parseSourceHtml(sourceHtml, "2026-05-10");
+  const existingEntry = {
+    date: "2026-05-10",
+    title: "AI资讯日报 2026/5/10",
+    mode: "ai_summary",
+    updatedAt: "2026-05-10T01:30:00.000Z",
+    summary: ["保留这条 AI 摘要"],
+    sections: [
+      {
+        title: "已有分组",
+        items: [{ title: "已有条目", body: "已有正文" }]
+      }
+    ]
+  };
+  const entry = entryForAiFailure({
+    existingEntry,
+    parsed,
+    date: "2026-05-10",
+    updatedAt: "2026-05-10T02:30:00.000Z"
+  });
+
+  assert.equal(entry, existingEntry);
+  assert.equal(entry.mode, "ai_summary");
+  assert.equal(entry.updatedAt, "2026-05-10T01:30:00.000Z");
 });
 
 test("extractJsonObject reads JSON even when the model wraps it in text", () => {

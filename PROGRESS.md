@@ -79,6 +79,7 @@
 - [x] 2026-05-14：修复 AI Daily 未自动更新问题；根因是 AI Daily workflow 和相关代码只存在于本地 `codex/rebuild-nextjs` 分支，未进入 GitHub 默认分支 `main`，导致 GitHub Actions 未注册该定时任务；已配置 GitHub Secret `ZHIPU_API_KEY` 与变量 `NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH`，补齐 deploy workflow 构建期 env，并将 2026-05-11 至 2026-05-14 全部补为 `ai_summary`
 - [x] 2026-05-14：修复 GitHub `Deploy Frontend` 首次触发失败；根因是部署构建期 `/games` 页面等待远程 game-api 超过 Next 静态生成超时，已新增 `STEAM_DATA_SOURCE=static` 让 GitHub 部署构建直接使用本地 Steam 快照
 - [x] 2026-05-14：手动触发 `Update AI Daily` 验证正式链路，workflow 成功拉取 `2026-05-14` 并提交 `chore(data): update AI Daily`；随后确认 `GITHUB_TOKEN` 推送不会触发独立 `Deploy Frontend`，已将 Cloudflare 部署步骤接入 AI Daily workflow 的数据变更分支
+- [x] 2026-05-14：补充 AI Daily 重跑防降级保护；如果当天已有 `ai_summary`，后续同日重跑遇到智谱接口 400/不可用时保留既有 AI 总结，不再覆盖为 `mirror_fallback`
 
 ## 进行中
 
