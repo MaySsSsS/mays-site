@@ -8,7 +8,7 @@
 - 最新 commit：见 `git log -1 --oneline`
 - 当前里程碑：v1.3 `Word to Markdown`（已完成实现、审计与归档，待开启下一里程碑）
 - `make check`：通过（2026-05-04，`/tools/style-prompt` 原始 demo 预览尺寸改为方形后）
-- `pnpm test:ai-daily` / `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-14，补齐 AI Daily 2026-05-11 至 2026-05-14 数据并修复 GitHub 自动同步链路后；构建生成 34 个 AI Daily 详情页）
+- `pnpm test:ai-daily` / `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-14，补齐 AI Daily 2026-05-11 至 2026-05-14 数据、修复 GitHub 自动同步链路，并让 GitHub 部署构建使用静态 Steam 快照后；构建生成 34 个 AI Daily 详情页）
 - `make check` / `pnpm run deploy` 内部 build：通过（2026-05-10，v1.3 Phase 10 完成并归档后；构建仍出现既有 `mays-game-api.mays.workers.dev` 超时警告但最终成功）
 - 部署状态：2026-05-14 使用 `NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH` 执行 `pnpm run deploy` 已成功发布到 Cloudflare；`mays-site-web` 当前版本 `bcb5d950-4cfd-4cb7-9cf5-54075da30e3f`，并已确认 `https://maysssss.cn/data/ai-daily/index.json` 最新日期为 `2026-05-14`，线上 AI Daily 数据共 34 天
 
@@ -77,6 +77,7 @@
 - [x] 2026-05-11：恢复首页待开发区域 sealed panel；根因是新增 `AI DAILY` 首页入口时将原 `CLASSIFIED / 未完待续` 卡片直接替换，现已在保留 AI Daily 入口的同时重新渲染未来子站占位，并补充 `pnpm test:portal` 回归断言
 - [x] 2026-05-11：将 AI Daily GitHub Actions 自动同步时间从北京时间 09:30 调整为 11:00；workflow cron 从 `30 1 * * *` 改为 `0 3 * * *`，并补充 `pnpm test:ai-daily` 断言锁定 UTC 换算
 - [x] 2026-05-14：修复 AI Daily 未自动更新问题；根因是 AI Daily workflow 和相关代码只存在于本地 `codex/rebuild-nextjs` 分支，未进入 GitHub 默认分支 `main`，导致 GitHub Actions 未注册该定时任务；已配置 GitHub Secret `ZHIPU_API_KEY` 与变量 `NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH`，补齐 deploy workflow 构建期 env，并将 2026-05-11 至 2026-05-14 全部补为 `ai_summary`
+- [x] 2026-05-14：修复 GitHub `Deploy Frontend` 首次触发失败；根因是部署构建期 `/games` 页面等待远程 game-api 超过 Next 静态生成超时，已新增 `STEAM_DATA_SOURCE=static` 让 GitHub 部署构建直接使用本地 Steam 快照
 
 ## 进行中
 

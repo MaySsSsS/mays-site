@@ -13,6 +13,7 @@ import {
 
 const aiDailyWorkflow = await readFile(new URL("../.github/workflows/ai-daily.yml", import.meta.url), "utf8");
 const deployWorkflow = await readFile(new URL("../.github/workflows/deploy-frontend.yml", import.meta.url), "utf8");
+const steamDataSource = await readFile(new URL("../lib/steam-data.ts", import.meta.url), "utf8");
 
 const sourceHtml = `
 <html>
@@ -52,6 +53,11 @@ test("frontend deployment injects AI Daily password hash at build time", () => {
     deployWorkflow,
     /NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH:\s*\$\{\{\s*vars\.NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH\s*\}\}/
   );
+});
+
+test("frontend deployment builds game pages from the static Steam snapshot", () => {
+  assert.match(deployWorkflow, /STEAM_DATA_SOURCE:\s*static/);
+  assert.match(steamDataSource, /process\.env\.STEAM_DATA_SOURCE === "static"/);
 });
 
 test("parseSourceHtml extracts title, summary, and structured sections", () => {

@@ -25,6 +25,10 @@ function normalizeSteamPayload(payload: unknown): SteamDataPayload {
 }
 
 export async function getSteamGamesData(): Promise<SteamDataPayload> {
+  if (process.env.STEAM_DATA_SOURCE === "static") {
+    return normalizeSteamPayload(steamSnapshot);
+  }
+
   try {
     const response = await fetch(`${GAME_API_URL}/api/steam-games`, {
       headers: {
