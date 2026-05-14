@@ -48,6 +48,15 @@ test("AI Daily workflow pulls data at 11:00 Asia/Shanghai", () => {
   assert.doesNotMatch(aiDailyWorkflow, /cron:\s*"30 1 \* \* \*"/);
 });
 
+test("AI Daily workflow deploys the frontend after data changes", () => {
+  assert.match(aiDailyWorkflow, /id:\s*commit-data/);
+  assert.match(aiDailyWorkflow, /echo "changed=true" >> "\$GITHUB_OUTPUT"/);
+  assert.match(aiDailyWorkflow, /if:\s*steps\.commit-data\.outputs\.changed == 'true'/);
+  assert.match(aiDailyWorkflow, /Deploy updated frontend to Cloudflare Workers/);
+  assert.match(aiDailyWorkflow, /NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH:\s*\$\{\{\s*vars\.NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH\s*\}\}/);
+  assert.match(aiDailyWorkflow, /STEAM_DATA_SOURCE:\s*static/);
+});
+
 test("frontend deployment injects AI Daily password hash at build time", () => {
   assert.match(
     deployWorkflow,

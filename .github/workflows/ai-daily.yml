@@ -42,10 +42,26 @@ jobs:
         run: pnpm update:ai-daily
 
       - name: Commit updated AI Daily data
+        id: commit-data
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add public/data/ai-daily/index.json public/data/ai-daily/entries
-          git diff --staged --quiet && exit 0
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           git commit -m "chore(data): update AI Daily"
-          git push || echo "No changes to push"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy updated frontend to Cloudflare Workers
+        if: steps.commit-data.outputs.changed == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH: ${{ vars.NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH }}
+          NEXT_PUBLIC_GAME_API_URL: ${{ vars.NEXT_PUBLIC_GAME_API_URL }}
+          NEXT_PUBLIC_PHOTO_API_URL: ${{ vars.NEXT_PUBLIC_PHOTO_API_URL }}
+          STEAM_DATA_SOURCE: static
+        run: pnpm run deploy
