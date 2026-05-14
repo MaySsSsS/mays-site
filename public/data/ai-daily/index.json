@@ -1,0 +1,413 @@
+{
+  "latestDate": "2026-05-14",
+  "entries": [
+    {
+      "date": "2026-05-14",
+      "title": "AI资讯日报 2026/5/14",
+      "mode": "ai_summary",
+      "summary": [
+        "OpenAI发布Windows安全沙盒，Meta推对话隐身模式，xBubble低代码工具",
+        "全球农田地图发布，视觉特征融合提升画质，LoopUS循环架构，字节推对抗流模型",
+        "阿里千问负责人创业，特朗普访华谈芯片限令，中外智能体格差引关注"
+      ],
+      "updatedAt": "2026-05-14T11:38:49.439Z",
+      "path": "/ai-daily/2026-05-14"
+    },
+    {
+      "date": "2026-05-13",
+      "title": "AI资讯日报 2026/5/13",
+      "mode": "ai_summary",
+      "summary": [
+        "DuckDB发布Quack跨端协议，Claude 4.7快速模式及法律专业插件正式部署上线",
+        "Meta完成大规模数据迁移，360预警智能体安全漏洞，AWS支持免密钥集成调用",
+        "OpenAI员工股权巨富曝光，DeepSeek 拿捏腾讯入股，亚马逊曝出数据造假乱象"
+      ],
+      "updatedAt": "2026-05-14T11:37:11.815Z",
+      "path": "/ai-daily/2026-05-13"
+    },
+    {
+      "date": "2026-05-12",
+      "title": "AI资讯日报 2026/5/12",
+      "mode": "ai_summary",
+      "summary": [
+        "Claude更新实时任务管理与代码Agent视图，Replit实现十智能体并行编程",
+        "Thinking Machines发布276B交互模型，OST框架大幅提升多模态训练效率与效能",
+        "通义千问闭环淘宝电商，森马缩短研发至十五天，Devin实现四亿美金营收"
+      ],
+      "updatedAt": "2026-05-14T11:34:24.665Z",
+      "path": "/ai-daily/2026-05-12"
+    },
+    {
+      "date": "2026-05-11",
+      "title": "AI资讯日报 2026/5/11",
+      "mode": "ai_summary",
+      "summary": [
+        "NotebookLM团队新作Huxe爆火，OpenAI定制芯片重塑全球推理产能",
+        "谷歌云发布AI加密支付协议，Anthropic营收超百亿预言单人企业崛起",
+        "浙大校友利用AI工具破数学纪录，Sutton攻克流式强化学习训练缺陷"
+      ],
+      "updatedAt": "2026-05-14T11:32:46.092Z",
+      "path": "/ai-daily/2026-05-11"
+    },
+    {
+      "date": "2026-05-10",
+      "title": "AI资讯日报 2026/5/10",
+      "mode": "ai_summary",
+      "summary": [
+        "GPT 5.5 Pro突破博士级数学难题震惊学界，蚂蚁发布万亿模型并计划开源",
+        "阶跃星辰实时语音感知情绪，DeepSeek内测识图模式，GPT实现网页同传",
+        "PCNET算法高效检测幻觉异常点，NeuroAgent赋能脑影像分析，DomLoRA优化微调"
+      ],
+      "updatedAt": "2026-05-10T15:11:03.893Z",
+      "path": "/ai-daily/2026-05-10"
+    },
+    {
+      "date": "2026-05-09",
+      "title": "AI资讯日报 2026/5/9",
+      "mode": "ai_summary",
+      "summary": [
+        "谷歌发布AI数学协作系统，OpenAI增设编程模式与安全预览，Claude集成Office软件",
+        "抖音发布DDPF性能框架，FREPix刷新像素生成，MARBLE平衡强化学习奖励机制",
+        "手机录制4K数字人技术获突破，Qwen2.5视网膜自动诊断，PlotPick提取科研数据"
+      ],
+      "updatedAt": "2026-05-10T15:09:17.417Z",
+      "path": "/ai-daily/2026-05-09"
+    },
+    {
+      "date": "2026-05-08",
+      "title": "AI资讯日报 2026/5/8",
+      "mode": "ai_summary",
+      "summary": [
+        "OpenAI推实时同传模型与接口，Genesis打蛋机器人展示毫米级精密操控",
+        "Meta编程评测揭模型架构缺陷，Anthropic开源代码解释技术揭秘黑盒",
+        "xAI并入SpaceX共建卫星算力，腾讯混元Hy3调用量激增领跑市场"
+      ],
+      "updatedAt": "2026-05-10T15:06:50.881Z",
+      "path": "/ai-daily/2026-05-08"
+    },
+    {
+      "date": "2026-05-07",
+      "title": "AI资讯日报 2026-05-07",
+      "mode": "ai_summary",
+      "summary": [
+        "Claude 推出智能体梦境功能，Claude上线托管代理功能，Excel深度集成办公助手",
+        "OpenSeeker-v2挑战搜索垄断，CropVLM助力精准农业，发布ClawMark评测及动漫模型",
+        "OpenAI携巨头发布MRC协议优化算力，Anthropic签谷歌巨额订单，DeepSeek估值翻倍"
+      ],
+      "updatedAt": "2026-05-10T15:04:57.346Z",
+      "path": "/ai-daily/2026-05-07"
+    },
+    {
+      "date": "2026-05-06",
+      "title": "AI资讯日报 2026-05-06",
+      "mode": "ai_summary",
+      "summary": [
+        "OpenAI发GPT-5.5即刻版，智能体手机曝光，联发科供芯二七年量产",
+        "Meta网页推十六路智能体并发，Chrome静默装大模型并占巨量空间",
+        "MotionCache六倍提速视频生成，TabPFN实现表格零样本预测模型开源"
+      ],
+      "updatedAt": "2026-05-10T15:03:09.315Z",
+      "path": "/ai-daily/2026-05-06"
+    },
+    {
+      "date": "2026-05-05",
+      "title": "AI资讯日报 2026-05-05",
+      "mode": "ai_summary",
+      "summary": [
+        "OpenAI重构WebRTC低延迟语音架构，FLUX推超写实LoRA，Cursor及可灵AI功能大幅升级",
+        "港理工开源思考型手语翻译模型，新型注意力攻击秒破LLaMA-3安全对齐防御，科研图谱发布",
+        "Being-H0.7模型提升机器人性能，MedMNIST实现训练零误差，英伟达挑战十亿Token极限"
+      ],
+      "updatedAt": "2026-05-10T15:20:05.250Z",
+      "path": "/ai-daily/2026-05-05"
+    },
+    {
+      "date": "2026-05-04",
+      "title": "AI资讯日报 2026/5/4",
+      "mode": "ai_summary",
+      "summary": [
+        "Anthropic年化收入超440亿，发布官方指南助力企业全自动运营",
+        "马斯克诉OpenAI案揭露转型内幕，Kimi发布2.5万亿参数模型重塑格局",
+        "斯坦福合成病毒研究登Nature封面，AI精准识别胰腺癌超早期物理信号"
+      ],
+      "updatedAt": "2026-05-10T15:18:32.947Z",
+      "path": "/ai-daily/2026-05-04"
+    },
+    {
+      "date": "2026-05-03",
+      "title": "AI资讯日报 2026-05-03",
+      "mode": "ai_summary",
+      "summary": [
+        "全息交互毫秒级响应，JEPA世界模型获突破，群体智能协作效能倍增",
+        "顶尖模型逻辑测试折戟，VS Code强制署名惹议，加州严管无人驾驶违章",
+        "苹果泄露Claude开发细节，xAI算力利用率仅一成，Meta收购ARI竞逐具身智能"
+      ],
+      "updatedAt": "2026-05-10T14:34:41.366Z",
+      "path": "/ai-daily/2026-05-03"
+    },
+    {
+      "date": "2026-05-02",
+      "title": "AI资讯日报 2026-05-02",
+      "mode": "ai_summary",
+      "summary": [
+        "GPT-5.5首周营收炸裂，Anthropic下周开开发者大会，通义千问联手Fireworks降本。",
+        "RecGen突破三维重构，DeepSeek发布视觉原语，Meta预训练实现数据自进化。",
+        "五角大楼签机密军事协议，优步预支预算，暗钱行动雇佣网红抹黑中国AI。"
+      ],
+      "updatedAt": "2026-05-10T14:32:39.443Z",
+      "path": "/ai-daily/2026-05-02"
+    },
+    {
+      "date": "2026-05-01",
+      "title": "AI资讯日报 2026/5/1",
+      "mode": "ai_summary",
+      "summary": [
+        "Stripe发布288项金融基建更新，Grok 4.3性能霸榜，GPT 5.5增加逻辑切换模式",
+        "ChatGPT 2.0精绘架构图，快手KroWork口令建工具，Codex实现自主编程迭代",
+        "谷歌医疗协作系统诊断超人，Opus 4.7锁定匿名作者，华为发布灵境科研云平台"
+      ],
+      "updatedAt": "2026-05-10T15:16:41.684Z",
+      "path": "/ai-daily/2026-05-01"
+    },
+    {
+      "date": "2026-04-30",
+      "title": "AI资讯日报 2026/4/30",
+      "mode": "ai_summary",
+      "summary": [
+        "谷歌Gemini入驻通用汽车车载，UCP协议开启代理自动购物时代",
+        "谷歌Max智能体执行复杂策略，Cursor发布SDK，OpenAI扩建智算中心设施",
+        "诺奖团队重构全模态分子模型，机器人架构分层，腾讯实现零权重更新"
+      ],
+      "updatedAt": "2026-05-10T14:30:22.309Z",
+      "path": "/ai-daily/2026-04-30"
+    },
+    {
+      "date": "2026-04-29",
+      "title": "AI资讯日报 2026/4/29",
+      "mode": "ai_summary",
+      "summary": [
+        "小米开源 MiMo-V2.5 模型与百亿计划，GitHub推行按量计费，AWS联手OpenAI上线Bedrock云服务",
+        "Claude内置Adobe套件，Mistral发布业务编排层，编程助手Cursor发生删库事故",
+        "AnalogRetriever打通电路代码，医疗影像蒸馏及PDF悟空提升诊疗阅读效率"
+      ],
+      "updatedAt": "2026-05-10T14:28:03.406Z",
+      "path": "/ai-daily/2026-04-29"
+    },
+    {
+      "date": "2026-04-28",
+      "title": "AI资讯日报 2026/4/28",
+      "mode": "ai_summary",
+      "summary": [
+        "OpenAI获联邦合规认证并与微软签多云协议，中国叫停Meta跨境收购交易",
+        "谷歌Gemma 4并发破纪录，复旦开源音频模型，草莓架构逻辑推理表现惊人",
+        "英企Ineffable种子轮融11亿美金，犹他州建9GW集群，Meshy用户量破千万"
+      ],
+      "updatedAt": "2026-05-10T14:26:20.539Z",
+      "path": "/ai-daily/2026-04-28"
+    },
+    {
+      "date": "2026-04-27",
+      "title": "AI资讯日报 2026/4/27",
+      "mode": "ai_summary",
+      "summary": [
+        "GPT-5.5 Pro视觉智商破门萨基准，DeepSeek API缓存降价九成助力开发者",
+        "Anthropic智能体开启自主交易，Claude派发额度，可灵剪映视频功能升级",
+        "伯克利发布深学物理理论框架，首个医疗视频大模型开源，SkVM极速提性能"
+      ],
+      "updatedAt": "2026-05-10T14:24:41.516Z",
+      "path": "/ai-daily/2026-04-27"
+    },
+    {
+      "date": "2026-04-26",
+      "title": "AI资讯日报 2026/4/26",
+      "mode": "ai_summary",
+      "summary": [
+        "奥迪Q5L搭载华为乾崑智驾系统，涂鸦发布Hey Tuya全屋智能入口",
+        "智能体演化框架实现自主设计，DAVinCI架构显著削减模型幻觉",
+        "英伟达市值突破五万亿美元，全行业深陷公众信任危机与安全争议"
+      ],
+      "updatedAt": "2026-05-10T14:22:42.929Z",
+      "path": "/ai-daily/2026-04-26"
+    },
+    {
+      "date": "2026-04-25",
+      "title": "AI资讯日报 2026/4/25",
+      "mode": "ai_summary",
+      "summary": [
+        "谷歌Gemini登陆Mac支持绘图，DeepSeek适配昇腾推长上下文，Claude现退订风波",
+        "桌面助手SentiCat公测，VARestorer图像超分速增十倍，NASA发布遥感模型HyperFM",
+        "谷歌巨资投Anthropic锁算力，Cerebras冲刺IPO战英伟达，美发布对华AI出口禁令"
+      ],
+      "updatedAt": "2026-05-10T14:20:48.654Z",
+      "path": "/ai-daily/2026-04-25"
+    },
+    {
+      "date": "2026-04-24",
+      "title": "AI资讯日报 2026/4/24",
+      "mode": "ai_summary",
+      "summary": [
+        "GPT-5.5集GB300推3D游戏，谷歌Gemini语音逼真，可灵4K上线，腾讯混元开源",
+        "SSL-R1免标视觉学习，阿里Wan-Image超清渲染，PASTA攻击威胁ViT安全",
+        "Anthropic估值超OpenAI，它石智航获巨资，谷歌代码七成AI产，Meta裁员押注"
+      ],
+      "updatedAt": "2026-05-10T14:19:11.771Z",
+      "path": "/ai-daily/2026-04-24"
+    },
+    {
+      "date": "2026-04-23",
+      "title": "AI资讯日报 2026/4/23",
+      "mode": "ai_summary",
+      "summary": [
+        "OpenAI推医疗版对话助手，Kimi支持智能体协作，Chrome集成Gemini自动办公。",
+        "谷歌TPU v8挑战英伟达，海信发AI芯片电视，Gemma 4模型支持全离线推理。",
+        "OpenAI成立B端实体布局商业化，特斯拉智驾提速，全AI电影定档且抖音出新规。"
+      ],
+      "updatedAt": "2026-05-10T15:14:26.881Z",
+      "path": "/ai-daily/2026-04-23"
+    },
+    {
+      "date": "2026-04-22",
+      "title": "AI资讯日报 2026/4/22",
+      "mode": "ai_summary",
+      "summary": [
+        "GPT-Image-2登顶文生图竞技场，Gemini登陆Mac支绘图",
+        "Meta升级脸书搜索架构，特斯拉Cybercab开启量产路测，英特尔应对AI芯片产能困局",
+        "医疗内窥镜超分框架发布，长视频解耦存储增一致性，类脑视觉解码精度领先"
+      ],
+      "updatedAt": "2026-05-10T14:16:53.023Z",
+      "path": "/ai-daily/2026-04-22"
+    },
+    {
+      "date": "2026-04-21",
+      "title": "AI资讯日报 2026/4/21",
+      "mode": "ai_summary",
+      "summary": [
+        "OpenAI推出屏幕记忆功能，克劳德设计工具可一键生成交互原型。",
+        "苹果高层变动库克转任主席，人形机器人天工在马拉松赛跑赢人类。",
+        "月之暗面开源万亿参数模型，阿里通义千问发布空间智能高效架构。"
+      ],
+      "updatedAt": "2026-05-10T14:14:40.123Z",
+      "path": "/ai-daily/2026-04-21"
+    },
+    {
+      "date": "2026-04-20",
+      "title": "AI资讯日报 2026/4/20",
+      "mode": "ai_summary",
+      "summary": [
+        "Claude 4.7重构安全架构增强防御，Grok长文摘要上线",
+        "伯克利揭露评测作弊黑产，华科大MoDA架构突破深度检索瓶颈",
+        "OpenAI巨资联手Cerebras布局算力硬件，Meta挖角团队抢夺顶级智力"
+      ],
+      "updatedAt": "2026-05-10T14:12:52.549Z",
+      "path": "/ai-daily/2026-04-20"
+    },
+    {
+      "date": "2026-04-19",
+      "title": "AI Daily 2026/4/19",
+      "mode": "mirror_fallback",
+      "summary": [
+        "Bolt实现代码跨项目搬运，Luma推出电影级方案，Grok低价语音接口上线",
+        "DeepSeek开源算子库加速模型推理，Kimi突破缓存技术，谷歌发布MCP调试利器",
+        "OpenAI巨资投芯片商，Cursor融资估值飙升，苏州光模块集群支撑算力"
+      ],
+      "updatedAt": "2026-05-10T15:19:58.620Z",
+      "path": "/ai-daily/2026-04-19"
+    },
+    {
+      "date": "2026-04-18",
+      "title": "AI资讯日报 2026/4/18",
+      "mode": "ai_summary",
+      "summary": [
+        "Anthropic发布Claude Design重塑创意，阿里推交互世界模型赋能机器训练",
+        "GPT-Rosalind加速新药研发，字节DisCoGC优化存储，AI陪审团诊断超越专家",
+        "它石智航获4.55亿巨额融资，π0.7赋能通用机器人，OpenAI斥资百亿抢订算力"
+      ],
+      "updatedAt": "2026-05-10T14:10:31.548Z",
+      "path": "/ai-daily/2026-04-18"
+    },
+    {
+      "date": "2026-04-17",
+      "title": "AI资讯日报 2026/4/17",
+      "mode": "ai_summary",
+      "summary": [
+        "OpenAI发布桌面Codex重塑工作流，Meta推智能平台优化架构，谷歌Gemini进苹果",
+        "GPT-5.4-Cyber筑安全网，Firebase泄露致天价账单，严防恶意接口盗资金",
+        "遥感大模型极速测绘全国农地，GPT-5.4破数学猜想，图推理框架迎新突破"
+      ],
+      "updatedAt": "2026-05-10T14:07:59.372Z",
+      "path": "/ai-daily/2026-04-17"
+    },
+    {
+      "date": "2026-04-16",
+      "title": "AI资讯日报 2026-04-16",
+      "mode": "ai_summary",
+      "summary": [
+        "OpenAI发布智能体开发套件原生沙箱，VS2022原生支持MCP协议，谷歌语音响应极速",
+        "Midjourney V8.1渲染提速三倍原生2K生成，Adobe助手自动化，Claude强制执行实名核验",
+        "OVIE单图三维重建突破，UniMark强化AR版权溯源，RLVR架构拓展多模态推理边界"
+      ],
+      "updatedAt": "2026-05-10T14:06:03.173Z",
+      "path": "/ai-daily/2026-04-16"
+    },
+    {
+      "date": "2026-04-15",
+      "title": "AI资讯日报 2026/4/15",
+      "mode": "ai_summary",
+      "summary": [
+        "Claude重构支持多任务编程，MiniMax桌面端接入办公软件实现拟人操作",
+        "Qwen3多角色推理性能翻倍，裸机架构算力升九倍，实时手势零延迟生成",
+        "教育部发文推AI必修课，Vidu声画力压谷歌，斯坦福称中美差距抹平"
+      ],
+      "updatedAt": "2026-05-10T14:04:37.711Z",
+      "path": "/ai-daily/2026-04-15"
+    },
+    {
+      "date": "2026-04-14",
+      "title": "AI资讯日报 2026-04-14",
+      "mode": "ai_summary",
+      "summary": [
+        "小鹏首发图灵芯片，Grok大范围开放电脑控制权，阿里桌面智能体开启部署",
+        "Claude获取真实网页控制权，Cloudflare推统一CLI，字节AI业务频现报错崩溃",
+        "Tora3对齐音视频物理一致性SAT降九成，Token分块提示攻克画面修复幻觉"
+      ],
+      "updatedAt": "2026-05-10T14:03:21.523Z",
+      "path": "/ai-daily/2026-04-14"
+    },
+    {
+      "date": "2026-04-13",
+      "title": "AI资讯日报 2026-04-13",
+      "mode": "ai_summary",
+      "summary": [
+        "MiniMax M2.7开源兼音乐模型支持翻录",
+        "字节扣子升级支持自然语言移动编程",
+        "具身模型夺魁并揭露榜单作弊丑闻"
+      ],
+      "updatedAt": "2026-05-10T14:00:53.370Z",
+      "path": "/ai-daily/2026-04-13"
+    },
+    {
+      "date": "2026-04-12",
+      "title": "AI资讯日报 2026/4/12",
+      "mode": "ai_summary",
+      "summary": [
+        "Shopify向智能体开放后台读写权限，新引擎成功实现高质量物理模拟",
+        "软件行业因智能体替代导致市值蒸发，Anthropic公司营收大幅飙升",
+        "京东开源百亿参数空间智能模型，神父参与制定大模型伦理准则宪法"
+      ],
+      "updatedAt": "2026-05-10T13:59:31.261Z",
+      "path": "/ai-daily/2026-04-12"
+    },
+    {
+      "date": "2026-04-11",
+      "title": "AI资讯日报 2026/4/11",
+      "mode": "ai_summary",
+      "summary": [
+        "阿里Wan2.7登顶视频榜Word插件发布",
+        "蚂蚁夺冠图像检测警惕智能体漏洞",
+        "免费AI插广机写内容过半引创作危机"
+      ],
+      "updatedAt": "2026-05-10T13:57:22.546Z",
+      "path": "/ai-daily/2026-04-11"
+    }
+  ]
+}

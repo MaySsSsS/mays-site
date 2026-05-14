@@ -1,0 +1,29 @@
+{
+  "mode": "interactive",
+  "granularity": "coarse",
+  "model_profile": "inherit",
+  "commit_docs": true,
+  "workflow": {
+    "research": true,
+    "plan_check": true,
+    "verifier": true,
+    "nyquist_validation": false,
+    "auto_advance": false,
+    "ui_phase": true,
+    "ui_safety_gate": true,
+    "research_before_questions": false,
+    "discuss_mode": "discuss",
+    "use_worktrees": false
+  },
+  "parallelization": {
+    "enabled": true,
+    "plan_level": true,
+    "task_level": false
+  },
+  "planning": {
+    "commit_docs": true,
+    "search_gitignored": false,
+    "sub_repos": []
+  },
+  "project_code": "MAYS"
+}

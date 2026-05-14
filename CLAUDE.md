@@ -2,7 +2,9 @@
 
 # mays-site
 
-三域名个人站点：maysssss.cn（门户）、game.maysssss.cn（Steam 游戏库）、photo.maysssss.cn（照片足迹）。
+主域名路由个人站点：maysssss.cn（门户）、`/game`（Steam 游戏库）、`/photos`（照片足迹）。历史 `game.maysssss.cn` / `photo.maysssss.cn` 子域名已停用。
+
+> **会话入口**：先读 `PROGRESS.md` 了解当前状态和下一步，再开始工作。
 
 ## Verification
 
@@ -14,7 +16,7 @@
 | L2 代码规范 | `pnpm lint` | ESLint 无错误 |
 | L3 可构建 | `pnpm build` | Next.js 生产构建成功 |
 
-**全量验证**：`pnpm typecheck && pnpm lint && pnpm build`
+**全量验证**：`make check`（等价于依次执行 typecheck → lint → build，任一失败即停止）
 
 **Definition of Done**：功能完成 = L1-L3 全通过 + 无调试代码残留（console.log / debugger / TODO）
 
@@ -49,10 +51,10 @@ node scripts/fetch-steam-data.js      # 需要 STEAM_API_KEY + STEAM_ID
 Next.js 15 + React 19 + TypeScript strict + Zustand + CSS Modules。单体应用，Cloudflare Workers 部署。
 
 ```
-三域名路由（middleware.ts 按 Host 重写）：
-  maysssss.cn       → app/page.tsx          （门户首页）
-  game.maysssss.cn  → app/(game)/game/      （游戏仪表盘，server component + ISR 1h）
-  photo.maysssss.cn → app/(photo)/photos/   （照片地图，client component）
+主域名路由（legacy 子域名由 middleware 拦截停用）：
+  maysssss.cn        → app/page.tsx          （门户首页）
+  maysssss.cn/game   → app/(game)/game/      （游戏仪表盘，server component + ISR 1h）
+  maysssss.cn/photos → app/(photo)/photos/   （照片地图，client component）
 ```
 
 ### Project Layout
@@ -98,7 +100,7 @@ scripts/
 2. **状态管理只用 Zustand**（`stores/`），纯函数放 `lib/`
 3. **Workers 有独立 tsconfig**，不引用根目录 `@/` alias
 4. **所有 Worker API 端点必须有 CORS 配置**
-5. **middleware.ts 只做子域名路由重写**，不含业务逻辑
+5. **middleware.ts 只做 legacy 子域名停用 / Host gating**，不含业务逻辑
 6. **CSS Modules only** — 不用 Tailwind / styled-components / 全局 CSS-in-JS
 7. **重型组件必须 dynamic import + ssr: false**：ChinaMap、PhotoLightbox、PhotoUploader
 8. **TypeScript strict mode**，禁止 `any`

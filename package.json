@@ -14,11 +14,19 @@
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "dev:game-api": "pnpm --dir workers/game-api dev",
-    "dev:photo-api": "pnpm --dir workers/photo-api dev"
+    "dev:photo-api": "pnpm --dir workers/photo-api dev",
+    "test:ai-daily": "node --test scripts/ai-daily-core.test.mjs",
+    "test:ai-daily-visual": "node --test scripts/ai-daily-visual.test.mjs",
+    "test:portal": "node --test scripts/portal-layout.test.mjs",
+    "update:ai-daily": "node scripts/update-ai-daily.mjs"
   },
   "dependencies": {
+    "@types/qrcode": "^1.5.6",
     "echarts": "^6.0.0",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.12.0",
     "next": "15.5.15",
+    "qrcode": "^1.5.4",
     "react": "19.2.5",
     "react-dom": "19.2.5",
     "zustand": "5.0.12"

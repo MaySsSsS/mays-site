@@ -58,12 +58,12 @@
 
 ## 2. 前端部署建议
 
-当前前端已经是 Next.js 14，并且使用了 [`middleware.ts`](/Volumes/KIOXIA+MAIWO/projects/mays-site/middleware.ts) 来根据域名把：
+当前前端统一通过主域名路由访问，并使用 [`middleware.ts`](/Volumes/KIOXIA+MAIWO/projects/mays-site/middleware.ts) 拦截已退役的 legacy 子域名：
 
-- `game.*` 根路径映射到 `/game`
-- `photo.*` 根路径映射到 `/photos`
+- `game.*` -> 返回停用响应，并提示改用 `/game`
+- `photo.*` -> 返回停用响应，并提示改用 `/photos`
 
-这意味着前端不只是“静态导出页面”，还依赖 middleware 行为。
+这意味着前端不只是“静态导出页面”，仍然依赖 middleware 行为。
 
 基于 Cloudflare 当前官方文档，推荐这样部署：
 
@@ -71,8 +71,6 @@
 - API：继续保留现有两个独立 Worker
 - 域名：
   - `maysssss.cn`
-  - `game.maysssss.cn`
-  - `photo.maysssss.cn`
 
 ## 3. 推荐的 Cloudflare 配置
 
@@ -88,7 +86,7 @@
 
 - Cloudflare 当前对 Next.js 的官方推荐是 **Workers**，不是 Pages 静态导出
 - App Router、SSG、SSR、Middleware 都在 Workers 文档里标明受支持
-- 你当前项目的子域名入口逻辑依赖 middleware，Workers 更契合
+- 你当前项目仍然依赖 middleware 做 legacy 子域名停用，Workers 更契合
 
 当前状态说明：
 
@@ -110,12 +108,10 @@
 建议把域名分配成：
 
 - `maysssss.cn` -> 前端 Worker
-- `game.maysssss.cn` -> 前端 Worker
-- `photo.maysssss.cn` -> 前端 Worker
 - `mays-game-api.mays.workers.dev` 或自定义 API 域名 -> `mays-game-api`
 - `mays-photo-api.mays.workers.dev` 或自定义 API 域名 -> `mays-photo-api`
 
-这样一个前端 Worker 就能通过 middleware 识别访问域名并分发到正确页面。
+legacy `game.maysssss.cn` / `photo.maysssss.cn` 如果仍然绑定到前端 Worker，会收到应用层停用响应；如果你想彻底移除它们，也可以直接在 Cloudflare 控制台删除对应 custom domain 绑定。
 
 ## 4. 控制台里的实际操作顺序
 
@@ -132,8 +128,6 @@
 1. 在前端 Worker 项目中打开 `Settings` -> `Domains & Routes`
 2. 添加：
    - `maysssss.cn`
-   - `game.maysssss.cn`
-   - `photo.maysssss.cn`
 3. 等待证书和 DNS 生效
 
 ### 4.3 保持 API Worker 独立
@@ -186,7 +180,7 @@
 3. 选择：
    - 用仓库里的 GitHub Actions workflow 直接部署
    - 或在 Cloudflare 上启用 Workers Builds 连接这个仓库
-4. 绑定 `maysssss.cn`、`game.maysssss.cn`、`photo.maysssss.cn`
+4. 绑定 `maysssss.cn`，并移除 legacy `game.maysssss.cn` / `photo.maysssss.cn` custom domain（如仍存在）
 
 ## 8. 官方文档
 

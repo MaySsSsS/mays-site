@@ -4,43 +4,93 @@ import styles from "@/styles/portal.module.css";
 
 const portalItems = [
   {
-    title: "Game",
+    eyebrow: "GAME",
+    title: "PLAYER ONE",
     href: "/game",
-    domain: "game.maysssss.cn",
-    description: "查看游戏时长、最近在玩什么，以及完整游戏库。"
+    domain: "maysssss.cn/game",
+    className: styles.gamePanel
   },
   {
-    title: "Photos",
+    eyebrow: "PHOTOS",
+    title: "CITY FILES",
     href: "/photos",
-    domain: "photo.maysssss.cn",
-    description: "按城市浏览照片、分组和地图上的足迹。"
+    domain: "maysssss.cn/photos",
+    className: styles.photoPanel
+  },
+  {
+    eyebrow: "TOOLS",
+    title: "SIGNAL LAB",
+    href: "/tools",
+    domain: "maysssss.cn/tools",
+    className: styles.toolsPanel
+  },
+  {
+    eyebrow: "AI",
+    title: "AI DAILY",
+    href: "/ai-daily",
+    domain: "maysssss.cn/ai-daily",
+    className: styles.aiPanel
+  }
+];
+
+const sealedPanels = [
+  {
+    title: "CLASSIFIED",
+    label: "未完待续",
+    className: styles.sealedPanelBlue
   }
 ];
 
 export default function PortalPage() {
   return (
     <main className={styles.page}>
-      <section className={styles.hero}>
-        <p className={styles.kicker}>MAYS SITE</p>
-        <h1 className={styles.title}>
-          游戏和照片，各自独立，也都能一眼找到。
+      <section className={styles.cover} aria-label="MAYS UNIVERSE comic cover">
+        <div className={styles.coverInk} aria-hidden="true" />
+        <div className={styles.coverBurst} aria-hidden="true" />
+        <div className={styles.coverLines} aria-hidden="true" />
+        <h1 className={styles.coverTitle}>
+          <span>MAYS</span>
+          <span>UNIVERSE</span>
         </h1>
-        <p className={styles.description}>
-          从这里进入 Game 或 Photos。一个看游戏记录，一个看照片和足迹。
-        </p>
+        <div className={styles.coverCue} aria-hidden="true" />
       </section>
 
-      <section className={styles.grid}>
-        {portalItems.map((item) => (
-          <Link key={item.title} href={item.href} className={styles.card}>
-            <div className={styles.cardHeader}>
-              <span className={styles.cardTitle}>{item.title}</span>
-              <span className={styles.cardDomain}>{item.domain}</span>
-            </div>
-            <p className={styles.cardDescription}>{item.description}</p>
-            <span className={styles.cardAction}>Open</span>
-          </Link>
-        ))}
+      <section className={styles.panelPage} aria-labelledby="portal-directory-title">
+        <h2 id="portal-directory-title" className={styles.srOnly}>
+          MAYS UNIVERSE portals
+        </h2>
+        <div className={styles.pageFold} aria-hidden="true" />
+        <div className={styles.comicGrid}>
+          {portalItems.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className={`${styles.panel} ${styles.panelLink} ${item.className}`}
+              aria-label={`Open ${item.eyebrow}`}
+            >
+              <span className={styles.panelEyebrow}>{item.eyebrow}</span>
+              <span className={styles.panelTitle}>{item.title}</span>
+              <span className={styles.panelDomain}>{item.domain}</span>
+              <span className={styles.panelAction}>OPEN</span>
+            </Link>
+          ))}
+
+          {sealedPanels.map((item) => (
+            <button
+              key={item.title}
+              type="button"
+              className={`${styles.panel} ${styles.sealedPanel} ${item.className}`}
+              aria-label={`${item.label} portal is sealed`}
+            >
+              <span className={styles.panelEyebrow}>{item.label}</span>
+              <span className={styles.panelTitle}>{item.title}</span>
+              <span className={styles.sealTape} aria-hidden="true">
+                LOCKED
+              </span>
+              <span className={styles.panelAction}>STAND BY</span>
+            </button>
+          ))}
+        </div>
       </section>
     </main>
   );

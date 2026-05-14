@@ -1,0 +1,551 @@
+.page {
+  --bauhaus-red: #E53935;
+  --bauhaus-yellow: #FDD835;
+  --bauhaus-blue: #1E88E5;
+  --bauhaus-black: #212121;
+  --bauhaus-white: #FAFAFA;
+  --bauhaus-gray: #9E9E9E;
+  --surface: #FAFAFA;
+  --surface-alt: #F2F2F0;
+  --line: #212121;
+  --text: #212121;
+  --text-muted: #565656;
+  --offset-shadow: 8px 8px 0 #212121;
+  min-height: 100vh;
+  background-color: var(--bauhaus-white);
+  background-image:
+    linear-gradient(var(--surface-alt) 1px, transparent 1px),
+    linear-gradient(90deg, var(--surface-alt) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--text);
+}
+
+.hero,
+.archiveGrid,
+.detail {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  min-height: 440px;
+  align-content: space-between;
+  margin-top: 1.2rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 3px solid var(--line);
+  background:
+    linear-gradient(90deg, transparent 0 calc(100% - 1px), var(--bauhaus-gray) calc(100% - 1px) 100%),
+    linear-gradient(180deg, transparent 0 calc(100% - 1px), var(--bauhaus-gray) calc(100% - 1px) 100%),
+    var(--surface);
+  background-size: 96px 96px;
+  box-shadow: var(--offset-shadow);
+  overflow: hidden;
+}
+
+.hero::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 24%;
+  height: 42%;
+  background: var(--bauhaus-blue);
+  content: "";
+}
+
+.hero::after {
+  position: absolute;
+  right: 18%;
+  bottom: 0;
+  width: 18%;
+  height: 30%;
+  background: var(--bauhaus-red);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  content: "";
+}
+
+.backLink,
+.modePill,
+.primaryButton {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0.55rem 0.85rem;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition:
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.backLink {
+  margin-bottom: 1.4rem;
+  background: var(--bauhaus-black);
+  color: var(--bauhaus-white);
+  text-decoration: none;
+}
+
+.backLink:hover,
+.backLink:focus-visible,
+.primaryButton:hover,
+.primaryButton:focus-visible,
+.dailyCard:hover,
+.dailyCard:focus-visible {
+  box-shadow: 4px 4px 0 var(--bauhaus-black);
+  transform: translate(-2px, -2px);
+}
+
+.backLink:focus-visible,
+.primaryButton:focus-visible,
+.passwordInput:focus-visible,
+.dailyCard:focus-visible {
+  outline: 3px solid var(--bauhaus-blue);
+  outline-offset: 3px;
+}
+
+.kicker {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--bauhaus-red);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.title,
+.gateTitle,
+.detailTitle {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 8.8em;
+  margin-top: 0.75rem;
+  font-size: clamp(3rem, 7vw, 6.6rem);
+  line-height: 0.86;
+  overflow-wrap: anywhere;
+}
+
+.description,
+.gateCopy {
+  position: relative;
+  z-index: 1;
+  max-width: 52rem;
+  margin: 1rem 0 0;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.heroGeometry {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 84px 112px 92px;
+  gap: 0.8rem;
+  align-items: end;
+  margin-top: 1.75rem;
+}
+
+.geometryCircle,
+.geometryTriangle,
+.geometrySquare {
+  display: block;
+  border: 3px solid var(--line);
+}
+
+.geometryCircle {
+  width: 84px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--bauhaus-yellow);
+}
+
+.geometryTriangle {
+  width: 112px;
+  height: 96px;
+  background: var(--bauhaus-red);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.geometrySquare {
+  width: 92px;
+  aspect-ratio: 1;
+  background: var(--bauhaus-blue);
+}
+
+.archiveGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.5rem 0 4rem;
+}
+
+.dailyCard {
+  position: relative;
+  display: grid;
+  min-height: 320px;
+  gap: 1.1rem;
+  align-content: start;
+  padding: 1.15rem;
+  border: 3px solid var(--line);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.dailyCard::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  background: var(--bauhaus-yellow);
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+  content: "";
+}
+
+.dailyCard:nth-child(3n + 2)::before {
+  background: var(--bauhaus-blue);
+}
+
+.dailyCard:nth-child(3n)::before {
+  background: var(--bauhaus-red);
+}
+
+.cardMeta,
+.detailTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.cardMeta {
+  color: var(--bauhaus-red);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardTitle {
+  color: var(--text);
+  font-size: 1.65rem;
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.summaryList {
+  display: grid;
+  gap: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.summaryList span {
+  padding-left: 0.8rem;
+  border-left: 4px solid var(--bauhaus-blue);
+}
+
+.cardAction {
+  align-self: end;
+  color: var(--bauhaus-black);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardAction::after {
+  color: var(--bauhaus-red);
+  content: " ->";
+}
+
+.gateShell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.gatePanel {
+  display: grid;
+  width: min(460px, 100%);
+  gap: 1rem;
+  padding: 1.35rem;
+  border: 3px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--offset-shadow);
+}
+
+.gateTitle {
+  color: var(--text);
+  font-size: 2.4rem;
+  line-height: 0.96;
+}
+
+.passwordLabel {
+  color: var(--bauhaus-red);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.passwordInput {
+  width: 100%;
+  min-height: 3rem;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  padding: 0 0.85rem;
+}
+
+.passwordInput:focus-visible {
+  box-shadow: 5px 5px 0 var(--bauhaus-blue);
+}
+
+.gateError {
+  margin: 0;
+  color: var(--bauhaus-red);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.primaryButton {
+  background: var(--bauhaus-yellow);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.detail {
+  padding: 1.2rem 0 4rem;
+}
+
+.detailTopline {
+  margin-bottom: 1rem;
+}
+
+.modePill {
+  background: var(--bauhaus-yellow);
+}
+
+.detailHeader {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 3px solid var(--line);
+  background:
+    linear-gradient(90deg, transparent 0 calc(100% - 1px), var(--bauhaus-gray) calc(100% - 1px) 100%),
+    linear-gradient(180deg, transparent 0 calc(100% - 1px), var(--bauhaus-gray) calc(100% - 1px) 100%),
+    var(--surface);
+  background-size: 96px 96px;
+  box-shadow: var(--offset-shadow);
+  overflow: hidden;
+}
+
+.detailHeader::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 0;
+  width: 24%;
+  height: 42%;
+  background: var(--bauhaus-blue);
+  content: "";
+}
+
+.detailDate {
+  position: relative;
+  z-index: 1;
+  color: var(--bauhaus-red);
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.detailTitle {
+  max-width: 14ch;
+  color: var(--text);
+  font-size: clamp(2.8rem, 6vw, 5.5rem);
+  line-height: 0.9;
+  overflow-wrap: anywhere;
+}
+
+.detailSummary {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  max-width: 760px;
+  gap: 0.8rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detailSummary li {
+  padding-left: 1rem;
+  border-left: 4px solid var(--bauhaus-blue);
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.sectionStack {
+  display: grid;
+  gap: 1.35rem;
+  margin-top: 1.5rem;
+}
+
+.reportSection {
+  padding: 1.2rem;
+  border: 3px solid var(--line);
+  background: var(--surface);
+}
+
+.reportSection h2 {
+  margin: 0 0 1rem;
+  color: var(--bauhaus-red);
+  font-size: 1.45rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.itemStack {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.reportItem {
+  padding: 1rem;
+  border: 2px solid var(--line);
+  background: #ffffff;
+}
+
+.reportItem h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.reportItem p {
+  margin: 0.55rem 0 0;
+  color: var(--text-muted);
+  line-height: 1.75;
+}
+
+@media (max-width: 920px) {
+  .archiveGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .hero,
+  .archiveGrid,
+  .detail {
+    width: min(100% - 1.25rem, 1120px);
+  }
+
+  .hero {
+    min-height: 380px;
+  }
+
+  .hero::before,
+  .detailHeader::before {
+    width: 24%;
+    height: 22%;
+  }
+
+  .hero::after {
+    right: 18%;
+    width: 17%;
+    height: 20%;
+  }
+
+  .title,
+  .detailTitle {
+    font-size: clamp(2.25rem, 11vw, 3.45rem);
+    line-height: 1;
+  }
+
+  .archiveGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .dailyCard {
+    min-height: 260px;
+  }
+
+  .detailTopline,
+  .cardMeta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .heroGeometry {
+    grid-template-columns: 58px 76px 62px;
+  }
+
+  .geometryCircle {
+    width: 58px;
+  }
+
+  .geometryTriangle {
+    width: 76px;
+    height: 66px;
+  }
+
+  .geometrySquare {
+    width: 62px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backLink,
+  .primaryButton,
+  .dailyCard {
+    transition: none;
+  }
+
+  .backLink:hover,
+  .backLink:focus-visible,
+  .primaryButton:hover,
+  .primaryButton:focus-visible,
+  .dailyCard:hover,
+  .dailyCard:focus-visible {
+    transform: none;
+  }
+}

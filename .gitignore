@@ -28,6 +28,10 @@ dist-ssr
 *.sln
 *.sw?
 
+# Playwright
+.playwright
+.playwright-cli
+
 # Cloudflare Worker secrets
 workers/**/.dev.vars
 .dev.vars

@@ -9,7 +9,7 @@ export default function NotFoundPage() {
         <p className={styles.kicker}>404</p>
         <h1 className={styles.title}>页面不存在。</h1>
         <p className={styles.description}>
-          你可以返回主站入口，或者直接进入 Game 与 Photos 子站页面。
+          你可以返回主站入口，或者直接进入 Game 与 Photos 路由页面。
         </p>
       </section>
 
@@ -26,9 +26,9 @@ export default function NotFoundPage() {
         <Link href="/game" className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Game</span>
-            <span className={styles.cardDomain}>game.maysssss.cn</span>
+            <span className={styles.cardDomain}>maysssss.cn/game</span>
           </div>
-          <p className={styles.cardDescription}>前往 Steam 仪表盘首页。</p>
+          <p className={styles.cardDescription}>前往 Steam 仪表盘路由页。</p>
           <span className={styles.cardAction}>Open</span>
         </Link>
       </section>

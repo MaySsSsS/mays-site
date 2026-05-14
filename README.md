@@ -1,6 +1,6 @@
 # Mays Site
 
-当前仓库已经直接切换为单一的 Next.js 应用，不再保留旧的 Vue 前端目录。主站 `/` 作为入口页，Game 与 Photos 保持独立子站语义。
+当前仓库已经直接切换为单一的 Next.js 应用，不再保留旧的 Vue 前端目录。主站 `/` 作为入口页，Game 与 Photos 统一通过主域名路由访问。
 
 ## 项目结构
 
@@ -62,6 +62,6 @@ pnpm deploy
 
 - `public/data/steam-games.json` 和中国地图 GeoJSON 来自原项目快照。
 - 照片和游戏接口仍然复用当前 Workers，不影响线上 API。
-- `middleware.ts` 会在 `game.*` 和 `photo.*` 子域名下把根路径分别映射到 Game 首页和照片页。
+- `middleware.ts` 会拦截已退役的 `game.*` 和 `photo.*` 子域名，并提示改用主域名路由。
 - GitHub 与 Cloudflare 的联动说明见 [DEPLOYMENT.md](/Volumes/KIOXIA+MAIWO/projects/mays-site/DEPLOYMENT.md)。
 - 前端 Cloudflare 配置见 [wrangler.jsonc](/Volumes/KIOXIA+MAIWO/projects/mays-site/wrangler.jsonc) 和 [open-next.config.ts](/Volumes/KIOXIA+MAIWO/projects/mays-site/open-next.config.ts)。
