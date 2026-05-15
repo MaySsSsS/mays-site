@@ -1,6 +1,18 @@
 {
-  "latestDate": "2026-05-14",
+  "latestDate": "2026-05-15",
   "entries": [
+    {
+      "date": "2026-05-15",
+      "title": "AI资讯日报 2026/5/15",
+      "mode": "ai_summary",
+      "summary": [
+        "Kimi发布网页自动化扩展，Replit实现项目一键导入与全自动编程",
+        "MindVLA架构首超人类智驾，何恺明ELF流匹配架构挑战Scaling Law突破",
+        "Recursive获巨头重金押注，美方批准阿里字节采购NVIDIA H200核心算力"
+      ],
+      "updatedAt": "2026-05-15T06:31:36.804Z",
+      "path": "/ai-daily/2026-05-15"
+    },
     {
       "date": "2026-05-14",
       "title": "AI日报 2026-05-14",
