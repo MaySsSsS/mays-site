@@ -44,8 +44,9 @@ test("buildSourceUrl derives the Hex daily URL from a date", () => {
   );
 });
 
-test("AI Daily workflow pulls data at 11:00 Asia/Shanghai", () => {
-  assert.match(aiDailyWorkflow, /cron:\s*"0 3 \* \* \*"/);
+test("AI Daily workflow pulls data at 12:00 Asia/Shanghai", () => {
+  assert.match(aiDailyWorkflow, /cron:\s*"0 4 \* \* \*"/);
+  assert.doesNotMatch(aiDailyWorkflow, /cron:\s*"0 3 \* \* \*"/);
   assert.doesNotMatch(aiDailyWorkflow, /cron:\s*"30 1 \* \* \*"/);
 });
 

@@ -8,7 +8,7 @@
 - 最新 commit：见 `git log -1 --oneline`
 - 当前里程碑：v1.3 `Word to Markdown`（已完成实现、审计与归档，待开启下一里程碑）
 - `make check`：通过（2026-05-04，`/tools/style-prompt` 原始 demo 预览尺寸改为方形后）
-- `pnpm test:ai-daily` / `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-14，补齐 AI Daily 2026-05-11 至 2026-05-14 数据、修复 GitHub 自动同步链路，并让 GitHub 部署构建使用静态 Steam 快照后；构建生成 34 个 AI Daily 详情页）
+- `pnpm test:ai-daily` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-17，将 AI Daily 自动同步时间从北京时间 11:00 改为 12:00；workflow cron 为 `0 4 * * *`）
 - `make check` / `pnpm run deploy` 内部 build：通过（2026-05-10，v1.3 Phase 10 完成并归档后；构建仍出现既有 `mays-game-api.mays.workers.dev` 超时警告但最终成功）
 - 部署状态：2026-05-14 使用 `NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH` 执行 `pnpm run deploy` 已成功发布到 Cloudflare；`mays-site-web` 当前版本 `bcb5d950-4cfd-4cb7-9cf5-54075da30e3f`，并已确认 `https://maysssss.cn/data/ai-daily/index.json` 最新日期为 `2026-05-14`，线上 AI Daily 数据共 34 天
 
@@ -80,6 +80,7 @@
 - [x] 2026-05-14：修复 GitHub `Deploy Frontend` 首次触发失败；根因是部署构建期 `/games` 页面等待远程 game-api 超过 Next 静态生成超时，已新增 `STEAM_DATA_SOURCE=static` 让 GitHub 部署构建直接使用本地 Steam 快照
 - [x] 2026-05-14：手动触发 `Update AI Daily` 验证正式链路，workflow 成功拉取 `2026-05-14` 并提交 `chore(data): update AI Daily`；随后确认 `GITHUB_TOKEN` 推送不会触发独立 `Deploy Frontend`，已将 Cloudflare 部署步骤接入 AI Daily workflow 的数据变更分支
 - [x] 2026-05-14：补充 AI Daily 重跑防降级保护；如果当天已有 `ai_summary`，后续同日重跑遇到智谱接口 400/不可用时保留既有 AI 总结，不再覆盖为 `mirror_fallback`
+- [x] 2026-05-17：将 AI Daily GitHub Actions 自动同步时间从北京时间 11:00 调整为 12:00；workflow cron 从 `0 3 * * *` 改为 `0 4 * * *`，并更新 `pnpm test:ai-daily` 调度断言
 
 ## 进行中
 
@@ -121,7 +122,7 @@
 
 ## 下一步
 
-1. 观察 AI Daily 每天北京时间 11:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
+1. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
 2. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态
 3. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
 4. P2.1 — 冷启动测试（验证新 agent 能否仅靠仓库内容回答五个基本问题）
