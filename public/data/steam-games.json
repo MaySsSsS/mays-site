@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-17T05:41:34.884Z",
+  "lastUpdated": "2026-05-18T06:04:56.855Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -11,8 +11,8 @@
     "avatarmedium": "https://avatars.steamstatic.com/6889e542266ff1eca9c32d7f405a723a0e19f756_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/6889e542266ff1eca9c32d7f405a723a0e19f756_full.jpg",
     "avatarhash": "6889e542266ff1eca9c32d7f405a723a0e19f756",
-    "lastlogoff": 1778995545,
-    "personastate": 1,
+    "lastlogoff": 1779000944,
+    "personastate": 4,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
     "timecreated": 1491720729,
@@ -2061,6 +2061,25 @@
       "rtime_last_played": 1698744560,
       "playtime_disconnected": 0,
       "playtime_2weeks": 0
+    },
+    {
+      "appid": 2129530,
+      "name": "REANIMAL",
+      "playtime_2weeks": 369,
+      "playtime_forever": 369,
+      "img_icon_url": "b50a746147735dbbd2db7539eda28686f9ccc1af",
+      "has_community_visible_stats": true,
+      "playtime_windows_forever": 369,
+      "playtime_mac_forever": 0,
+      "playtime_linux_forever": 0,
+      "playtime_deck_forever": 0,
+      "rtime_last_played": 1779024378,
+      "content_descriptorids": [
+        1,
+        2,
+        5
+      ],
+      "playtime_disconnected": 0
     },
     {
       "appid": 2149010,
