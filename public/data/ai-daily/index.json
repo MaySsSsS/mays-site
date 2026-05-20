@@ -1,6 +1,18 @@
 {
-  "latestDate": "2026-05-19",
+  "latestDate": "2026-05-20",
   "entries": [
+    {
+      "date": "2026-05-20",
+      "title": "AI资讯日报 2026-05-20",
+      "mode": "ai_summary",
+      "summary": [
+        "谷歌重构搜索发布Gemini3.5，OpenAI推出算力锁保障企业稳定运行",
+        "NEWTON优化视频物理常识，NavOne具身导航与RHINO实现三维重建",
+        "Meta裁员转型AI，教皇联手Anthropic研伦理，假图泛滥引发信任危机"
+      ],
+      "updatedAt": "2026-05-20T07:41:35.669Z",
+      "path": "/ai-daily/2026-05-20"
+    },
     {
       "date": "2026-05-19",
       "title": "AI资讯日报 2026/5/19",
