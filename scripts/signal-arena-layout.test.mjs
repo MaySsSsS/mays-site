@@ -14,6 +14,8 @@ const planFile = await readFile(new URL("../docs/superpowers/plans/2026-05-22-si
 const dashboardPage = await readFile(new URL("../app/signal-arena/page.tsx", import.meta.url), "utf8").catch(() => "");
 const logsPage = await readFile(new URL("../app/signal-arena/logs/page.tsx", import.meta.url), "utf8").catch(() => "");
 const rankPage = await readFile(new URL("../app/signal-arena/rank/page.tsx", import.meta.url), "utf8").catch(() => "");
+const dashboardComponent = await readFile(new URL("../components/signal-arena/SignalArenaDashboard.tsx", import.meta.url), "utf8").catch(() => "");
+const shellComponent = await readFile(new URL("../components/signal-arena/SignalArenaShell.tsx", import.meta.url), "utf8").catch(() => "");
 
 async function importSanitizerForTest() {
   const compiled = ts.transpileModule(sanitizerFile, {
@@ -158,4 +160,19 @@ test("Signal Arena routes are dynamic and use the server data client", () => {
     assert.match(file, /dynamic = "force-dynamic"/);
     assert.match(file, /getSignalArenaPublicData/);
   }
+
+  assert.match(dashboardPage, /<SignalArenaShell active="dashboard"/);
+  assert.match(dashboardPage, /<SignalArenaDashboard dashboard=/);
+  assert.match(logsPage, /<SignalArenaShell active="logs"/);
+  assert.match(logsPage, /<SignalArenaLogs logs=/);
+  assert.match(rankPage, /<SignalArenaShell active="rank"/);
+  assert.match(rankPage, /<SignalArenaRank rank=/);
+});
+
+test("Signal Arena dashboard and shell expose empty and active states", () => {
+  assert.match(sanitizerFile, /metrics: arrayValue\(value\.metrics\)\.map\(sanitizeMetric\)/);
+  assert.match(sanitizerFile, /marketSummaries: arrayValue\(value\.marketSummaries\)\.map\(sanitizeMarketSummary\)/);
+  assert.match(dashboardComponent, /关键指标暂未同步/);
+  assert.match(dashboardComponent, /市场分布暂未同步/);
+  assert.match(shellComponent, /aria-current=\{item\.id === active \? "page" : undefined\}/);
 });

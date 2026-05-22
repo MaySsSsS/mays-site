@@ -37,17 +37,21 @@ function formatRunStatus(status: DashboardData["latestRun"] extends { status: in
 export function SignalArenaDashboard({ dashboard }: SignalArenaDashboardProps) {
   return (
     <section className={styles.dashboard}>
-      <div className={styles.metricGrid}>
-        {dashboard.metrics.map((metric, index) => (
-          <article
-            key={`${metric.label}-${index}`}
-            className={`${styles.metric} ${styles[metric.tone]}`}
-          >
-            <span className={styles.metricLabel}>{metric.label}</span>
-            <strong className={styles.metricValue}>{metric.value}</strong>
-          </article>
-        ))}
-      </div>
+      {dashboard.metrics.length === 0 ? (
+        <p className={styles.empty}>关键指标暂未同步。</p>
+      ) : (
+        <div className={styles.metricGrid}>
+          {dashboard.metrics.map((metric, index) => (
+            <article
+              key={`${metric.label}-${index}`}
+              className={`${styles.metric} ${styles[metric.tone]}`}
+            >
+              <span className={styles.metricLabel}>{metric.label}</span>
+              <strong className={styles.metricValue}>{metric.value}</strong>
+            </article>
+          ))}
+        </div>
+      )}
 
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -117,16 +121,20 @@ export function SignalArenaDashboard({ dashboard }: SignalArenaDashboardProps) {
           <p className={styles.sectionNote}>按市场聚合的仓位规模与收益表现。</p>
         </div>
 
-        <div className={styles.marketStrip}>
-          {dashboard.marketSummaries.map((market, index) => (
-            <article key={`${market.market}-${index}`} className={styles.marketCard}>
-              <span className={styles.marketLabel}>{market.label}</span>
-              <strong className={styles.marketValue}>{formatMoney(market.totalValue)}</strong>
-              <span className={styles.marketMeta}>收益率 {formatPercent(market.profitRate)}</span>
-              <span className={styles.marketMeta}>{market.holdingsCount} 个持仓</span>
-            </article>
-          ))}
-        </div>
+        {dashboard.marketSummaries.length === 0 ? (
+          <p className={styles.empty}>市场分布暂未同步。</p>
+        ) : (
+          <div className={styles.marketStrip}>
+            {dashboard.marketSummaries.map((market, index) => (
+              <article key={`${market.market}-${index}`} className={styles.marketCard}>
+                <span className={styles.marketLabel}>{market.label}</span>
+                <strong className={styles.marketValue}>{formatMoney(market.totalValue)}</strong>
+                <span className={styles.marketMeta}>收益率 {formatPercent(market.profitRate)}</span>
+                <span className={styles.marketMeta}>{market.holdingsCount} 个持仓</span>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </section>
   );

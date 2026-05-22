@@ -42,6 +42,7 @@ export function SignalArenaShell({
             key={item.id}
             href={item.href}
             className={item.id === active ? styles.tabActive : styles.tab}
+            aria-current={item.id === active ? "page" : undefined}
           >
             {item.label}
           </Link>
