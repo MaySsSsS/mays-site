@@ -1,0 +1,26 @@
+name = "mays-signal-arena-api"
+main = "src/index.ts"
+compatibility_date = "2026-05-22"
+
+[[d1_databases]]
+binding = "SIGNAL_ARENA_DB"
+database_name = "signal-arena"
+database_id = "replace-after-d1-create"
+
+[[kv_namespaces]]
+binding = "SIGNAL_ARENA_KV"
+id = "replace-after-kv-create"
+
+[triggers]
+crons = ["*/15 1-7 * * 1-5"]
+
+[vars]
+CORS_ORIGIN = "https://maysssss.cn"
+SIGNAL_ARENA_BASE_URL = "https://signal.coze.com"
+SIGNAL_ARENA_AI_PROVIDER = "custom-responses"
+SIGNAL_ARENA_AI_BASE_URL = "https://sub2.de5.net"
+SIGNAL_ARENA_AI_STRICT_MODEL = "gpt-5.5"
+SIGNAL_ARENA_AI_STRICT_REASONING_EFFORT = "xhigh"
+SIGNAL_ARENA_AI_LIGHT_MODEL = "gpt-5.4"
+SIGNAL_ARENA_AI_LIGHT_REASONING_EFFORT = "low"
+SIGNAL_ARENA_AI_DISABLE_RESPONSE_STORAGE = "true"
