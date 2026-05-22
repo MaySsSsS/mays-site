@@ -81,6 +81,7 @@
 - [x] 2026-05-14：手动触发 `Update AI Daily` 验证正式链路，workflow 成功拉取 `2026-05-14` 并提交 `chore(data): update AI Daily`；随后确认 `GITHUB_TOKEN` 推送不会触发独立 `Deploy Frontend`，已将 Cloudflare 部署步骤接入 AI Daily workflow 的数据变更分支
 - [x] 2026-05-14：补充 AI Daily 重跑防降级保护；如果当天已有 `ai_summary`，后续同日重跑遇到智谱接口 400/不可用时保留既有 AI 总结，不再覆盖为 `mirror_fallback`
 - [x] 2026-05-17：将 AI Daily GitHub Actions 自动同步时间从北京时间 11:00 调整为 12:00；workflow cron 从 `0 3 * * *` 改为 `0 4 * * *`，并更新 `pnpm test:ai-daily` 调度断言
+- [x] 2026-05-22：完成 `SIGNAL ARENA` 公开看板与云端 AI Trader Runner 设计及 implementation plan；范围包括三页公开只读看板、Cloudflare Cron Worker、自定义 Responses provider、A 股风控、dry-run 与部署 secret 清单
 
 ## 进行中
 
