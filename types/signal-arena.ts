@@ -58,7 +58,6 @@ export type SignalArenaRunLog = {
     reasons: string[];
   };
   orderResult: {
-    orderId: string | null;
     status: string | null;
     message: string | null;
   };

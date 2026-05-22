@@ -4,20 +4,39 @@ import test from "node:test";
 
 const typeFile = await readFile(new URL("../types/signal-arena.ts", import.meta.url), "utf8").catch(() => "");
 const dataFile = await readFile(new URL("../lib/signal-arena-data.ts", import.meta.url), "utf8").catch(() => "");
+const fallbackJson = await readFile(new URL("../public/data/signal-arena/fallback.json", import.meta.url), "utf8");
 const packageJson = await readFile(new URL("../package.json", import.meta.url), "utf8");
 
 test("Signal Arena public types exist and do not expose secret fields", () => {
   assert.match(typeFile, /export type SignalArenaDashboard/);
   assert.match(typeFile, /export type SignalArenaRunLog/);
   assert.match(typeFile, /export type SignalArenaRank/);
-  assert.doesNotMatch(typeFile, /apiKey|agent-auth-api-key|SIGNAL_ARENA_AI_API_KEY/);
+  assert.doesNotMatch(typeFile, /apiKey|agent-auth-api-key|SIGNAL_ARENA_AI_API_KEY|orderId/);
 });
 
 test("Signal Arena frontend data client uses server-only worker access", () => {
   assert.match(dataFile, /import "server-only"/);
   assert.match(dataFile, /SIGNAL_ARENA_API_URL/);
   assert.match(dataFile, /fallbackData/);
+  assert.match(dataFile, /function isRecord/);
+  assert.match(dataFile, /function isSignalArenaPublicData/);
+  assert.match(dataFile, /fetchJson<unknown>/);
+  assert.match(dataFile, /isSignalArenaPublicData\(data\)/);
   assert.doesNotMatch(dataFile, /SIGNAL_ARENA_AI_API_KEY|SIGNAL_ARENA_AGENT_API_KEY/);
+});
+
+test("Signal Arena fallback data has the public dashboard shape", () => {
+  const fallback = JSON.parse(fallbackJson);
+
+  assert.equal(typeof fallback.dashboard.updatedAt, "string");
+  assert.equal(fallback.dashboard.sourceStatus, "fallback");
+  assert.ok(Array.isArray(fallback.dashboard.metrics));
+  assert.ok(Array.isArray(fallback.dashboard.cnHoldings));
+  assert.ok(Array.isArray(fallback.dashboard.marketSummaries));
+  assert.ok(Array.isArray(fallback.logs));
+  assert.equal(typeof fallback.rank.updatedAt, "string");
+  assert.ok(Array.isArray(fallback.rank.leaders));
+  assert.ok(Array.isArray(fallback.rank.nearby));
 });
 
 test("package exposes Signal Arena regression tests", () => {

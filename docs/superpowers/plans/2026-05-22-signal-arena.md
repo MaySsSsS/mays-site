@@ -67,20 +67,39 @@ import test from "node:test";
 
 const typeFile = await readFile(new URL("../types/signal-arena.ts", import.meta.url), "utf8").catch(() => "");
 const dataFile = await readFile(new URL("../lib/signal-arena-data.ts", import.meta.url), "utf8").catch(() => "");
+const fallbackJson = await readFile(new URL("../public/data/signal-arena/fallback.json", import.meta.url), "utf8");
 const packageJson = await readFile(new URL("../package.json", import.meta.url), "utf8");
 
 test("Signal Arena public types exist and do not expose secret fields", () => {
   assert.match(typeFile, /export type SignalArenaDashboard/);
   assert.match(typeFile, /export type SignalArenaRunLog/);
   assert.match(typeFile, /export type SignalArenaRank/);
-  assert.doesNotMatch(typeFile, /apiKey|agent-auth-api-key|SIGNAL_ARENA_AI_API_KEY/);
+  assert.doesNotMatch(typeFile, /apiKey|agent-auth-api-key|SIGNAL_ARENA_AI_API_KEY|orderId/);
 });
 
 test("Signal Arena frontend data client uses server-only worker access", () => {
   assert.match(dataFile, /import "server-only"/);
   assert.match(dataFile, /SIGNAL_ARENA_API_URL/);
   assert.match(dataFile, /fallbackData/);
+  assert.match(dataFile, /function isRecord/);
+  assert.match(dataFile, /function isSignalArenaPublicData/);
+  assert.match(dataFile, /fetchJson<unknown>/);
+  assert.match(dataFile, /isSignalArenaPublicData\(data\)/);
   assert.doesNotMatch(dataFile, /SIGNAL_ARENA_AI_API_KEY|SIGNAL_ARENA_AGENT_API_KEY/);
+});
+
+test("Signal Arena fallback data has the public dashboard shape", () => {
+  const fallback = JSON.parse(fallbackJson);
+
+  assert.equal(typeof fallback.dashboard.updatedAt, "string");
+  assert.equal(fallback.dashboard.sourceStatus, "fallback");
+  assert.ok(Array.isArray(fallback.dashboard.metrics));
+  assert.ok(Array.isArray(fallback.dashboard.cnHoldings));
+  assert.ok(Array.isArray(fallback.dashboard.marketSummaries));
+  assert.ok(Array.isArray(fallback.logs));
+  assert.equal(typeof fallback.rank.updatedAt, "string");
+  assert.ok(Array.isArray(fallback.rank.leaders));
+  assert.ok(Array.isArray(fallback.rank.nearby));
 });
 
 test("package exposes Signal Arena regression tests", () => {
@@ -160,7 +179,6 @@ export type SignalArenaRunLog = {
     reasons: string[];
   };
   orderResult: {
-    orderId: string | null;
     status: string | null;
     message: string | null;
   };
@@ -257,6 +275,32 @@ import fallbackData from "@/public/data/signal-arena/fallback.json";
 import type { SignalArenaPublicData } from "@/types/signal-arena";
 
 const DEFAULT_TIMEOUT_MS = 8000;
+const SOURCE_STATUSES = new Set(["live", "stale", "fallback", "error"]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isSignalArenaPublicData(value: unknown): value is SignalArenaPublicData {
+  if (!isRecord(value) || !isRecord(value.dashboard) || !isRecord(value.rank)) {
+    return false;
+  }
+
+  const { dashboard, logs, rank } = value;
+
+  return (
+    typeof dashboard.updatedAt === "string" &&
+    typeof dashboard.sourceStatus === "string" &&
+    SOURCE_STATUSES.has(dashboard.sourceStatus) &&
+    Array.isArray(dashboard.metrics) &&
+    Array.isArray(dashboard.cnHoldings) &&
+    Array.isArray(dashboard.marketSummaries) &&
+    Array.isArray(logs) &&
+    typeof rank.updatedAt === "string" &&
+    Array.isArray(rank.leaders) &&
+    Array.isArray(rank.nearby)
+  );
+}
 
 async function fetchJson<T>(url: string): Promise<T> {
   const controller = new AbortController();
@@ -286,7 +330,13 @@ export async function getSignalArenaPublicData(): Promise<SignalArenaPublicData>
   }
 
   try {
-    return await fetchJson<SignalArenaPublicData>(`${baseUrl.replace(/\/$/, "")}/api/public/all`);
+    const data = await fetchJson<unknown>(`${baseUrl.replace(/\/$/, "")}/api/public/all`);
+
+    if (isSignalArenaPublicData(data)) {
+      return data;
+    }
+
+    return fallbackData as SignalArenaPublicData;
   } catch {
     return fallbackData as SignalArenaPublicData;
   }
@@ -2416,6 +2466,23 @@ Inside `getPublicData`, load runs:
   const runs = await listRecentRuns(env, 30);
 ```
 
+Add a public order-result mapper near the log mapping:
+
+```ts
+function pickPublicOrderResult(value: unknown): { status: string | null; message: string | null } {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return { status: null, message: null };
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return {
+    status: typeof record.status === "string" ? record.status : null,
+    message: typeof record.message === "string" ? record.message : null
+  };
+}
+```
+
 Set `logs` and `latestRun` using:
 
 ```ts
@@ -2432,10 +2499,13 @@ Set `logs` and `latestRun` using:
     selectedAction: run.selected_action_json ? JSON.parse(run.selected_action_json) : null,
     riskResult: JSON.parse(run.risk_result_json),
     orderResult: run.order_result_json
-      ? JSON.parse(run.order_result_json)
-      : { orderId: null, status: null, message: null }
+      ? pickPublicOrderResult(JSON.parse(run.order_result_json))
+      : { status: null, message: null }
   }));
 ```
+
+Public log mapping must not expose real upstream order IDs. Keep private upstream `order_id` and D1
+`orderResultJson` inside the Worker boundary; public `orderResult` is `{ status, message }` only.
 
 Use `latestRun: logs[0] ?? null` in `dashboard`, and `logs` at the top level.
 
