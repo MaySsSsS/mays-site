@@ -18,6 +18,7 @@
     "test:ai-daily": "node --test scripts/ai-daily-core.test.mjs",
     "test:ai-daily-visual": "node --test scripts/ai-daily-visual.test.mjs",
     "test:portal": "node --test scripts/portal-layout.test.mjs",
+    "test:signal-arena": "node --test scripts/signal-arena-layout.test.mjs",
     "update:ai-daily": "node scripts/update-ai-daily.mjs"
   },
   "dependencies": {

@@ -1,0 +1,34 @@
+{
+  "dashboard": {
+    "updatedAt": "2026-05-22T00:00:00.000Z",
+    "sourceStatus": "fallback",
+    "totalAssets": 1000000,
+    "initialCapital": 1000000,
+    "cash": 1000000,
+    "frozenCash": 0,
+    "returnRate": 0,
+    "currentRank": null,
+    "metrics": [
+      { "label": "总资产", "value": "¥1,000,000", "tone": "neutral" },
+      { "label": "收益率", "value": "0.00%", "tone": "neutral" },
+      { "label": "当前排名", "value": "未同步", "tone": "warning" },
+      { "label": "可用现金", "value": "¥1,000,000", "tone": "neutral" }
+    ],
+    "cnHoldings": [],
+    "marketSummaries": [
+      { "market": "CN", "label": "A 股", "totalValue": 0, "profit": 0, "profitRate": 0, "holdingsCount": 0 },
+      { "market": "HK", "label": "港股", "totalValue": 0, "profit": 0, "profitRate": 0, "holdingsCount": 0 },
+      { "market": "US", "label": "美股", "totalValue": 0, "profit": 0, "profitRate": 0, "holdingsCount": 0 }
+    ],
+    "latestRun": null
+  },
+  "logs": [],
+  "rank": {
+    "currentRank": null,
+    "returnRate": 0,
+    "leaderGap": null,
+    "leaders": [],
+    "nearby": [],
+    "updatedAt": "2026-05-22T00:00:00.000Z"
+  }
+}
