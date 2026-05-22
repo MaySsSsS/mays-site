@@ -22,3 +22,12 @@ test("portal keeps a visible sealed panel for future sub-sites", () => {
   assert.match(portalPage, /未完待续/);
   assert.match(portalPage, /styles\.sealedPanel/);
 });
+
+test("portal exposes Signal Arena while preserving sealed panel", () => {
+  assert.match(portalPage, /SIGNAL ARENA/);
+  assert.match(portalPage, /href:\s*"\/signal-arena"/);
+  assert.match(portalPage, /maysssss\.cn\/signal-arena/);
+  assert.match(portalPage, /CLASSIFIED/);
+  assert.match(portalPage, /未完待续/);
+  assert.match(portalPage, /sealedPanels/);
+});

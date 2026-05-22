@@ -30,6 +30,13 @@ const portalItems = [
     href: "/ai-daily",
     domain: "maysssss.cn/ai-daily",
     className: styles.aiPanel
+  },
+  {
+    eyebrow: "ARENA",
+    title: "SIGNAL ARENA",
+    href: "/signal-arena",
+    domain: "maysssss.cn/signal-arena",
+    className: styles.signalArenaPanel
   }
 ];
 
