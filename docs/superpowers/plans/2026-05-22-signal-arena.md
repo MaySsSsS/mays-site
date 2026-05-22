@@ -13,6 +13,7 @@
 ## File Structure
 
 - Create `types/signal-arena.ts`: shared public snapshot, log, rank, action, and status types used by the Next pages.
+- Create `lib/signal-arena-sanitize.ts`: whitelist sanitizer for worker JSON before it crosses into public frontend data.
 - Create `lib/signal-arena-data.ts`: server-only frontend client for the Signal Arena Worker public endpoints with static fallback fixtures for local build.
 - Create `public/data/signal-arena/fallback.json`: non-secret demo/fallback data used when the worker URL is not configured.
 - Create `components/signal-arena/SignalArenaShell.tsx`: shared page shell and tab navigation.
@@ -52,6 +53,7 @@
 **Files:**
 - Create: `types/signal-arena.ts`
 - Create: `public/data/signal-arena/fallback.json`
+- Create: `lib/signal-arena-sanitize.ts`
 - Create: `lib/signal-arena-data.ts`
 - Create: `scripts/signal-arena-layout.test.mjs`
 - Modify: `package.json`
@@ -67,8 +69,10 @@ import test from "node:test";
 
 const typeFile = await readFile(new URL("../types/signal-arena.ts", import.meta.url), "utf8").catch(() => "");
 const dataFile = await readFile(new URL("../lib/signal-arena-data.ts", import.meta.url), "utf8").catch(() => "");
+const sanitizerFile = await readFile(new URL("../lib/signal-arena-sanitize.ts", import.meta.url), "utf8").catch(() => "");
 const fallbackJson = await readFile(new URL("../public/data/signal-arena/fallback.json", import.meta.url), "utf8");
 const packageJson = await readFile(new URL("../package.json", import.meta.url), "utf8");
+const planFile = await readFile(new URL("../docs/superpowers/plans/2026-05-22-signal-arena.md", import.meta.url), "utf8");
 
 test("Signal Arena public types exist and do not expose secret fields", () => {
   assert.match(typeFile, /export type SignalArenaDashboard/);
@@ -79,13 +83,20 @@ test("Signal Arena public types exist and do not expose secret fields", () => {
 
 test("Signal Arena frontend data client uses server-only worker access", () => {
   assert.match(dataFile, /import "server-only"/);
+  assert.match(dataFile, /toSignalArenaPublicData/);
   assert.match(dataFile, /SIGNAL_ARENA_API_URL/);
   assert.match(dataFile, /fallbackData/);
-  assert.match(dataFile, /function isRecord/);
-  assert.match(dataFile, /function isSignalArenaPublicData/);
   assert.match(dataFile, /fetchJson<unknown>/);
-  assert.match(dataFile, /isSignalArenaPublicData\(data\)/);
+  assert.match(dataFile, /toSignalArenaPublicData\(data\)/);
   assert.doesNotMatch(dataFile, /SIGNAL_ARENA_AI_API_KEY|SIGNAL_ARENA_AGENT_API_KEY/);
+});
+
+test("Signal Arena sanitizer whitelist-copies public data", () => {
+  assert.match(sanitizerFile, /export function toSignalArenaPublicData/);
+  assert.match(sanitizerFile, /orderResult: \{/);
+  assert.match(sanitizerFile, /status: nullableString/);
+  assert.match(sanitizerFile, /message: nullableString/);
+  assert.doesNotMatch(sanitizerFile, /orderId/);
 });
 
 test("Signal Arena fallback data has the public dashboard shape", () => {
@@ -100,6 +111,18 @@ test("Signal Arena fallback data has the public dashboard shape", () => {
   assert.equal(typeof fallback.rank.updatedAt, "string");
   assert.ok(Array.isArray(fallback.rank.leaders));
   assert.ok(Array.isArray(fallback.rank.nearby));
+  assert.doesNotMatch(fallbackJson, /orderId/);
+});
+
+test("Signal Arena plan keeps public mapping sanitized", () => {
+  const task9Start = planFile.indexOf("## Task 9:");
+  const task10Start = planFile.indexOf("## Task 10:");
+  const task9 = planFile.slice(task9Start, task10Start);
+
+  assert.notEqual(task9Start, -1);
+  assert.notEqual(task10Start, -1);
+  assert.match(planFile, /toSignalArenaPublicData/);
+  assert.doesNotMatch(task9, /orderId/);
 });
 
 test("package exposes Signal Arena regression tests", () => {
@@ -264,43 +287,42 @@ Create `public/data/signal-arena/fallback.json`:
 }
 ```
 
-- [ ] **Step 5: Add the server-only data client**
+- [ ] **Step 5: Add the whitelist sanitizer and server-only data client**
+
+Create `lib/signal-arena-sanitize.ts`:
+
+```ts
+import type { SignalArenaPublicData } from "@/types/signal-arena";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function nullableString(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+export function toSignalArenaPublicData(value: unknown): SignalArenaPublicData | null {
+  if (!isRecord(value) || !isRecord(value.dashboard) || !isRecord(value.rank)) {
+    return null;
+  }
+
+  // Whitelist-copy every public field from types/signal-arena.ts.
+  // For logs, public orderResult must be { status, message } only.
+  // Never spread worker records or return raw worker JSON.
+}
+```
 
 Create `lib/signal-arena-data.ts`:
 
 ```ts
 import "server-only";
 
+import { toSignalArenaPublicData } from "@/lib/signal-arena-sanitize";
 import fallbackData from "@/public/data/signal-arena/fallback.json";
 import type { SignalArenaPublicData } from "@/types/signal-arena";
 
 const DEFAULT_TIMEOUT_MS = 8000;
-const SOURCE_STATUSES = new Set(["live", "stale", "fallback", "error"]);
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isSignalArenaPublicData(value: unknown): value is SignalArenaPublicData {
-  if (!isRecord(value) || !isRecord(value.dashboard) || !isRecord(value.rank)) {
-    return false;
-  }
-
-  const { dashboard, logs, rank } = value;
-
-  return (
-    typeof dashboard.updatedAt === "string" &&
-    typeof dashboard.sourceStatus === "string" &&
-    SOURCE_STATUSES.has(dashboard.sourceStatus) &&
-    Array.isArray(dashboard.metrics) &&
-    Array.isArray(dashboard.cnHoldings) &&
-    Array.isArray(dashboard.marketSummaries) &&
-    Array.isArray(logs) &&
-    typeof rank.updatedAt === "string" &&
-    Array.isArray(rank.leaders) &&
-    Array.isArray(rank.nearby)
-  );
-}
 
 async function fetchJson<T>(url: string): Promise<T> {
   const controller = new AbortController();
@@ -331,9 +353,10 @@ export async function getSignalArenaPublicData(): Promise<SignalArenaPublicData>
 
   try {
     const data = await fetchJson<unknown>(`${baseUrl.replace(/\/$/, "")}/api/public/all`);
+    const sanitizedData = toSignalArenaPublicData(data);
 
-    if (isSignalArenaPublicData(data)) {
-      return data;
+    if (sanitizedData) {
+      return sanitizedData;
     }
 
     return fallbackData as SignalArenaPublicData;
