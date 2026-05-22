@@ -11,6 +11,9 @@ const sanitizerFile = await readFile(new URL("../lib/signal-arena-sanitize.ts", 
 const fallbackJson = await readFile(new URL("../public/data/signal-arena/fallback.json", import.meta.url), "utf8");
 const packageJson = await readFile(new URL("../package.json", import.meta.url), "utf8");
 const planFile = await readFile(new URL("../docs/superpowers/plans/2026-05-22-signal-arena.md", import.meta.url), "utf8");
+const dashboardPage = await readFile(new URL("../app/signal-arena/page.tsx", import.meta.url), "utf8").catch(() => "");
+const logsPage = await readFile(new URL("../app/signal-arena/logs/page.tsx", import.meta.url), "utf8").catch(() => "");
+const rankPage = await readFile(new URL("../app/signal-arena/rank/page.tsx", import.meta.url), "utf8").catch(() => "");
 
 async function importSanitizerForTest() {
   const compiled = ts.transpileModule(sanitizerFile, {
@@ -148,4 +151,11 @@ test("Signal Arena plan keeps public mapping sanitized", () => {
 test("package exposes Signal Arena regression tests", () => {
   const parsed = JSON.parse(packageJson);
   assert.equal(parsed.scripts["test:signal-arena"], "node --test scripts/signal-arena-layout.test.mjs");
+});
+
+test("Signal Arena routes are dynamic and use the server data client", () => {
+  for (const file of [dashboardPage, logsPage, rankPage]) {
+    assert.match(file, /dynamic = "force-dynamic"/);
+    assert.match(file, /getSignalArenaPublicData/);
+  }
 });
