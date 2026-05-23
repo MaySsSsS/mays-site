@@ -8,6 +8,8 @@ import type {
   SignalArenaMarket,
   SignalArenaMarketSummary,
   SignalArenaMetric,
+  SignalArenaOperations,
+  SignalArenaOperationsTone,
   SignalArenaPublicData,
   SignalArenaRank,
   SignalArenaRankEntry,
@@ -24,6 +26,7 @@ const METRIC_TONES = new Set<SignalArenaMetric["tone"]>(["neutral", "positive", 
 const RISK_LEVELS = new Set<SignalArenaRunLog["riskLevel"]>(["low", "medium", "high", "unknown"]);
 const SOURCE_STATUSES = new Set<SignalArenaDashboard["sourceStatus"]>(["live", "stale", "fallback", "error"]);
 const TRIGGERS = new Set<SignalArenaRunLog["trigger"]>(["cron", "manual"]);
+const OPERATIONS_TONES = new Set<SignalArenaOperationsTone>(["healthy", "watch", "quiet", "attention"]);
 const EQUITY_STATUSES = new Set<SignalArenaEquityPoint["status"]>([
   "executed",
   "held",
@@ -51,6 +54,14 @@ function numberValue(value: unknown, fallback = 0): number {
 
 function nullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function nullableStringValue(value: unknown, fallback: string | null): string | null {
+  return typeof value === "string" ? value : fallback;
+}
+
+function nullableNumberValue(value: unknown, fallback: number | null): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function arrayValue(value: unknown): unknown[] {
@@ -246,6 +257,55 @@ function sanitizeDashboard(value: Record<string, unknown>): SignalArenaDashboard
   };
 }
 
+function equityCoverageDays(history: SignalArenaEquityPoint[]): number {
+  const timestamps = history.map((point) => Date.parse(point.capturedAt)).filter(Number.isFinite);
+
+  if (timestamps.length < 2) {
+    return 0;
+  }
+
+  return Math.floor((Math.max(...timestamps) - Math.min(...timestamps)) / (24 * 60 * 60 * 1000));
+}
+
+function buildFallbackOperations(
+  dashboard: SignalArenaDashboard,
+  logs: SignalArenaRunLog[],
+  equityHistory: SignalArenaEquityPoint[]
+): SignalArenaOperations {
+  return {
+    tone: "watch",
+    label: "观察",
+    dataAgeSeconds: null,
+    latestRunStatus: dashboard.latestRun?.status ?? null,
+    latestRunFinishedAt: dashboard.latestRun?.finishedAt ?? null,
+    latestRunSummary: dashboard.latestRun?.summary ?? null,
+    equityPointCount: equityHistory.length,
+    equityCoverageDays: equityCoverageDays(equityHistory),
+    logCount: logs.length
+  };
+}
+
+function sanitizeOperations(value: unknown, fallback: SignalArenaOperations): SignalArenaOperations {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    tone: enumValue(record.tone, OPERATIONS_TONES, fallback.tone),
+    label: stringValue(record.label, fallback.label),
+    dataAgeSeconds: nullableNumberValue(record.dataAgeSeconds, fallback.dataAgeSeconds),
+    latestRunStatus:
+      record.latestRunStatus === null
+        ? null
+        : typeof record.latestRunStatus === "string" && RUN_STATUSES.has(record.latestRunStatus as SignalArenaRunStatus)
+          ? (record.latestRunStatus as SignalArenaRunStatus)
+          : fallback.latestRunStatus,
+    latestRunFinishedAt: nullableStringValue(record.latestRunFinishedAt, fallback.latestRunFinishedAt),
+    latestRunSummary: nullableStringValue(record.latestRunSummary, fallback.latestRunSummary),
+    equityPointCount: numberValue(record.equityPointCount, fallback.equityPointCount),
+    equityCoverageDays: numberValue(record.equityCoverageDays, fallback.equityCoverageDays),
+    logCount: numberValue(record.logCount, fallback.logCount)
+  };
+}
+
 export function toSignalArenaPublicData(value: unknown): SignalArenaPublicData | null {
   if (!isRecord(value) || !isRecord(value.dashboard) || !isRecord(value.rank)) {
     return null;
@@ -268,10 +328,18 @@ export function toSignalArenaPublicData(value: unknown): SignalArenaPublicData |
     return null;
   }
 
-  return {
+  const sanitizedData = {
     dashboard: sanitizeDashboard(dashboard),
     logs: logs.map(sanitizeRunLog),
     rank: sanitizeRank(rank),
     equityHistory: arrayValue(value.equityHistory).map(sanitizeEquityPoint)
+  };
+
+  return {
+    ...sanitizedData,
+    operations: sanitizeOperations(
+      value.operations,
+      buildFallbackOperations(sanitizedData.dashboard, sanitizedData.logs, sanitizedData.equityHistory)
+    )
   };
 }

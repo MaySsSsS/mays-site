@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-- 分支：codex/rebuild-nextjs
+- 分支：codex/deploy-signal-arena
 - 最新 commit：见 `git log -1 --oneline`
 - 当前里程碑：v1.3 `Word to Markdown`（已完成实现、审计与归档，待开启下一里程碑）
 - `make check`：通过（2026-05-04，`/tools/style-prompt` 原始 demo 预览尺寸改为方形后）
@@ -13,7 +13,8 @@
 - `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，修复首页 `SIGNAL ARENA` 入口恢复为普通可点击 portal 卡片）
 - `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，新增 Signal Arena 行情终端与决策追踪设计文档）
 - `pnpm test:signal-arena` / `pnpm test:signal-arena-worker` / `pnpm typecheck` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，完成 Signal Arena 行情终端、收益曲线、决策弹窗、D1 快照与增强 prompt）
-- 部署状态：2026-05-23 已发布 Signal Arena 行情终端前端与 Worker 到 Cloudflare；D1 trace/snapshot migration 已执行，`mays-signal-arena-api` 当前版本 `51fbd253-5893-49e1-9647-0a182e93aac7`，`main` push 后的 GitHub `Deploy Frontend` 已通过，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
+- `pnpm test:signal-arena` / `pnpm test:signal-arena-worker` / `pnpm typecheck` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，完成 Signal Arena 运行状态、公开 operations、日志筛选与图表文案优化；浏览器已验证本地 `/signal-arena` 与 `/signal-arena/logs`）
+- 部署状态：2026-05-23 已发布 Signal Arena 行情终端前端与 Worker 到 Cloudflare；D1 trace/snapshot migration 已执行，运营状态优化后的 `mays-signal-arena-api` 当前版本 `ff07e6e8-f088-4af3-8d14-7ec0b3ddf1d9`，公开 API 已返回 `operations.tone=quiet` / `source=live` / `equityHistory=1`，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
 
 ## 已完成
 
@@ -93,6 +94,7 @@
 - [x] 2026-05-23：完成 Signal Arena 行情终端视觉、红绿分段收益曲线、曲线点决策弹窗与增强交易 prompt 的设计文档；实现尚未开始，下一步按 Superpowers 写 implementation plan
 - [x] 2026-05-23：完成 Signal Arena 行情终端实现；新增 `7D / 30D / ALL` ECharts 收益曲线、红涨绿跌分段、单点/点位决策弹窗、公开 decision trace / before-after snapshot / equity history 类型与 sanitizer、D1 快照持久化、Runner richer context、top-movers/snapshots 上游读取，以及可审计 AI prompt；本地浏览器已验证 `/signal-arena` 图表渲染、范围按钮与弹窗打开
 - [x] 2026-05-23：部署 Signal Arena 行情终端；远端 D1 成功执行 4 条迁移语句，`mays-signal-arena-api` 已部署到版本 `51fbd253-5893-49e1-9647-0a182e93aac7`，前端 `main` push 后 GitHub `Deploy Frontend` 成功，线上 API 已返回 `equityHistory` 首个 dashboard 快照
+- [x] 2026-05-23：完成 Signal Arena 运营可靠性与看盘体验补强；Worker public data 新增安全 `operations` 状态对象，前端新增 `运行状态` 面板、日志摘要/筛选、快照累积文案，并补充公开字段白名单与 secret 防泄漏回归测试
 
 ## 进行中
 

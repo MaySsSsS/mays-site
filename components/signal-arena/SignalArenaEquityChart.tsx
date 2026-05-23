@@ -227,7 +227,7 @@ export function SignalArenaEquityChart({
       <div className={styles.chartHeader}>
         <div>
           <h2 className={styles.sectionTitle}>收益曲线</h2>
-          <p className={styles.sectionNote}>默认展示最近 7 天，点位可打开对应 AI 决策。</p>
+          <p className={styles.sectionNote}>默认展示最近 7 天，快照会随 Runner 累积；点位可打开对应 AI 决策。</p>
         </div>
         <div className={styles.rangeTabs} aria-label="收益曲线范围">
           {RANGE_OPTIONS.map((option) => (

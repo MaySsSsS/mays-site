@@ -135,6 +135,7 @@
 .rankHero,
 .marketCard,
 .chartPanel,
+.operationsPanel,
 .modalPanel,
 .traceBlock {
   border: 1px solid #253241;
@@ -176,7 +177,8 @@
 }
 
 .section,
-.chartPanel {
+.chartPanel,
+.operationsPanel {
   display: grid;
   gap: 14px;
   padding: 16px;
@@ -299,6 +301,77 @@
   background: #f0b90b;
 }
 
+.toneBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  min-height: 30px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  color: #070b10;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.healthyTone {
+  background: #f6465d;
+}
+
+.watchTone {
+  background: #f0b90b;
+}
+
+.quietTone {
+  color: #e6edf3;
+  background: #334155;
+}
+
+.attentionTone {
+  background: #00c076;
+}
+
+.operationsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.operationsItem {
+  display: grid;
+  gap: 8px;
+  min-height: 84px;
+  padding: 12px;
+  border: 1px solid #253241;
+  border-radius: 6px;
+  background: #0a1118;
+}
+
+.operationsItem span,
+.logSummaryItem {
+  color: #718196;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.operationsItem strong {
+  align-self: end;
+  color: #e6edf3;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.operationsSummary {
+  margin: 0;
+  padding: 12px;
+  border-left: 3px solid #f0b90b;
+  color: #cbd6e2;
+  background: #0a1118;
+}
+
 .marketStrip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -321,6 +394,48 @@
   display: grid;
   gap: 12px;
   padding: 16px;
+}
+
+.logSummary,
+.logFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #253241;
+  border-radius: 6px;
+  background: #0d141c;
+}
+
+.logSummaryItem {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #0a1118;
+}
+
+.logFilterButton,
+.logFilterButtonActive {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid #253241;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logFilterButton {
+  color: #93a4b7;
+  background: #070b10;
+}
+
+.logFilterButtonActive {
+  color: #070b10;
+  border-color: #f0b90b;
+  background: #f0b90b;
 }
 
 .candidateList,
@@ -429,6 +544,7 @@
 @media (max-width: 900px) {
   .metricGrid,
   .marketStrip,
+  .operationsGrid,
   .traceGrid,
   .modalGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -447,6 +563,7 @@
 
   .metricGrid,
   .marketStrip,
+  .operationsGrid,
   .traceGrid,
   .modalGrid {
     grid-template-columns: 1fr;

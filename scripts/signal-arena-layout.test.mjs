@@ -15,9 +15,11 @@ const dashboardPage = await readFile(new URL("../app/signal-arena/page.tsx", imp
 const logsPage = await readFile(new URL("../app/signal-arena/logs/page.tsx", import.meta.url), "utf8").catch(() => "");
 const rankPage = await readFile(new URL("../app/signal-arena/rank/page.tsx", import.meta.url), "utf8").catch(() => "");
 const dashboardComponent = await readFile(new URL("../components/signal-arena/SignalArenaDashboard.tsx", import.meta.url), "utf8").catch(() => "");
+const logsComponent = await readFile(new URL("../components/signal-arena/SignalArenaLogs.tsx", import.meta.url), "utf8").catch(() => "");
 const shellComponent = await readFile(new URL("../components/signal-arena/SignalArenaShell.tsx", import.meta.url), "utf8").catch(() => "");
 const equityChartComponent = await readFile(new URL("../components/signal-arena/SignalArenaEquityChart.tsx", import.meta.url), "utf8").catch(() => "");
 const decisionModalComponent = await readFile(new URL("../components/signal-arena/SignalArenaDecisionModal.tsx", import.meta.url), "utf8").catch(() => "");
+const operationsPanelComponent = await readFile(new URL("../components/signal-arena/SignalArenaOperationsPanel.tsx", import.meta.url), "utf8").catch(() => "");
 
 async function importSanitizerForTest() {
   const compiled = ts.transpileModule(sanitizerFile, {
@@ -39,8 +41,10 @@ test("Signal Arena public types exist and do not expose secret fields", () => {
   assert.match(typeFile, /export type SignalArenaRank/);
   assert.match(typeFile, /export type SignalArenaEquityPoint/);
   assert.match(typeFile, /export type SignalArenaDecisionTrace/);
+  assert.match(typeFile, /export type SignalArenaOperations/);
   assert.match(typeFile, /equityHistory: SignalArenaEquityPoint\[\]/);
-  assert.doesNotMatch(typeFile, /apiKey|agent-auth-api-key|SIGNAL_ARENA_AI_API_KEY|orderId/);
+  assert.match(typeFile, /operations: SignalArenaOperations/);
+  assert.doesNotMatch(typeFile, /apiKey|agent-auth-api-key|SIGNAL_ARENA_AI_API_KEY|SIGNAL_ARENA_ADMIN_TOKEN|orderId/);
 });
 
 test("Signal Arena frontend data client uses server-only worker access", () => {
@@ -57,7 +61,9 @@ test("Signal Arena sanitizer whitelist-copies public data", () => {
   assert.match(sanitizerFile, /export function toSignalArenaPublicData/);
   assert.match(sanitizerFile, /sanitizeDecisionTrace/);
   assert.match(sanitizerFile, /sanitizeEquityPoint/);
+  assert.match(sanitizerFile, /sanitizeOperations/);
   assert.match(sanitizerFile, /equityHistory: arrayValue\(value\.equityHistory\)/);
+  assert.match(sanitizerFile, /operations: sanitizeOperations/);
   assert.match(sanitizerFile, /orderResult: \{/);
   assert.match(sanitizerFile, /status: nullableString/);
   assert.match(sanitizerFile, /message: nullableString/);
@@ -159,6 +165,18 @@ test("Signal Arena sanitizer removes private and unknown worker fields", async (
         privateField: "hidden"
       }
     ],
+    operations: {
+      tone: "attention",
+      label: "注意",
+      dataAgeSeconds: 300,
+      latestRunStatus: "failed",
+      latestRunFinishedAt: "2026-05-22T00:01:00.000Z",
+      latestRunSummary: "Runner 执行失败。",
+      equityPointCount: 1,
+      equityCoverageDays: 0,
+      logCount: 1,
+      adminToken: "hidden"
+    },
     workerOnly: "hidden"
   });
 
@@ -175,6 +193,9 @@ test("Signal Arena sanitizer removes private and unknown worker fields", async (
   });
   assert.deepEqual(result.logs[0].watchlist, ["sh600519"]);
   assert.equal(result.equityHistory[0].runId, "run-1");
+  assert.equal(result.operations.tone, "attention");
+  assert.equal(result.operations.latestRunStatus, "failed");
+  assert.equal("adminToken" in result.operations, false);
   assert.equal("privateField" in result.equityHistory[0], false);
   assert.equal("privateField" in result.logs[0], false);
   assert.equal("workerOnly" in result, false);
@@ -191,6 +212,8 @@ test("Signal Arena fallback data has the public dashboard shape", () => {
   assert.ok(Array.isArray(fallback.dashboard.marketSummaries));
   assert.ok(Array.isArray(fallback.logs));
   assert.ok(Array.isArray(fallback.equityHistory));
+  assert.equal(typeof fallback.operations.label, "string");
+  assert.equal(typeof fallback.operations.equityPointCount, "number");
   assert.equal(fallback.equityHistory[0]?.status, "snapshot");
   assert.equal(typeof fallback.rank.updatedAt, "string");
   assert.ok(Array.isArray(fallback.rank.leaders));
@@ -221,7 +244,7 @@ test("Signal Arena routes are dynamic and use the server data client", () => {
   }
 
   assert.match(dashboardPage, /<SignalArenaShell active="dashboard"/);
-  assert.match(dashboardPage, /<SignalArenaDashboard dashboard=/);
+  assert.match(dashboardPage, /<SignalArenaDashboard\s+dashboard=/);
   assert.match(logsPage, /<SignalArenaShell active="logs"/);
   assert.match(logsPage, /<SignalArenaLogs logs=/);
   assert.match(rankPage, /<SignalArenaShell active="rank"/);
@@ -248,4 +271,13 @@ test("Signal Arena dashboard includes equity curve and decision modal contracts"
   assert.match(decisionModalComponent, /决策路线/);
   assert.match(decisionModalComponent, /操作前账户状态/);
   assert.match(decisionModalComponent, /执行结果/);
+});
+
+test("Signal Arena operations UI and log filters are wired", () => {
+  assert.match(dashboardComponent, /SignalArenaOperationsPanel/);
+  assert.match(dashboardPage, /operations=\{data\.operations\}/);
+  assert.match(operationsPanelComponent, /运行状态/);
+  assert.match(operationsPanelComponent, /快照覆盖/);
+  assert.match(logsComponent, /执行\/持有/);
+  assert.match(logsComponent, /setActiveFilter/);
 });

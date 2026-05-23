@@ -102,6 +102,17 @@ function makeSnapshot(updatedAt: string, sourceStatus: WorkerSnapshot["dashboard
       updatedAt
     },
     equityHistory: [],
+    operations: {
+      tone: "watch",
+      label: "观察",
+      dataAgeSeconds: null,
+      latestRunStatus: null,
+      latestRunFinishedAt: null,
+      latestRunSummary: null,
+      equityPointCount: 0,
+      equityCoverageDays: 0,
+      logCount: 0
+    },
     recentTrades: []
   };
 }
@@ -147,6 +158,21 @@ test("dashboard snapshot seeds equity history when no stored snapshots exist", a
   assert.equal(result.equityHistory[0]?.status, "snapshot");
 });
 
+test("public data includes generated operations status", async () => {
+  const cached = makeSnapshot(new Date().toISOString(), "live");
+  const env = makeEnv(makeKv({ "public:all": cached }));
+
+  globalThis.fetch = async () => {
+    throw new Error("unexpected upstream call");
+  };
+
+  const result = await getPublicData(env);
+
+  assert.equal(result.operations.tone, "healthy");
+  assert.equal(result.operations.equityPointCount, 1);
+  assert.equal(result.operations.logCount, 0);
+});
+
 test("cached public data is sanitized before returning", async () => {
   const updatedAt = new Date().toISOString();
   const env = makeEnv(
@@ -188,6 +214,18 @@ test("cached public data is sanitized before returning", async () => {
           nearby: [],
           updatedAt
         },
+        operations: {
+          tone: "attention",
+          label: "注意",
+          dataAgeSeconds: 10,
+          latestRunStatus: "failed",
+          latestRunFinishedAt: updatedAt,
+          latestRunSummary: "Runner 执行失败。",
+          equityPointCount: 1,
+          equityCoverageDays: 0,
+          logCount: 1,
+          adminToken: "private-admin-token"
+        },
         recentTrades: [
           {
             symbol: "sh600519",
@@ -214,6 +252,7 @@ test("cached public data is sanitized before returning", async () => {
 
   assert.equal(bodyText.includes("private-order"), false);
   assert.equal(bodyText.includes("agent_id"), false);
+  assert.equal(bodyText.includes("private-admin-token"), false);
   assert.equal(result.recentTrades[0]?.symbol, "sh600519");
   assert.equal(result.recentTrades[0]?.reason, "ok");
 });

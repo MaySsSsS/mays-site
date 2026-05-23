@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 
 import { SignalArenaDecisionModal } from "@/components/signal-arena/SignalArenaDecisionModal";
 import { SignalArenaEquityChart } from "@/components/signal-arena/SignalArenaEquityChart";
+import { SignalArenaOperationsPanel } from "@/components/signal-arena/SignalArenaOperationsPanel";
 import type {
   SignalArenaDashboard as DashboardData,
   SignalArenaEquityPoint,
+  SignalArenaOperations,
   SignalArenaRunLog
 } from "@/types/signal-arena";
 import styles from "@/styles/signal-arena.module.css";
@@ -15,6 +17,7 @@ type SignalArenaDashboardProps = {
   dashboard: DashboardData;
   logs: SignalArenaRunLog[];
   equityHistory: SignalArenaEquityPoint[];
+  operations: SignalArenaOperations;
 };
 
 function formatMoney(value: number): string {
@@ -46,7 +49,7 @@ function formatRunStatus(status: DashboardData["latestRun"] extends { status: in
   }
 }
 
-export function SignalArenaDashboard({ dashboard, logs, equityHistory }: SignalArenaDashboardProps) {
+export function SignalArenaDashboard({ dashboard, logs, equityHistory, operations }: SignalArenaDashboardProps) {
   const [selectedPoint, setSelectedPoint] = useState<SignalArenaEquityPoint | null>(null);
   const runById = useMemo(() => new Map(logs.map((log) => [log.id, log])), [logs]);
   const chartHistory = useMemo<SignalArenaEquityPoint[]>(() => {
@@ -81,6 +84,8 @@ export function SignalArenaDashboard({ dashboard, logs, equityHistory }: SignalA
         run={selectedRun}
         onClose={() => setSelectedPoint(null)}
       />
+
+      <SignalArenaOperationsPanel operations={operations} />
 
       {dashboard.metrics.length === 0 ? (
         <p className={styles.empty}>关键指标暂未同步。</p>

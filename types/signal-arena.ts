@@ -4,6 +4,8 @@ export type SignalArenaRunStatus = "executed" | "held" | "blocked" | "skipped" |
 
 export type SignalArenaActionType = "buy" | "sell" | "hold";
 
+export type SignalArenaOperationsTone = "healthy" | "watch" | "quiet" | "attention";
+
 export type SignalArenaMetric = {
   label: string;
   value: string;
@@ -120,6 +122,18 @@ export type SignalArenaRank = {
   updatedAt: string;
 };
 
+export type SignalArenaOperations = {
+  tone: SignalArenaOperationsTone;
+  label: string;
+  dataAgeSeconds: number | null;
+  latestRunStatus: SignalArenaRunStatus | null;
+  latestRunFinishedAt: string | null;
+  latestRunSummary: string | null;
+  equityPointCount: number;
+  equityCoverageDays: number;
+  logCount: number;
+};
+
 export type SignalArenaDashboard = {
   updatedAt: string;
   sourceStatus: "live" | "stale" | "fallback" | "error";
@@ -140,4 +154,5 @@ export type SignalArenaPublicData = {
   logs: SignalArenaRunLog[];
   rank: SignalArenaRank;
   equityHistory: SignalArenaEquityPoint[];
+  operations: SignalArenaOperations;
 };

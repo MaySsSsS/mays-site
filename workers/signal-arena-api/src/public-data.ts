@@ -87,6 +87,20 @@ type PublicEquityPoint = {
   actionSummary: string | null;
 };
 
+type PublicOperationsTone = "healthy" | "watch" | "quiet" | "attention";
+
+type PublicOperations = {
+  tone: PublicOperationsTone;
+  label: string;
+  dataAgeSeconds: number | null;
+  latestRunStatus: PublicRunLog["status"] | null;
+  latestRunFinishedAt: string | null;
+  latestRunSummary: string | null;
+  equityPointCount: number;
+  equityCoverageDays: number;
+  logCount: number;
+};
+
 type PublicRunLog = {
   id: string;
   startedAt: string;
@@ -164,6 +178,7 @@ type PublicSnapshot = {
   logs: PublicRunLog[];
   rank: PublicRank;
   equityHistory: PublicEquityPoint[];
+  operations: PublicOperations;
   recentTrades: PublicTrade[];
 };
 
@@ -197,6 +212,14 @@ function numberValue(value: unknown, fallback = 0): number {
 
 function nullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function nullableStringValue(value: unknown, fallback: string | null): string | null {
+  return typeof value === "string" ? value : fallback;
+}
+
+function nullableNumberValue(value: unknown, fallback: number | null): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function maybeNumber(...values: unknown[]): number | undefined {
@@ -240,6 +263,7 @@ const TRADE_ACTIONS = new Set<PublicTrade["action"]>(["buy", "sell"]);
 const SOURCE_STATUSES = new Set<PublicDashboard["sourceStatus"]>(["live", "stale", "fallback", "error"]);
 const RISK_LEVELS = new Set<PublicRunLog["riskLevel"]>(["low", "medium", "high", "unknown"]);
 const TRIGGERS = new Set<PublicRunLog["trigger"]>(["cron", "manual"]);
+const OPERATIONS_TONES = new Set<PublicOperationsTone>(["healthy", "watch", "quiet", "attention"]);
 const EQUITY_STATUSES = new Set<PublicEquityPoint["status"]>([
   "executed",
   "held",
@@ -343,6 +367,104 @@ function sanitizePublicEquityPoint(value: unknown): PublicEquityPoint {
     currentRank: nullableNumber(record.currentRank),
     status: enumValue(record.status, EQUITY_STATUSES, "snapshot"),
     actionSummary: nullableString(record.actionSummary)
+  };
+}
+
+function equityCoverageDays(history: PublicEquityPoint[]): number {
+  const timestamps = history.map((point) => Date.parse(point.capturedAt)).filter(Number.isFinite);
+
+  if (timestamps.length < 2) {
+    return 0;
+  }
+
+  return Math.floor((Math.max(...timestamps) - Math.min(...timestamps)) / (24 * 60 * 60 * 1000));
+}
+
+function isNonTradingSummary(summary: string): boolean {
+  return (
+    summary.toLowerCase().includes("market closed") ||
+    summary.includes("不是 A 股交易时段") ||
+    summary.includes("非交易时段") ||
+    summary.includes("休市")
+  );
+}
+
+function operationsTone(
+  sourceStatus: PublicDashboard["sourceStatus"],
+  dataAgeSeconds: number | null,
+  latestRunStatus: PublicRunLog["status"] | null,
+  latestRunSummary: string
+): PublicOperationsTone {
+  if (sourceStatus === "fallback" || sourceStatus === "error" || latestRunStatus === "failed") {
+    return "attention";
+  }
+
+  if (latestRunStatus === "skipped" && isNonTradingSummary(latestRunSummary)) {
+    return "quiet";
+  }
+
+  if (sourceStatus === "live" && dataAgeSeconds !== null && dataAgeSeconds <= 15 * 60) {
+    return "healthy";
+  }
+
+  return "watch";
+}
+
+function operationsLabel(tone: PublicOperationsTone): string {
+  switch (tone) {
+    case "healthy":
+      return "正常";
+    case "quiet":
+      return "休市";
+    case "attention":
+      return "注意";
+    case "watch":
+      return "观察";
+  }
+}
+
+function buildOperations(snapshot: {
+  dashboard: PublicDashboard;
+  logs: PublicRunLog[];
+  equityHistory: PublicEquityPoint[];
+}): PublicOperations {
+  const updatedMs = Date.parse(snapshot.dashboard.updatedAt);
+  const dataAgeSeconds = Number.isNaN(updatedMs) ? null : Math.max(0, Math.floor((Date.now() - updatedMs) / 1000));
+  const latestRun = snapshot.dashboard.latestRun;
+  const latestRunSummary = latestRun?.summary ?? "";
+  const tone = operationsTone(snapshot.dashboard.sourceStatus, dataAgeSeconds, latestRun?.status ?? null, latestRunSummary);
+
+  return {
+    tone,
+    label: operationsLabel(tone),
+    dataAgeSeconds,
+    latestRunStatus: latestRun?.status ?? null,
+    latestRunFinishedAt: latestRun?.finishedAt ?? null,
+    latestRunSummary: latestRun?.summary ?? null,
+    equityPointCount: snapshot.equityHistory.length,
+    equityCoverageDays: equityCoverageDays(snapshot.equityHistory),
+    logCount: snapshot.logs.length
+  };
+}
+
+function sanitizePublicOperations(value: unknown, fallback: PublicOperations): PublicOperations {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    tone: enumValue(record.tone, OPERATIONS_TONES, fallback.tone),
+    label: stringValue(record.label, fallback.label),
+    dataAgeSeconds: nullableNumberValue(record.dataAgeSeconds, fallback.dataAgeSeconds),
+    latestRunStatus:
+      record.latestRunStatus === null
+        ? null
+        : typeof record.latestRunStatus === "string" && RUN_STATUSES.has(record.latestRunStatus as PublicRunLog["status"])
+          ? (record.latestRunStatus as PublicRunLog["status"])
+          : fallback.latestRunStatus,
+    latestRunFinishedAt: nullableStringValue(record.latestRunFinishedAt, fallback.latestRunFinishedAt),
+    latestRunSummary: nullableStringValue(record.latestRunSummary, fallback.latestRunSummary),
+    equityPointCount: numberValue(record.equityPointCount, fallback.equityPointCount),
+    equityCoverageDays: numberValue(record.equityCoverageDays, fallback.equityCoverageDays),
+    logCount: numberValue(record.logCount, fallback.logCount)
   };
 }
 
@@ -492,12 +614,17 @@ function sanitizePublicSnapshot(value: unknown): PublicSnapshot | null {
     return null;
   }
 
-  return {
+  const snapshot = {
     dashboard: sanitizePublicDashboard(value.dashboard),
     logs: arrayValue(value.logs).map(sanitizePublicRunLog),
     rank: sanitizePublicRank(value.rank),
     equityHistory: arrayValue(value.equityHistory).map(sanitizePublicEquityPoint),
     recentTrades: arrayValue(value.recentTrades).map(sanitizePublicTrade)
+  };
+
+  return {
+    ...snapshot,
+    operations: sanitizePublicOperations(value.operations, buildOperations(snapshot))
   };
 }
 
@@ -672,9 +799,14 @@ function mergePublicData(
     logs
   };
 
-  return {
+  const result = {
     ...merged,
     equityHistory: seedEquityHistory(merged, mergeEquityHistory(snapshot.equityHistory, snapshotRows, logs))
+  };
+
+  return {
+    ...result,
+    operations: buildOperations(result)
   };
 }
 
@@ -791,6 +923,17 @@ function toPublicSnapshot(
       updatedAt
     },
     equityHistory: [],
+    operations: {
+      tone: "watch",
+      label: "观察",
+      dataAgeSeconds: null,
+      latestRunStatus: null,
+      latestRunFinishedAt: null,
+      latestRunSummary: null,
+      equityPointCount: 0,
+      equityCoverageDays: 0,
+      logCount: 0
+    },
     recentTrades
   };
 }

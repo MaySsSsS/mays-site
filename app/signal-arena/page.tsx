@@ -16,7 +16,12 @@ export default async function SignalArenaPage() {
 
   return (
     <SignalArenaShell active="dashboard" updatedAt={data.dashboard.updatedAt}>
-      <SignalArenaDashboard dashboard={data.dashboard} logs={data.logs} equityHistory={data.equityHistory} />
+      <SignalArenaDashboard
+        dashboard={data.dashboard}
+        logs={data.logs}
+        equityHistory={data.equityHistory}
+        operations={data.operations}
+      />
     </SignalArenaShell>
   );
 }

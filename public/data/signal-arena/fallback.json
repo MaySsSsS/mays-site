@@ -42,5 +42,16 @@
       "status": "snapshot",
       "actionSummary": "等待首次 Runner 快照"
     }
-  ]
+  ],
+  "operations": {
+    "tone": "watch",
+    "label": "观察",
+    "dataAgeSeconds": null,
+    "latestRunStatus": null,
+    "latestRunFinishedAt": null,
+    "latestRunSummary": "等待 Signal Arena Worker 同步。",
+    "equityPointCount": 1,
+    "equityCoverageDays": 0,
+    "logCount": 0
+  }
 }
