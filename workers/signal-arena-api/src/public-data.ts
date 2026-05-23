@@ -159,6 +159,28 @@ function nullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function maybeNumber(...values: unknown[]): number | undefined {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function noteReason(value: unknown): string | null {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return nullableString(value.reason ?? value.message ?? value.summary);
+}
+
 function arrayValue(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
@@ -426,11 +448,11 @@ function toPublicHolding(holding: NonNullable<ArenaPortfolioData["holdings"]>[nu
     name: holding.name,
     market: holding.market,
     shares: holding.shares,
-    availableShares: holding.available_shares ?? 0,
-    costPrice: holding.cost_price ?? 0,
+    availableShares: holding.available_shares ?? holding.shares,
+    costPrice: holding.cost_price ?? holding.avg_cost ?? 0,
     currentPrice: holding.current_price ?? 0,
     marketValue,
-    profit: holding.profit ?? 0,
+    profit: holding.profit ?? holding.profit_loss ?? 0,
     profitRate: holding.profit_rate ?? 0,
     positionRate: totalAssets > 0 ? marketValue / totalAssets : 0
   };
@@ -444,18 +466,22 @@ function toPublicSnapshot(
 ): PublicSnapshot {
   const updatedAt = new Date().toISOString();
   const holdings = portfolio.holdings ?? [];
-  const totalAssets = home.total_assets ?? home.initial_capital ?? 0;
+  const totalAssets =
+    maybeNumber(home.total_assets, home.portfolio?.total_value, portfolio.portfolio?.total_value, home.initial_capital) ?? 0;
+  const initialCapital = maybeNumber(home.initial_capital, portfolio.portfolio?.total_invested) ?? 1000000;
+  const cash = maybeNumber(home.cash, home.portfolio?.cash, portfolio.portfolio?.cash) ?? 0;
+  const returnRate = maybeNumber(home.return_rate, home.portfolio?.return_rate, portfolio.portfolio?.return_rate) ?? 0;
   const currentRank = home.rank ?? null;
   const publicHoldings = holdings.map((holding) => toPublicHolding(holding, totalAssets));
-  const currentAgentId = home.agent_id ?? null;
+  const currentAgentId = home.agent_id ?? home.agent?.id ?? null;
 
   const leaderEntries = (leaderboard.leaderboard ?? []).slice(0, 10).map((entry) => ({
     rank: entry.rank,
-    nickname: entry.nickname,
-    totalAssets: entry.total_assets ?? 0,
+    nickname: entry.nickname ?? entry.agent?.nickname ?? entry.agent?.username ?? "unknown",
+    totalAssets: entry.total_assets ?? entry.total_value ?? 0,
     returnRate: entry.return_rate ?? 0,
     isCurrentAgent: currentAgentId
-      ? Boolean(entry.agent_id ? entry.agent_id === currentAgentId : entry.rank === currentRank)
+      ? Boolean((entry.agent_id ?? entry.agent?.id) ? (entry.agent_id ?? entry.agent?.id) === currentAgentId : entry.rank === currentRank)
       : entry.rank === currentRank
   }));
 
@@ -465,11 +491,11 @@ function toPublicSnapshot(
         .filter((entry) => Math.abs(entry.rank - currentRank) <= 3)
         .map((entry) => ({
           rank: entry.rank,
-          nickname: entry.nickname,
-          totalAssets: entry.total_assets ?? 0,
+          nickname: entry.nickname ?? entry.agent?.nickname ?? entry.agent?.username ?? "unknown",
+          totalAssets: entry.total_assets ?? entry.total_value ?? 0,
           returnRate: entry.return_rate ?? 0,
           isCurrentAgent: currentAgentId
-            ? Boolean(entry.agent_id ? entry.agent_id === currentAgentId : entry.rank === currentRank)
+            ? Boolean((entry.agent_id ?? entry.agent?.id) ? (entry.agent_id ?? entry.agent?.id) === currentAgentId : entry.rank === currentRank)
             : entry.rank === currentRank
         }));
 
@@ -480,8 +506,8 @@ function toPublicSnapshot(
     action: trade.action,
     shares: trade.shares,
     status: trade.status,
-    reason: nullableString(trade.reason),
-    createdAt: nullableString(trade.created_at)
+    reason: nullableString(trade.reason) ?? noteReason(trade.note),
+    createdAt: nullableString(trade.created_at ?? trade.submitted_at ?? trade.executed_at)
   }));
 
   return {
@@ -489,16 +515,16 @@ function toPublicSnapshot(
       updatedAt,
       sourceStatus: "live",
       totalAssets,
-      initialCapital: home.initial_capital ?? 1000000,
-      cash: home.cash ?? 0,
+      initialCapital,
+      cash,
       frozenCash: home.frozen_cash ?? 0,
-      returnRate: home.return_rate ?? 0,
+      returnRate,
       currentRank,
       metrics: [
         { label: "总资产", value: money(totalAssets), tone: "neutral" },
-        { label: "收益率", value: percent(home.return_rate ?? 0), tone: (home.return_rate ?? 0) >= 0 ? "positive" : "negative" },
+        { label: "收益率", value: percent(returnRate), tone: returnRate >= 0 ? "positive" : "negative" },
         { label: "当前排名", value: currentRank === null ? "未同步" : `#${currentRank}`, tone: "neutral" },
-        { label: "可用现金", value: money(home.cash ?? 0), tone: "neutral" }
+        { label: "可用现金", value: money(cash), tone: "neutral" }
       ],
       cnHoldings: publicHoldings.filter((holding) => holding.market === "CN"),
       marketSummaries: (["CN", "HK", "US"] as const).map((market) => {
@@ -520,7 +546,7 @@ function toPublicSnapshot(
     logs: [],
     rank: {
       currentRank,
-      returnRate: home.return_rate ?? 0,
+      returnRate,
       leaderGap,
       leaders: leaderEntries,
       nearby: nearbyEntries,

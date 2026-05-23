@@ -10,7 +10,7 @@
 - `make check`：通过（2026-05-04，`/tools/style-prompt` 原始 demo 预览尺寸改为方形后）
 - `pnpm test:ai-daily` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-17，将 AI Daily 自动同步时间从北京时间 11:00 改为 12:00；workflow cron 为 `0 4 * * *`）
 - `make check` / `pnpm run deploy` 内部 build：通过（2026-05-10，v1.3 Phase 10 完成并归档后；构建仍出现既有 `mays-game-api.mays.workers.dev` 超时警告但最终成功）
-- 部署状态：2026-05-14 使用 `NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH` 执行 `pnpm run deploy` 已成功发布到 Cloudflare；`mays-site-web` 当前版本 `bcb5d950-4cfd-4cb7-9cf5-54075da30e3f`，并已确认 `https://maysssss.cn/data/ai-daily/index.json` 最新日期为 `2026-05-14`，线上 AI Daily 数据共 34 天
+- 部署状态：2026-05-23 已发布 Signal Arena 前端与 Worker 到 Cloudflare；`mays-site-web` 当前版本 `925c2afe-7e92-45c6-8306-39cf758c8884`，`mays-signal-arena-api` 当前版本 `ee95f8a0-f5cf-4c1e-9d96-5305f7bf387a`，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
 
 ## 已完成
 
@@ -84,6 +84,8 @@
 - [x] 2026-05-22：完成 `SIGNAL ARENA` 公开看板与云端 AI Trader Runner 设计及 implementation plan；范围包括三页公开只读看板、Cloudflare Cron Worker、自定义 Responses provider、A 股风控、dry-run 与部署 secret 清单
 - [x] 2026-05-23：完成 `SIGNAL ARENA` 的 AI provider、A 股风控、Runner、D1 日志接入、公开页验证与部署文档收尾；本地已通过 `pnpm test:signal-arena`、`pnpm test:portal`、`pnpm test:signal-arena-worker`、`pnpm typecheck`、`pnpm lint`、`pnpm build`
 - [x] 2026-05-23：修复首页 `SIGNAL ARENA` 入口不易发现的问题；将入口提升为门户第一张卡片，并缩短封面高度，让当前本地浏览器首屏可见入口标题与 `OPEN` 按钮
+- [x] 2026-05-23：完成 Signal Arena 线上部署；创建并绑定 Cloudflare D1 `signal-arena` 与 KV `SIGNAL_ARENA_KV`，部署 Worker 到 `signal-arena-api.maysssss.cn`，配置 `SIGNAL_ARENA_AGENT_API_KEY` / `SIGNAL_ARENA_AI_API_KEY` / `SIGNAL_ARENA_ADMIN_TOKEN` secrets，并用 `dryRun=true` 写入一条周六非交易时段 `skipped` 日志
+- [x] 2026-05-23：修复 Signal Arena 真实上游字段映射；策场当前返回 `portfolio.total_value`、`holdings.avg_cost`、`holdings.profit_loss`、`leaderboard[].total_value` 等字段，Worker 已兼容并重新部署，线上 `/signal-arena` 已显示真实总资产与 A 股持仓，不再显示 fallback 数据
 
 ## 进行中
 
@@ -125,7 +127,7 @@
 
 ## 下一步
 
-1. 按 `docs/DEPLOYMENT.md` 配置 `workers/signal-arena-api` 的 D1 / KV / secrets，并先用 `dryRun=true` 验证首轮 runner
+1. 观察 2026-05-25 周一 A 股交易时段内 Signal Arena cron 是否从 `skipped` 进入 `executed` / `held`，并确认 `/signal-arena/logs` 展示真实 AI 决策日志
 2. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
 3. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态
 4. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本

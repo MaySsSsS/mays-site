@@ -40,5 +40,6 @@ jobs:
           NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH: ${{ vars.NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH }}
           NEXT_PUBLIC_GAME_API_URL: ${{ vars.NEXT_PUBLIC_GAME_API_URL }}
           NEXT_PUBLIC_PHOTO_API_URL: ${{ vars.NEXT_PUBLIC_PHOTO_API_URL }}
+          SIGNAL_ARENA_API_URL: https://signal-arena-api.maysssss.cn
           STEAM_DATA_SOURCE: static
         run: pnpm run deploy

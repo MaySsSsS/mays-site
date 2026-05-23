@@ -1,15 +1,18 @@
 name = "mays-signal-arena-api"
 main = "src/index.ts"
 compatibility_date = "2026-05-22"
+routes = [
+  { pattern = "signal-arena-api.maysssss.cn", custom_domain = true }
+]
 
 [[d1_databases]]
 binding = "SIGNAL_ARENA_DB"
 database_name = "signal-arena"
-database_id = "replace-after-d1-create"
+database_id = "bc073b2d-b36c-4590-b14a-627f4ed70358"
 
 [[kv_namespaces]]
 binding = "SIGNAL_ARENA_KV"
-id = "replace-after-kv-create"
+id = "e1b7f7c61df542eaa4c7ea82bbe14545"
 
 [triggers]
 crons = ["*/15 1-7 * * 1-5"]

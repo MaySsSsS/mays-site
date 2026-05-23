@@ -19,6 +19,9 @@
       "service": "mays-site-web"
     }
   ],
+  "vars": {
+    "SIGNAL_ARENA_API_URL": "https://signal-arena-api.maysssss.cn"
+  },
   "observability": {
     "enabled": true
   }

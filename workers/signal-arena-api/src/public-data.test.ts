@@ -303,12 +303,21 @@ test("upstream refresh stays public and keeps private fields out", async () => {
       return jsonResponse({
         success: true,
         data: {
-          initial_capital: 1000000,
-          total_assets: 1200000,
-          cash: 300000,
-          frozen_cash: 0,
-          return_rate: 0.2,
-          rank: 2
+          agent: {
+            id: "agent-123",
+            username: "me"
+          },
+          joined: true,
+          portfolio: {
+            cash: 300000,
+            total_value: 1200000,
+            return_rate: 0.2,
+            total_fees: 0
+          },
+          rank: 2,
+          total_participants: 3000,
+          pending_orders: 0,
+          market_status: "open"
         }
       });
     }
@@ -317,17 +326,24 @@ test("upstream refresh stays public and keeps private fields out", async () => {
       return jsonResponse({
         success: true,
         data: {
+          portfolio: {
+            cash: 300000,
+            holdings_value: 900000,
+            total_value: 1200000,
+            total_invested: 1000000,
+            return_rate: 0.2,
+            total_fees: 0
+          },
           holdings: [
             {
               symbol: "sh600519",
               name: "贵州茅台",
               market: "CN",
               shares: 100,
-              available_shares: 100,
-              cost_price: 1200,
+              avg_cost: 1200,
               current_price: 1300,
               market_value: 130000,
-              profit: 10000,
+              profit_loss: 10000,
               profit_rate: 0.0833
             }
           ]
@@ -344,11 +360,19 @@ test("upstream refresh stays public and keeps private fields out", async () => {
               id: "trade-1",
               order_id: "private-order",
               symbol: "sh600519",
+              name: "贵州茅台",
+              market: "CN",
               action: "buy",
               shares: 100,
+              price: 1300,
+              total_amount: 130000,
+              commission: 32.5,
+              stamp_tax: 0,
+              total_fees: 32.5,
               status: "filled",
-              reason: "滚动买入",
-              created_at: "2026-05-22T00:00:00.000Z"
+              note: { reason: "滚动买入", orderId: "private-order" },
+              submitted_at: "2026-05-22T00:00:00.000Z",
+              executed_at: "2026-05-22T00:15:00.000Z"
             }
           ]
         }
@@ -360,8 +384,20 @@ test("upstream refresh stays public and keeps private fields out", async () => {
         success: true,
         data: {
           leaderboard: [
-            { rank: 1, nickname: "Alpha", total_assets: 1300000, return_rate: 0.3, agent_id: "agent-alpha" },
-            { rank: 2, nickname: "Me", total_assets: 1200000, return_rate: 0.2 }
+            {
+              rank: 1,
+              agent: { id: "agent-alpha", username: "alpha", nickname: "Alpha", avatar_url: "private-url" },
+              total_value: 1300000,
+              total_invested: 1000000,
+              return_rate: 0.3
+            },
+            {
+              rank: 2,
+              agent: { id: "agent-123", username: "me", nickname: "Me", avatar_url: "private-url" },
+              total_value: 1200000,
+              total_invested: 1000000,
+              return_rate: 0.2
+            }
           ]
         }
       });
@@ -374,11 +410,18 @@ test("upstream refresh stays public and keeps private fields out", async () => {
   const bodyText = JSON.stringify(result);
 
   assert.equal(result.dashboard.sourceStatus, "live");
+  assert.equal(result.dashboard.totalAssets, 1200000);
+  assert.equal(result.dashboard.cash, 300000);
+  assert.equal(result.dashboard.cnHoldings[0]?.costPrice, 1200);
+  assert.equal(result.dashboard.cnHoldings[0]?.profit, 10000);
   assert.equal(result.rank.currentRank, 2);
+  assert.equal(result.rank.leaders[0]?.totalAssets, 1300000);
+  assert.equal(result.rank.leaders[0]?.nickname, "Alpha");
   assert.equal(result.rank.leaders.find((entry) => entry.rank === 2)?.isCurrentAgent, true);
   assert.equal(result.recentTrades[0]?.symbol, "sh600519");
   assert.equal(result.recentTrades[0]?.reason, "滚动买入");
   assert.equal(bodyText.includes("agent-123"), false);
+  assert.equal(bodyText.includes("private-url"), false);
   assert.equal(bodyText.includes("order_id"), false);
   assert.equal(calls.map((call) => call.pathname).join(","), "/api/v1/arena/home,/api/v1/arena/portfolio,/api/v1/arena/trades,/api/v1/arena/leaderboard");
   assert.equal(calls[0].headers.get("agent-auth-api-key"), "agent-secret");

@@ -31,6 +31,17 @@ export type ArenaApiResponse<T> = {
 };
 
 export type ArenaHomeData = {
+  agent?: {
+    id?: string;
+    username?: string;
+  };
+  joined?: boolean;
+  portfolio?: {
+    cash?: number;
+    total_value?: number;
+    return_rate?: number;
+    total_fees?: number;
+  };
   agent_id?: string;
   nickname?: string;
   initial_capital?: number;
@@ -42,15 +53,26 @@ export type ArenaHomeData = {
 };
 
 export type ArenaPortfolioData = {
+  portfolio?: {
+    cash?: number;
+    holdings_value?: number;
+    total_value?: number;
+    total_invested?: number;
+    return_rate?: number;
+    total_fees?: number;
+    joined_at?: string;
+  };
   holdings?: Array<{
     symbol: string;
     name: string;
     market: "CN" | "HK" | "US";
     shares: number;
     available_shares?: number;
+    avg_cost?: number;
     cost_price?: number;
     current_price?: number;
     market_value?: number;
+    profit_loss?: number;
     profit?: number;
     profit_rate?: number;
   }>;
@@ -59,8 +81,15 @@ export type ArenaPortfolioData = {
 export type ArenaLeaderboardData = {
   leaderboard?: Array<{
     rank: number;
-    nickname: string;
+    agent?: {
+      id?: string;
+      username?: string;
+      nickname?: string;
+      avatar_url?: string;
+    };
+    nickname?: string;
     total_assets?: number;
+    total_value?: number;
     return_rate?: number;
     agent_id?: string;
   }>;
@@ -71,11 +100,21 @@ export type ArenaTradesData = {
     id?: string;
     order_id?: string;
     symbol: string;
+    name?: string;
+    market?: string;
     action: "buy" | "sell";
     shares: number;
+    price?: number;
+    total_amount?: number;
+    commission?: number;
+    stamp_tax?: number;
+    total_fees?: number;
     status: string;
+    note?: unknown;
     reason?: string;
     created_at?: string;
+    submitted_at?: string;
+    executed_at?: string;
   }>;
 };
 
