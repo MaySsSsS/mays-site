@@ -11,6 +11,7 @@
 - `pnpm test:ai-daily` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-17，将 AI Daily 自动同步时间从北京时间 11:00 改为 12:00；workflow cron 为 `0 4 * * *`）
 - `make check` / `pnpm run deploy` 内部 build：通过（2026-05-10，v1.3 Phase 10 完成并归档后；构建仍出现既有 `mays-game-api.mays.workers.dev` 超时警告但最终成功）
 - `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，修复首页 `SIGNAL ARENA` 入口恢复为普通可点击 portal 卡片）
+- `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，新增 Signal Arena 行情终端与决策追踪设计文档）
 - 部署状态：2026-05-23 已发布 Signal Arena 前端与 Worker 到 Cloudflare；手工部署与 `main` push 后的 GitHub `Deploy Frontend` 均已通过，`mays-signal-arena-api` 当前版本 `ee95f8a0-f5cf-4c1e-9d96-5305f7bf387a`，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
 
 ## 已完成
@@ -88,6 +89,7 @@
 - [x] 2026-05-23：完成 Signal Arena 线上部署；创建并绑定 Cloudflare D1 `signal-arena` 与 KV `SIGNAL_ARENA_KV`，部署 Worker 到 `signal-arena-api.maysssss.cn`，配置 `SIGNAL_ARENA_AGENT_API_KEY` / `SIGNAL_ARENA_AI_API_KEY` / `SIGNAL_ARENA_ADMIN_TOKEN` secrets，并用 `dryRun=true` 写入一条周六非交易时段 `skipped` 日志
 - [x] 2026-05-23：修复 Signal Arena 真实上游字段映射；策场当前返回 `portfolio.total_value`、`holdings.avg_cost`、`holdings.profit_loss`、`leaderboard[].total_value` 等字段，Worker 已兼容并重新部署，线上 `/signal-arena` 已显示真实总资产与 A 股持仓，不再显示 fallback 数据
 - [x] 2026-05-23：修复首页 `SIGNAL ARENA` 入口卡片布局回归；去掉全宽 `grid-column`，保持它和其他 portal 卡片同尺寸、同完整卡片跳转结构，并补充 `pnpm test:portal` 回归断言
+- [x] 2026-05-23：完成 Signal Arena 行情终端视觉、红绿分段收益曲线、曲线点决策弹窗与增强交易 prompt 的设计文档；实现尚未开始，下一步按 Superpowers 写 implementation plan
 
 ## 进行中
 
@@ -129,8 +131,9 @@
 
 ## 下一步
 
-1. 观察 2026-05-25 周一 A 股交易时段内 Signal Arena cron 是否从 `skipped` 进入 `executed` / `held`，并确认 `/signal-arena/logs` 展示真实 AI 决策日志
-2. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
-3. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态
-4. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
-5. P2.1 — 冷启动测试（验证新 agent 能否仅靠仓库内容回答五个基本问题）
+1. 请用户 review `docs/superpowers/specs/2026-05-23-signal-arena-market-dashboard-design.md`；确认后进入 Superpowers writing-plans，生成实现计划
+2. 观察 2026-05-25 周一 A 股交易时段内 Signal Arena cron 是否从 `skipped` 进入 `executed` / `held`，并确认 `/signal-arena/logs` 展示真实 AI 决策日志
+3. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
+4. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态
+5. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
+6. P2.1 — 冷启动测试（验证新 agent 能否仅靠仓库内容回答五个基本问题）
