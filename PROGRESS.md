@@ -83,6 +83,7 @@
 - [x] 2026-05-17：将 AI Daily GitHub Actions 自动同步时间从北京时间 11:00 调整为 12:00；workflow cron 从 `0 3 * * *` 改为 `0 4 * * *`，并更新 `pnpm test:ai-daily` 调度断言
 - [x] 2026-05-22：完成 `SIGNAL ARENA` 公开看板与云端 AI Trader Runner 设计及 implementation plan；范围包括三页公开只读看板、Cloudflare Cron Worker、自定义 Responses provider、A 股风控、dry-run 与部署 secret 清单
 - [x] 2026-05-23：完成 `SIGNAL ARENA` 的 AI provider、A 股风控、Runner、D1 日志接入、公开页验证与部署文档收尾；本地已通过 `pnpm test:signal-arena`、`pnpm test:portal`、`pnpm test:signal-arena-worker`、`pnpm typecheck`、`pnpm lint`、`pnpm build`
+- [x] 2026-05-23：修复首页 `SIGNAL ARENA` 入口不易发现的问题；将入口提升为门户第一张卡片，并缩短封面高度，让当前本地浏览器首屏可见入口标题与 `OPEN` 按钮
 
 ## 进行中
 

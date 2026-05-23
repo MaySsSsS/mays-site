@@ -31,3 +31,9 @@ test("portal exposes Signal Arena while preserving sealed panel", () => {
   assert.match(portalPage, /未完待续/);
   assert.match(portalPage, /sealedPanels/);
 });
+
+test("Signal Arena is promoted as the first visible portal entry", () => {
+  assert.ok(portalPage.indexOf("SIGNAL ARENA") < portalPage.indexOf("PLAYER ONE"));
+  assert.match(portalCss, /\.cover\s*\{[\s\S]*min-height:\s*58svh/);
+  assert.match(portalCss, /\.signalArenaPanel\s*\{[\s\S]*grid-column:\s*1 \/ -1/);
+});
