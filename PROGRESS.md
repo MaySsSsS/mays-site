@@ -13,7 +13,7 @@
 - `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，修复首页 `SIGNAL ARENA` 入口恢复为普通可点击 portal 卡片）
 - `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，新增 Signal Arena 行情终端与决策追踪设计文档）
 - `pnpm test:signal-arena` / `pnpm test:signal-arena-worker` / `pnpm typecheck` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，完成 Signal Arena 行情终端、收益曲线、决策弹窗、D1 快照与增强 prompt）
-- 部署状态：2026-05-23 已发布 Signal Arena 前端与 Worker 到 Cloudflare；手工部署与 `main` push 后的 GitHub `Deploy Frontend` 均已通过，`mays-signal-arena-api` 当前版本 `ee95f8a0-f5cf-4c1e-9d96-5305f7bf387a`，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
+- 部署状态：2026-05-23 已发布 Signal Arena 行情终端前端与 Worker 到 Cloudflare；D1 trace/snapshot migration 已执行，`mays-signal-arena-api` 当前版本 `51fbd253-5893-49e1-9647-0a182e93aac7`，`main` push 后的 GitHub `Deploy Frontend` 已通过，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
 
 ## 已完成
 
@@ -92,6 +92,7 @@
 - [x] 2026-05-23：修复首页 `SIGNAL ARENA` 入口卡片布局回归；去掉全宽 `grid-column`，保持它和其他 portal 卡片同尺寸、同完整卡片跳转结构，并补充 `pnpm test:portal` 回归断言
 - [x] 2026-05-23：完成 Signal Arena 行情终端视觉、红绿分段收益曲线、曲线点决策弹窗与增强交易 prompt 的设计文档；实现尚未开始，下一步按 Superpowers 写 implementation plan
 - [x] 2026-05-23：完成 Signal Arena 行情终端实现；新增 `7D / 30D / ALL` ECharts 收益曲线、红涨绿跌分段、单点/点位决策弹窗、公开 decision trace / before-after snapshot / equity history 类型与 sanitizer、D1 快照持久化、Runner richer context、top-movers/snapshots 上游读取，以及可审计 AI prompt；本地浏览器已验证 `/signal-arena` 图表渲染、范围按钮与弹窗打开
+- [x] 2026-05-23：部署 Signal Arena 行情终端；远端 D1 成功执行 4 条迁移语句，`mays-signal-arena-api` 已部署到版本 `51fbd253-5893-49e1-9647-0a182e93aac7`，前端 `main` push 后 GitHub `Deploy Frontend` 成功，线上 API 已返回 `equityHistory` 首个 dashboard 快照
 
 ## 进行中
 
@@ -133,9 +134,8 @@
 
 ## 下一步
 
-1. 部署 Signal Arena 行情终端 Worker 与前端后，线上确认 `https://maysssss.cn/signal-arena` 的收益曲线、范围切换和决策弹窗
-2. 观察 2026-05-25 周一 A 股交易时段内 Signal Arena cron 是否从 `skipped` 进入 `executed` / `held`，并确认 `/signal-arena/logs` 展示真实 AI 决策日志
-3. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
-4. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态
-5. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
-6. P2.1 — 冷启动测试（验证新 agent 能否仅靠仓库内容回答五个基本问题）
+1. 观察 2026-05-25 周一 A 股交易时段内 Signal Arena cron 是否从 `skipped` 进入 `executed` / `held`，并确认 `/signal-arena/logs` 展示真实 AI 决策日志与收益曲线新增点
+2. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
+3. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态
+4. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
+5. P2.1 — 冷启动测试（验证新 agent 能否仅靠仓库内容回答五个基本问题）
