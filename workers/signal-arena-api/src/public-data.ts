@@ -4,7 +4,7 @@ import {
   fetchArenaPortfolio,
   fetchArenaTrades
 } from "./signal-api";
-import { getCachedPublicData, putCachedPublicData } from "./storage";
+import { getCachedPublicData, listRecentRuns, putCachedPublicData } from "./storage";
 import type {
   ArenaHomeData,
   ArenaLeaderboardData,
@@ -243,6 +243,17 @@ function sanitizePublicRunLog(value: unknown): PublicRunLog {
   };
 }
 
+function pickPublicOrderResult(value: unknown): { status: string | null; message: string | null } {
+  if (!isRecord(value)) {
+    return { status: null, message: null };
+  }
+
+  return {
+    status: typeof value.status === "string" ? value.status : null,
+    message: typeof value.message === "string" ? value.message : null
+  };
+}
+
 function sanitizePublicTrade(value: unknown): PublicTrade {
   const record = isRecord(value) ? value : {};
 
@@ -351,6 +362,59 @@ function sanitizePublicSnapshot(value: unknown): PublicSnapshot | null {
     logs: arrayValue(value.logs).map(sanitizePublicRunLog),
     rank: sanitizePublicRank(value.rank),
     recentTrades: arrayValue(value.recentTrades).map(sanitizePublicTrade)
+  };
+}
+
+function parseJson<T>(value: string | null, fallback: T): T {
+  if (!value) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function mapRunRowToPublicRunLog(row: {
+  id: string;
+  started_at: string;
+  finished_at: string | null;
+  status: string;
+  trigger: "cron" | "manual";
+  market_view: string | null;
+  risk_level: "low" | "medium" | "high" | null;
+  summary: string | null;
+  candidates_json: string;
+  selected_action_json: string | null;
+  risk_result_json: string;
+  order_result_json: string | null;
+}): PublicRunLog {
+  return sanitizePublicRunLog({
+    id: row.id,
+    startedAt: row.started_at,
+    finishedAt: row.finished_at,
+    status: row.status,
+    trigger: row.trigger,
+    marketView: row.market_view ?? "unknown",
+    riskLevel: row.risk_level ?? "unknown",
+    summary: row.summary ?? "无摘要",
+    candidates: parseJson<unknown[]>(row.candidates_json, []),
+    selectedAction: parseJson<unknown>(row.selected_action_json, null),
+    riskResult: parseJson<unknown>(row.risk_result_json, { allowed: false, reasons: [] }),
+    orderResult: pickPublicOrderResult(parseJson<unknown>(row.order_result_json, null))
+  });
+}
+
+function mergeLogs(snapshot: PublicSnapshot, logs: PublicRunLog[]): PublicSnapshot {
+  return {
+    ...snapshot,
+    dashboard: {
+      ...snapshot.dashboard,
+      latestRun: logs[0] ?? null
+    },
+    logs
   };
 }
 
@@ -468,13 +532,14 @@ function toPublicSnapshot(
 
 export async function getPublicData(env: Env): Promise<PublicSnapshot> {
   let cached: PublicSnapshot | null = null;
+  const runs = (await listRecentRuns(env, 30)).map(mapRunRowToPublicRunLog);
 
   try {
     const candidate = sanitizePublicSnapshot(await getCachedPublicData<unknown>(env));
     if (candidate) {
       cached = candidate;
       if (isFreshSnapshot(candidate)) {
-        return candidate;
+        return mergeLogs(candidate, runs);
       }
     }
   } catch {
@@ -490,11 +555,12 @@ export async function getPublicData(env: Env): Promise<PublicSnapshot> {
     ]);
 
     const publicData = toPublicSnapshot(home, portfolio, trades, leaderboard);
-    await putCachedPublicData(env, publicData);
-    return publicData;
+    const snapshotWithLogs = mergeLogs(publicData, runs);
+    await putCachedPublicData(env, snapshotWithLogs);
+    return snapshotWithLogs;
   } catch {
     if (cached) {
-      return withSourceStatus(cached, "stale");
+      return mergeLogs(withSourceStatus(cached, "stale"), runs);
     }
 
     throw new Error("Signal Arena upstream unavailable.");

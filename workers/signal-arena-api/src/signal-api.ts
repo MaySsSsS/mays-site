@@ -1,4 +1,5 @@
 import type {
+  AiCandidateAction,
   ArenaApiResponse,
   ArenaHomeData,
   ArenaLeaderboardData,
@@ -46,4 +47,16 @@ export async function fetchArenaTrades(env: Env): Promise<ArenaTradesData> {
 
 export async function fetchArenaLeaderboard(env: Env): Promise<ArenaLeaderboardData> {
   return await requestArena<ArenaLeaderboardData>(env, "/api/v1/arena/leaderboard");
+}
+
+export async function submitArenaTrade(env: Env, action: AiCandidateAction): Promise<unknown> {
+  return await requestArena<unknown>(env, "/api/v1/arena/trade", {
+    method: "POST",
+    body: JSON.stringify({
+      symbol: action.symbol,
+      action: action.action,
+      shares: action.shares,
+      reason: action.reason
+    })
+  });
 }

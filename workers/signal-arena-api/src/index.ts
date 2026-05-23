@@ -1,5 +1,6 @@
 import { corsHeaders, errorResponse, jsonResponse, requireAdmin } from "./http";
 import { getPublicData } from "./public-data";
+import { runSignalArenaTrader } from "./runner";
 import type { Env } from "./types";
 
 async function handleFetch(request: Request, env: Env): Promise<Response> {
@@ -32,7 +33,8 @@ async function handleFetch(request: Request, env: Env): Promise<Response> {
       return errorResponse("unauthorized", "Admin token is required.", env, request, 401);
     }
 
-    return jsonResponse({ success: true, status: "not_implemented" }, env, request);
+    const dryRun = url.searchParams.get("dryRun") !== "false";
+    return jsonResponse(await runSignalArenaTrader(env, { trigger: "manual", dryRun }), env, request);
   }
 
   return errorResponse("not_found", "Route not found.", env, request, 404);
@@ -40,7 +42,7 @@ async function handleFetch(request: Request, env: Env): Promise<Response> {
 
 export default {
   fetch: handleFetch,
-  async scheduled(_event: ScheduledEvent, _env: Env): Promise<void> {
-    // Runner is wired in later tasks.
+  async scheduled(_event: ScheduledEvent, env: Env): Promise<void> {
+    await runSignalArenaTrader(env, { trigger: "cron", dryRun: false });
   }
 };

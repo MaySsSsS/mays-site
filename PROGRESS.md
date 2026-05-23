@@ -82,6 +82,7 @@
 - [x] 2026-05-14：补充 AI Daily 重跑防降级保护；如果当天已有 `ai_summary`，后续同日重跑遇到智谱接口 400/不可用时保留既有 AI 总结，不再覆盖为 `mirror_fallback`
 - [x] 2026-05-17：将 AI Daily GitHub Actions 自动同步时间从北京时间 11:00 调整为 12:00；workflow cron 从 `0 3 * * *` 改为 `0 4 * * *`，并更新 `pnpm test:ai-daily` 调度断言
 - [x] 2026-05-22：完成 `SIGNAL ARENA` 公开看板与云端 AI Trader Runner 设计及 implementation plan；范围包括三页公开只读看板、Cloudflare Cron Worker、自定义 Responses provider、A 股风控、dry-run 与部署 secret 清单
+- [x] 2026-05-23：完成 `SIGNAL ARENA` 的 AI provider、A 股风控、Runner、D1 日志接入、公开页验证与部署文档收尾；本地已通过 `pnpm test:signal-arena`、`pnpm test:portal`、`pnpm test:signal-arena-worker`、`pnpm typecheck`、`pnpm lint`、`pnpm build`
 
 ## 进行中
 
@@ -123,7 +124,8 @@
 
 ## 下一步
 
-1. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
-2. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态
-3. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
-4. P2.1 — 冷启动测试（验证新 agent 能否仅靠仓库内容回答五个基本问题）
+1. 按 `docs/DEPLOYMENT.md` 配置 `workers/signal-arena-api` 的 D1 / KV / secrets，并先用 `dryRun=true` 验证首轮 runner
+2. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
+3. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态
+4. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
+5. P2.1 — 冷启动测试（验证新 agent 能否仅靠仓库内容回答五个基本问题）

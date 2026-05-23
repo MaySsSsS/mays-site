@@ -4,6 +4,7 @@ import { afterEach, test } from "node:test";
 import worker from "./index";
 import { fetchArenaTrades } from "./signal-api";
 import { getPublicData } from "./public-data";
+import type { SignalArenaRunRow } from "./storage";
 import type { Env } from "./types";
 
 const originalFetch = globalThis.fetch;
@@ -55,6 +56,24 @@ function makeEnv(kv = makeKv()): Env {
     SIGNAL_ARENA_AI_LIGHT_REASONING_EFFORT: "low",
     SIGNAL_ARENA_AI_DISABLE_RESPONSE_STORAGE: "true"
   };
+}
+
+function makeDb(rows: SignalArenaRunRow[] = []): D1Database {
+  return {
+    prepare() {
+      return {
+        bind() {
+          return {
+            async all<T>() {
+              return {
+                results: rows as T[]
+              };
+            }
+          };
+        }
+      };
+    }
+  } as unknown as D1Database;
 }
 
 function makeSnapshot(updatedAt: string, sourceStatus: WorkerSnapshot["dashboard"]["sourceStatus"]): WorkerSnapshot {
@@ -180,6 +199,60 @@ test("cached public data is sanitized before returning", async () => {
   assert.equal(bodyText.includes("agent_id"), false);
   assert.equal(result.recentTrades[0]?.symbol, "sh600519");
   assert.equal(result.recentTrades[0]?.reason, "ok");
+});
+
+test("public data merges D1 logs without leaking private order data", async () => {
+  const updatedAt = new Date().toISOString();
+  const env = makeEnv(
+    makeKv({
+      "public:all": makeSnapshot(updatedAt, "live")
+    })
+  );
+  env.SIGNAL_ARENA_DB = makeDb([
+    {
+      id: "run-1",
+      started_at: updatedAt,
+      finished_at: updatedAt,
+      status: "executed",
+      trigger: "cron",
+      market_view: "neutral",
+      risk_level: "low",
+      summary: "保持观察",
+      candidates_json: JSON.stringify([
+        {
+          symbol: "sh600519",
+          action: "buy",
+          shares: 100,
+          priority: 1,
+          confidence: 0.8,
+          reason: "测试"
+        }
+      ]),
+      selected_action_json: JSON.stringify({
+        symbol: "sh600519",
+        action: "buy",
+        shares: 100,
+        priority: 1,
+        confidence: 0.8,
+        reason: "测试"
+      }),
+      risk_result_json: JSON.stringify({ allowed: true, reasons: [] }),
+      order_result_json: JSON.stringify({ status: "filled", message: "done", orderId: "private-order" })
+    }
+  ]);
+
+  globalThis.fetch = async () => {
+    throw new Error("unexpected upstream call");
+  };
+
+  const result = await getPublicData(env);
+  const bodyText = JSON.stringify(result);
+
+  assert.equal(result.logs.length, 1);
+  assert.equal(result.dashboard.latestRun?.id, "run-1");
+  assert.equal(result.logs[0]?.orderResult.status, "filled");
+  assert.equal(result.logs[0]?.orderResult.message, "done");
+  assert.equal(bodyText.includes("private-order"), false);
 });
 
 test("stale cache is returned when upstream fails", async () => {

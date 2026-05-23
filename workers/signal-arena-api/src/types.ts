@@ -78,3 +78,67 @@ export type ArenaTradesData = {
     created_at?: string;
   }>;
 };
+
+export type DecisionPromptContext = {
+  now: string;
+  account: {
+    totalAssets: number;
+    cash: number;
+    returnRate: number;
+    rank: number | null;
+  };
+  holdings: Array<{
+    symbol: string;
+    name: string;
+    shares: number;
+    availableShares: number;
+    positionRate: number;
+    profitRate: number;
+  }>;
+  signals: Array<{
+    symbol: string;
+    name: string;
+    changeRate: number;
+  }>;
+  constraints: string[];
+};
+
+export type AiCandidateAction = {
+  symbol: string;
+  action: "buy" | "sell" | "hold";
+  shares: number;
+  priority: number;
+  confidence: number;
+  reason: string;
+};
+
+export type AiDecision = {
+  market_view: "cautious" | "neutral" | "aggressive";
+  risk_level: "low" | "medium" | "high";
+  summary: string;
+  candidates: AiCandidateAction[];
+  cash_plan: string;
+  watchlist: string[];
+};
+
+export type RiskContext = {
+  isTradingSession: boolean;
+  totalAssets: number;
+  cash: number;
+  prices: Record<string, number>;
+  holdings: Record<
+    string,
+    {
+      shares: number;
+      availableShares: number;
+      marketValue: number;
+      positionRate: number;
+    }
+  >;
+};
+
+export type RiskSelection = {
+  allowed: boolean;
+  reasons: string[];
+  selectedAction: AiCandidateAction | null;
+};
