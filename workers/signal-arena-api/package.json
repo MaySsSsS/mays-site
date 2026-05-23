@@ -8,10 +8,11 @@
     "deploy": "wrangler deploy",
     "tail": "wrangler tail",
     "typecheck": "tsc --noEmit",
-    "test": "node --test"
+    "test": "node --import tsx --test src/*.test.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",
+    "@types/node": "^24.10.1",
     "tsx": "^4.20.0",
     "typescript": "^5.9.3",
     "wrangler": "^4.81.1"

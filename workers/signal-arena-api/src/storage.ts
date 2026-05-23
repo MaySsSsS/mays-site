@@ -7,10 +7,8 @@ export async function getCachedPublicData<T>(env: Env): Promise<T | null> {
   return await env.SIGNAL_ARENA_KV.get<T>(PUBLIC_CACHE_KEY, "json");
 }
 
-export async function putCachedPublicData(env: Env, value: unknown, ttlSeconds: number): Promise<void> {
-  await env.SIGNAL_ARENA_KV.put(PUBLIC_CACHE_KEY, JSON.stringify(value), {
-    expirationTtl: ttlSeconds
-  });
+export async function putCachedPublicData(env: Env, value: unknown): Promise<void> {
+  await env.SIGNAL_ARENA_KV.put(PUBLIC_CACHE_KEY, JSON.stringify(value));
 }
 
 export async function acquireRunnerLock(env: Env, runId: string, ttlSeconds: number): Promise<boolean> {

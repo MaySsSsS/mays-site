@@ -1,5 +1,5 @@
 import { corsHeaders, errorResponse, jsonResponse, requireAdmin } from "./http";
-import { getCachedPublicData } from "./storage";
+import { getPublicData } from "./public-data";
 import type { Env } from "./types";
 
 async function handleFetch(request: Request, env: Env): Promise<Response> {
@@ -14,12 +14,17 @@ async function handleFetch(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/api/public/all" && request.method === "GET") {
-    const cached = await getCachedPublicData(env);
-    if (cached) {
-      return jsonResponse(cached, env, request);
+    try {
+      return jsonResponse(await getPublicData(env), env, request);
+    } catch {
+      return errorResponse(
+        "upstream_unavailable",
+        "Signal Arena upstream unavailable.",
+        env,
+        request,
+        502
+      );
     }
-
-    return errorResponse("not_ready", "Signal Arena data is not ready yet.", env, request, 503);
   }
 
   if (url.pathname === "/api/admin/run" && request.method === "POST") {
