@@ -1,25 +1,26 @@
 .page {
   min-height: 100vh;
-  padding: 32px 20px 56px;
-  background:
-    linear-gradient(180deg, #f4efe2 0%, #efe9da 100%);
-  color: #171717;
+  padding: 28px 18px 56px;
+  background: #070b10;
+  color: #e6edf3;
 }
 
 .header,
 .tabs,
 .content {
-  width: min(1180px, 100%);
+  width: min(1220px, 100%);
   margin: 0 auto;
 }
 
 .header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 24px;
-  border-bottom: 4px solid #171717;
-  padding-bottom: 18px;
+  align-items: end;
+  padding: 18px;
+  border: 1px solid #253241;
+  border-radius: 6px;
+  background: #0d141c;
 }
 
 .headerCopy {
@@ -42,14 +43,17 @@
 
 .eyebrow {
   margin: 0;
-  font-size: 0.82rem;
+  color: #f0b90b;
+  font-size: 0.78rem;
   font-weight: 800;
+  letter-spacing: 0;
 }
 
 .title {
   margin: 0;
-  font-size: clamp(2.4rem, 7vw, 5rem);
-  line-height: 0.92;
+  color: #ffffff;
+  font-size: clamp(2.2rem, 6vw, 4.8rem);
+  line-height: 0.95;
   text-transform: uppercase;
 }
 
@@ -60,9 +64,11 @@
 .logMeta,
 .logNote,
 .rankHeroNote,
-.sectionNote {
+.sectionNote,
+.marketMeta,
+.modalText {
   margin: 0;
-  color: #4c4c4c;
+  color: #93a4b7;
 }
 
 .updated,
@@ -73,7 +79,7 @@
 .rankHeroLabel,
 .logTime,
 .candidateAction {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
 }
 
@@ -81,7 +87,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 .tab,
@@ -89,34 +95,37 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 10px 16px;
-  border: 3px solid #171717;
-  color: inherit;
-  font-weight: 900;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid #253241;
+  border-radius: 6px;
+  color: #cbd6e2;
+  font-weight: 800;
   text-decoration: none;
-  background: #fffdf4;
+  background: #0d141c;
 }
 
 .tabActive {
-  background: #ffd426;
+  border-color: #f0b90b;
+  color: #0b0f14;
+  background: #f0b90b;
 }
 
 .content {
-  margin-top: 24px;
+  margin-top: 16px;
 }
 
 .dashboard,
 .rankPage,
 .timeline {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .metricGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .metric,
@@ -124,60 +133,120 @@
 .runCard,
 .logItem,
 .rankHero,
-.marketCard {
-  border: 4px solid #171717;
-  background: #fffdf4;
+.marketCard,
+.chartPanel,
+.modalPanel,
+.traceBlock {
+  border: 1px solid #253241;
+  border-radius: 6px;
+  background: #0d141c;
 }
 
 .metric {
   display: grid;
   gap: 10px;
-  min-height: 132px;
-  padding: 16px;
+  min-height: 118px;
+  padding: 14px;
 }
 
 .metricValue,
 .rankHeroValue {
-  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: clamp(1.6rem, 3.4vw, 2.25rem);
   line-height: 1;
 }
 
-.positive {
-  background: #d9f5d8;
+.positive,
+.ratePositive {
+  color: #f6465d;
 }
 
-.negative {
-  background: #ffd9d4;
+.negative,
+.rateNegative {
+  color: #00c076;
 }
 
 .warning {
-  background: #fff0ae;
+  color: #f0b90b;
 }
 
 .neutral {
-  background: #fffdf4;
+  color: #d7e0ea;
 }
 
-.section {
+.section,
+.chartPanel {
   display: grid;
   gap: 14px;
-  padding: 18px;
+  padding: 16px;
 }
 
-.sectionHeader {
+.sectionHeader,
+.chartHeader {
   display: grid;
   gap: 6px;
 }
 
+.chartHeader {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
 .sectionTitle,
 .runTitle,
-.logTitle {
+.logTitle,
+.modalTitle,
+.modalBlock h3,
+.traceBlock h3 {
   margin: 0;
+  color: #ffffff;
+}
+
+.rangeTabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid #253241;
+  border-radius: 6px;
+  background: #070b10;
+}
+
+.rangeButton,
+.rangeButtonActive,
+.closeButton {
+  border: 0;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rangeButton,
+.rangeButtonActive {
+  min-width: 52px;
+  min-height: 32px;
+  padding: 6px 10px;
+}
+
+.rangeButton {
+  color: #93a4b7;
+  background: transparent;
+}
+
+.rangeButtonActive {
+  color: #070b10;
+  background: #f0b90b;
+}
+
+.chartCanvas {
+  min-height: 340px;
 }
 
 .table,
 .rankList {
   display: grid;
+  overflow-x: auto;
 }
 
 .tableRow {
@@ -185,70 +254,77 @@
   grid-template-columns: minmax(120px, 1.2fr) minmax(80px, 0.8fr) minmax(90px, 0.9fr) minmax(120px, 1fr) minmax(100px, 0.9fr);
   gap: 12px;
   align-items: center;
+  min-width: 620px;
   padding: 12px 0;
-  border-top: 2px solid #171717;
+  border-top: 1px solid #253241;
 }
 
 .tableHead {
   padding-top: 0;
   border-top: 0;
-  color: #4c4c4c;
-  font-size: 0.88rem;
+  color: #718196;
+  font-size: 0.86rem;
   font-weight: 700;
 }
 
 .runCard {
   display: grid;
   gap: 12px;
-  padding: 18px;
+  padding: 16px;
+  border-color: #34465a;
+  background: #101820;
 }
 
 .runMeta,
-.logTopline {
+.logTopline,
+.modalHeader {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
 }
 
+.modalHeader {
+  justify-content: space-between;
+}
+
 .status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
+  min-height: 28px;
   padding: 4px 10px;
-  border: 2px solid #171717;
-  background: #1e88e5;
-  color: #fff;
+  border-radius: 4px;
+  color: #070b10;
+  background: #f0b90b;
 }
 
 .marketStrip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .marketCard {
   display: grid;
   gap: 8px;
-  padding: 16px;
+  padding: 14px;
 }
 
 .marketValue {
-  font-size: 1.5rem;
-}
-
-.marketMeta {
-  color: #4c4c4c;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
 }
 
 .logItem {
   display: grid;
   gap: 12px;
-  padding: 18px;
+  padding: 16px;
 }
 
-.candidateList {
+.candidateList,
+.modalList {
   display: grid;
   gap: 8px;
   padding: 0;
@@ -262,22 +338,76 @@
   gap: 10px;
   align-items: start;
   padding: 10px 0;
-  border-top: 2px solid #171717;
+  border-top: 1px solid #253241;
+}
+
+.candidateAction {
+  color: #f0b90b;
 }
 
 .candidateText {
   line-height: 1.6;
 }
 
+.traceGrid,
+.modalGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.traceBlock,
+.modalBlock {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.modalBlock {
+  border: 1px solid #253241;
+  border-radius: 6px;
+  background: #0a1118;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgb(0 0 0 / 70%);
+}
+
+.modalPanel {
+  width: min(980px, 100%);
+  max-height: min(720px, 92vh);
+  overflow: auto;
+  padding: 18px;
+}
+
+.closeButton {
+  width: 36px;
+  height: 36px;
+  color: #070b10;
+  background: #f0b90b;
+}
+
+.modalList {
+  color: #cbd6e2;
+  list-style: decimal;
+  padding-left: 18px;
+}
+
 .rankHero {
   display: grid;
   gap: 8px;
-  padding: 18px;
+  padding: 16px;
 }
 
 .rankHeroMeta {
   font-style: normal;
-  color: #171717;
+  color: #e6edf3;
 }
 
 .rankRow,
@@ -287,33 +417,38 @@
   gap: 12px;
   align-items: center;
   padding: 12px 0;
-  border-top: 2px solid #171717;
+  border-top: 1px solid #253241;
 }
 
 .rankCurrent {
-  background: #d9e8ff;
   padding-inline: 10px;
+  color: #070b10;
+  background: #f0b90b;
 }
 
 @media (max-width: 900px) {
   .metricGrid,
-  .marketStrip {
+  .marketStrip,
+  .traceGrid,
+  .modalGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 760px) {
   .page {
-    padding: 24px 16px 40px;
+    padding: 20px 12px 40px;
   }
 
-  .header {
-    display: grid;
-    justify-content: stretch;
+  .header,
+  .chartHeader {
+    grid-template-columns: 1fr;
   }
 
   .metricGrid,
-  .marketStrip {
+  .marketStrip,
+  .traceGrid,
+  .modalGrid {
     grid-template-columns: 1fr;
   }
 
@@ -321,10 +456,11 @@
   .rankRow,
   .rankCurrent {
     grid-template-columns: 1fr;
+    min-width: 0;
     gap: 6px;
   }
 
-  .rankCurrent {
-    padding: 12px 0;
+  .chartCanvas {
+    min-height: 280px;
   }
 }

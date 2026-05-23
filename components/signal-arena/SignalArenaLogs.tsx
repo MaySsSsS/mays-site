@@ -40,6 +40,22 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
           <p className={styles.logMeta}>
             市场判断：{log.marketView} / 风险级别：{log.riskLevel}
           </p>
+          {log.decisionTrace ? (
+            <div className={styles.traceGrid}>
+              <section className={styles.traceBlock}>
+                <h3>决策路线</h3>
+                <p className={styles.logNote}>{log.decisionTrace.decisionRoute.join(" / ") || "暂无路线。"}</p>
+              </section>
+              <section className={styles.traceBlock}>
+                <h3>操作前账户状态</h3>
+                <p className={styles.logNote}>{log.decisionTrace.beforeStateSummary}</p>
+              </section>
+              <section className={styles.traceBlock}>
+                <h3>执行结果</h3>
+                <p className={styles.logNote}>{log.decisionTrace.publicExplanation}</p>
+              </section>
+            </div>
+          ) : null}
 
           {log.candidates.length > 0 ? (
             <ul className={styles.candidateList}>

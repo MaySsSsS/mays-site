@@ -8,8 +8,15 @@ const baseDecision: AiDecision = {
   market_view: "neutral",
   risk_level: "low",
   summary: "测试",
+  before_state_summary: "现金充足。",
+  decision_route: ["检查现金"],
+  market_assessment: ["市场中性"],
+  portfolio_assessment: ["仓位可控"],
   cash_plan: "保留现金",
   watchlist: [],
+  rejected_actions: [],
+  final_action: null,
+  public_explanation: "测试说明",
   candidates: [
     {
       symbol: "sh600519",

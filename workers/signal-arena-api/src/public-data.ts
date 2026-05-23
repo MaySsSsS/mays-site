@@ -4,7 +4,8 @@ import {
   fetchArenaPortfolio,
   fetchArenaTrades
 } from "./signal-api";
-import { getCachedPublicData, listRecentRuns, putCachedPublicData } from "./storage";
+import { getCachedPublicData, listRecentRuns, listRecentSnapshots, putCachedPublicData } from "./storage";
+import type { SignalArenaSnapshotRow } from "./storage";
 import type {
   ArenaHomeData,
   ArenaLeaderboardData,
@@ -53,6 +54,39 @@ type PublicTrade = {
   createdAt: string | null;
 };
 
+type PublicSnapshotState = {
+  totalAssets: number;
+  cash: number;
+  returnRate: number;
+  currentRank: number | null;
+  holdingsCount: number;
+};
+
+type PublicDecisionTrace = {
+  beforeStateSummary: string;
+  decisionRoute: string[];
+  marketAssessment: string[];
+  portfolioAssessment: string[];
+  rejectedActions: Array<{
+    symbol: string;
+    action: "buy" | "sell" | "hold";
+    shares: number;
+    reason: string;
+  }>;
+  publicExplanation: string;
+};
+
+type PublicEquityPoint = {
+  id: string;
+  runId: string | null;
+  capturedAt: string;
+  totalAssets: number;
+  returnRate: number;
+  currentRank: number | null;
+  status: PublicRunLog["status"] | "snapshot";
+  actionSummary: string | null;
+};
+
 type PublicRunLog = {
   id: string;
   startedAt: string;
@@ -86,6 +120,11 @@ type PublicRunLog = {
     status: string | null;
     message: string | null;
   };
+  beforeState: PublicSnapshotState | null;
+  decisionTrace: PublicDecisionTrace | null;
+  cashPlan: string | null;
+  watchlist: string[];
+  afterSnapshot: PublicSnapshotState | null;
 };
 
 type PublicRankEntry = {
@@ -124,6 +163,7 @@ type PublicSnapshot = {
   dashboard: PublicDashboard;
   logs: PublicRunLog[];
   rank: PublicRank;
+  equityHistory: PublicEquityPoint[];
   recentTrades: PublicTrade[];
 };
 
@@ -185,6 +225,10 @@ function arrayValue(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
+function stringArray(value: unknown): string[] {
+  return arrayValue(value).filter((item): item is string => typeof item === "string" && item.length > 0);
+}
+
 function enumValue<T extends string>(value: unknown, options: Set<T>, fallback: T): T {
   return typeof value === "string" && options.has(value as T) ? (value as T) : fallback;
 }
@@ -195,6 +239,15 @@ const CANDIDATE_ACTIONS = new Set<"buy" | "sell" | "hold">(["buy", "sell", "hold
 const TRADE_ACTIONS = new Set<PublicTrade["action"]>(["buy", "sell"]);
 const SOURCE_STATUSES = new Set<PublicDashboard["sourceStatus"]>(["live", "stale", "fallback", "error"]);
 const RISK_LEVELS = new Set<PublicRunLog["riskLevel"]>(["low", "medium", "high", "unknown"]);
+const TRIGGERS = new Set<PublicRunLog["trigger"]>(["cron", "manual"]);
+const EQUITY_STATUSES = new Set<PublicEquityPoint["status"]>([
+  "executed",
+  "held",
+  "blocked",
+  "skipped",
+  "failed",
+  "snapshot"
+]);
 
 function isFreshSnapshot(snapshot: PublicSnapshot): boolean {
   const updatedAt = Date.parse(snapshot.dashboard.updatedAt);
@@ -238,6 +291,61 @@ function sanitizePublicCandidateAction(value: unknown): {
   };
 }
 
+function sanitizePublicSnapshotState(value: unknown): PublicSnapshotState | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    totalAssets: numberValue(value.totalAssets),
+    cash: numberValue(value.cash),
+    returnRate: numberValue(value.returnRate),
+    currentRank: nullableNumber(value.currentRank),
+    holdingsCount: numberValue(value.holdingsCount)
+  };
+}
+
+function sanitizePublicRejectedAction(value: unknown): PublicDecisionTrace["rejectedActions"][number] {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    symbol: stringValue(record.symbol),
+    action: enumValue(record.action, CANDIDATE_ACTIONS, "hold"),
+    shares: numberValue(record.shares),
+    reason: stringValue(record.reason)
+  };
+}
+
+function sanitizePublicDecisionTrace(value: unknown): PublicDecisionTrace | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    beforeStateSummary: stringValue(value.beforeStateSummary),
+    decisionRoute: stringArray(value.decisionRoute),
+    marketAssessment: stringArray(value.marketAssessment),
+    portfolioAssessment: stringArray(value.portfolioAssessment),
+    rejectedActions: arrayValue(value.rejectedActions).map(sanitizePublicRejectedAction),
+    publicExplanation: stringValue(value.publicExplanation)
+  };
+}
+
+function sanitizePublicEquityPoint(value: unknown): PublicEquityPoint {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    id: stringValue(record.id),
+    runId: nullableString(record.runId),
+    capturedAt: stringValue(record.capturedAt),
+    totalAssets: numberValue(record.totalAssets),
+    returnRate: numberValue(record.returnRate),
+    currentRank: nullableNumber(record.currentRank),
+    status: enumValue(record.status, EQUITY_STATUSES, "snapshot"),
+    actionSummary: nullableString(record.actionSummary)
+  };
+}
+
 function sanitizePublicRunLog(value: unknown): PublicRunLog {
   const record = isRecord(value) ? value : {};
   const riskResult = isRecord(record.riskResult) ? record.riskResult : {};
@@ -248,7 +356,7 @@ function sanitizePublicRunLog(value: unknown): PublicRunLog {
     startedAt: stringValue(record.startedAt),
     finishedAt: nullableString(record.finishedAt),
     status: enumValue(record.status, RUN_STATUSES, "skipped"),
-    trigger: enumValue(record.trigger, new Set(["cron", "manual"]), "manual"),
+    trigger: enumValue(record.trigger, TRIGGERS, "manual"),
     marketView: stringValue(record.marketView),
     riskLevel: enumValue(record.riskLevel, RISK_LEVELS, "unknown"),
     summary: stringValue(record.summary),
@@ -261,7 +369,12 @@ function sanitizePublicRunLog(value: unknown): PublicRunLog {
     orderResult: {
       status: nullableString(orderResult.status),
       message: nullableString(orderResult.message)
-    }
+    },
+    beforeState: sanitizePublicSnapshotState(record.beforeState),
+    decisionTrace: sanitizePublicDecisionTrace(record.decisionTrace),
+    cashPlan: nullableString(record.cashPlan),
+    watchlist: stringArray(record.watchlist),
+    afterSnapshot: sanitizePublicSnapshotState(record.afterSnapshot)
   };
 }
 
@@ -383,6 +496,7 @@ function sanitizePublicSnapshot(value: unknown): PublicSnapshot | null {
     dashboard: sanitizePublicDashboard(value.dashboard),
     logs: arrayValue(value.logs).map(sanitizePublicRunLog),
     rank: sanitizePublicRank(value.rank),
+    equityHistory: arrayValue(value.equityHistory).map(sanitizePublicEquityPoint),
     recentTrades: arrayValue(value.recentTrades).map(sanitizePublicTrade)
   };
 }
@@ -399,6 +513,21 @@ function parseJson<T>(value: string | null, fallback: T): T {
   }
 }
 
+function normalizeDecisionTrace(value: unknown): unknown {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    beforeStateSummary: value.beforeStateSummary ?? value.before_state_summary,
+    decisionRoute: value.decisionRoute ?? value.decision_route,
+    marketAssessment: value.marketAssessment ?? value.market_assessment,
+    portfolioAssessment: value.portfolioAssessment ?? value.portfolio_assessment,
+    rejectedActions: value.rejectedActions ?? value.rejected_actions,
+    publicExplanation: value.publicExplanation ?? value.public_explanation
+  };
+}
+
 function mapRunRowToPublicRunLog(row: {
   id: string;
   started_at: string;
@@ -412,7 +541,13 @@ function mapRunRowToPublicRunLog(row: {
   selected_action_json: string | null;
   risk_result_json: string;
   order_result_json: string | null;
+  before_state_json: string | null;
+  decision_trace_json: string | null;
+  after_snapshot_json: string | null;
 }): PublicRunLog {
+  const decisionTrace = parseJson<unknown>(row.decision_trace_json, null);
+  const decisionTraceRecord = isRecord(decisionTrace) ? decisionTrace : {};
+
   return sanitizePublicRunLog({
     id: row.id,
     startedAt: row.started_at,
@@ -425,18 +560,121 @@ function mapRunRowToPublicRunLog(row: {
     candidates: parseJson<unknown[]>(row.candidates_json, []),
     selectedAction: parseJson<unknown>(row.selected_action_json, null),
     riskResult: parseJson<unknown>(row.risk_result_json, { allowed: false, reasons: [] }),
-    orderResult: pickPublicOrderResult(parseJson<unknown>(row.order_result_json, null))
+    orderResult: pickPublicOrderResult(parseJson<unknown>(row.order_result_json, null)),
+    beforeState: parseJson<unknown>(row.before_state_json, null),
+    decisionTrace: normalizeDecisionTrace(decisionTrace),
+    cashPlan: nullableString(decisionTraceRecord.cashPlan ?? decisionTraceRecord.cash_plan),
+    watchlist: decisionTraceRecord.watchlist,
+    afterSnapshot: parseJson<unknown>(row.after_snapshot_json, null)
   });
 }
 
-function mergeLogs(snapshot: PublicSnapshot, logs: PublicRunLog[]): PublicSnapshot {
-  return {
+function actionSummaryForRun(run: PublicRunLog | undefined): string | null {
+  if (!run) {
+    return null;
+  }
+
+  if (run.selectedAction) {
+    return `${run.selectedAction.action.toUpperCase()} ${run.selectedAction.symbol} ${run.selectedAction.shares} 股`;
+  }
+
+  return run.summary || null;
+}
+
+function snapshotPayloadRecord(value: string): Record<string, unknown> {
+  const parsed = parseJson<unknown>(value, {});
+  if (!isRecord(parsed)) {
+    return {};
+  }
+
+  return isRecord(parsed.dashboard) ? parsed.dashboard : parsed;
+}
+
+function snapshotRankRecord(value: string): Record<string, unknown> {
+  const parsed = parseJson<unknown>(value, {});
+  if (!isRecord(parsed)) {
+    return {};
+  }
+
+  return isRecord(parsed.rank) ? parsed.rank : parsed;
+}
+
+function mapSnapshotRowToEquityPoint(
+  row: SignalArenaSnapshotRow,
+  runById: Map<string, PublicRunLog>
+): PublicEquityPoint {
+  const dashboard = snapshotPayloadRecord(row.dashboard_json);
+  const rank = snapshotRankRecord(row.rank_json);
+  const run = row.run_id ? runById.get(row.run_id) : undefined;
+
+  return sanitizePublicEquityPoint({
+    id: row.id,
+    runId: row.run_id,
+    capturedAt: row.created_at,
+    totalAssets: dashboard.totalAssets,
+    returnRate: dashboard.returnRate,
+    currentRank: dashboard.currentRank ?? rank.currentRank,
+    status: run?.status ?? "snapshot",
+    actionSummary: actionSummaryForRun(run)
+  });
+}
+
+function mergeEquityHistory(
+  current: PublicEquityPoint[],
+  snapshotRows: SignalArenaSnapshotRow[],
+  logs: PublicRunLog[]
+): PublicEquityPoint[] {
+  const runById = new Map(logs.map((log) => [log.id, log]));
+  const pointById = new Map<string, PublicEquityPoint>();
+
+  for (const point of current) {
+    pointById.set(point.id, sanitizePublicEquityPoint(point));
+  }
+
+  for (const row of snapshotRows) {
+    const point = mapSnapshotRowToEquityPoint(row, runById);
+    pointById.set(point.id, point);
+  }
+
+  return [...pointById.values()].sort((left, right) => Date.parse(left.capturedAt) - Date.parse(right.capturedAt));
+}
+
+function seedEquityHistory(snapshot: PublicSnapshot, history: PublicEquityPoint[]): PublicEquityPoint[] {
+  if (history.length > 0 || !snapshot.dashboard.updatedAt) {
+    return history;
+  }
+
+  return [
+    sanitizePublicEquityPoint({
+      id: `dashboard-${snapshot.dashboard.updatedAt}`,
+      runId: snapshot.dashboard.latestRun?.id ?? null,
+      capturedAt: snapshot.dashboard.updatedAt,
+      totalAssets: snapshot.dashboard.totalAssets,
+      returnRate: snapshot.dashboard.returnRate,
+      currentRank: snapshot.dashboard.currentRank,
+      status: snapshot.dashboard.latestRun?.status ?? "snapshot",
+      actionSummary: snapshot.dashboard.latestRun?.summary ?? "当前总览快照"
+    })
+  ];
+}
+
+function mergePublicData(
+  snapshot: PublicSnapshot,
+  logs: PublicRunLog[],
+  snapshotRows: SignalArenaSnapshotRow[]
+): PublicSnapshot {
+  const merged = {
     ...snapshot,
     dashboard: {
       ...snapshot.dashboard,
       latestRun: logs[0] ?? null
     },
     logs
+  };
+
+  return {
+    ...merged,
+    equityHistory: seedEquityHistory(merged, mergeEquityHistory(snapshot.equityHistory, snapshotRows, logs))
   };
 }
 
@@ -552,6 +790,7 @@ function toPublicSnapshot(
       nearby: nearbyEntries,
       updatedAt
     },
+    equityHistory: [],
     recentTrades
   };
 }
@@ -559,13 +798,14 @@ function toPublicSnapshot(
 export async function getPublicData(env: Env): Promise<PublicSnapshot> {
   let cached: PublicSnapshot | null = null;
   const runs = (await listRecentRuns(env, 30)).map(mapRunRowToPublicRunLog);
+  const snapshots = await listRecentSnapshots(env, 300);
 
   try {
     const candidate = sanitizePublicSnapshot(await getCachedPublicData<unknown>(env));
     if (candidate) {
       cached = candidate;
       if (isFreshSnapshot(candidate)) {
-        return mergeLogs(candidate, runs);
+        return mergePublicData(candidate, runs, snapshots);
       }
     }
   } catch {
@@ -581,12 +821,12 @@ export async function getPublicData(env: Env): Promise<PublicSnapshot> {
     ]);
 
     const publicData = toPublicSnapshot(home, portfolio, trades, leaderboard);
-    const snapshotWithLogs = mergeLogs(publicData, runs);
+    const snapshotWithLogs = mergePublicData(publicData, runs, snapshots);
     await putCachedPublicData(env, snapshotWithLogs);
     return snapshotWithLogs;
   } catch {
     if (cached) {
-      return mergeLogs(withSourceStatus(cached, "stale"), runs);
+      return mergePublicData(withSourceStatus(cached, "stale"), runs, snapshots);
     }
 
     throw new Error("Signal Arena upstream unavailable.");

@@ -12,6 +12,7 @@
 - `make check` / `pnpm run deploy` 内部 build：通过（2026-05-10，v1.3 Phase 10 完成并归档后；构建仍出现既有 `mays-game-api.mays.workers.dev` 超时警告但最终成功）
 - `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，修复首页 `SIGNAL ARENA` 入口恢复为普通可点击 portal 卡片）
 - `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，新增 Signal Arena 行情终端与决策追踪设计文档）
+- `pnpm test:signal-arena` / `pnpm test:signal-arena-worker` / `pnpm typecheck` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，完成 Signal Arena 行情终端、收益曲线、决策弹窗、D1 快照与增强 prompt）
 - 部署状态：2026-05-23 已发布 Signal Arena 前端与 Worker 到 Cloudflare；手工部署与 `main` push 后的 GitHub `Deploy Frontend` 均已通过，`mays-signal-arena-api` 当前版本 `ee95f8a0-f5cf-4c1e-9d96-5305f7bf387a`，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
 
 ## 已完成
@@ -90,6 +91,7 @@
 - [x] 2026-05-23：修复 Signal Arena 真实上游字段映射；策场当前返回 `portfolio.total_value`、`holdings.avg_cost`、`holdings.profit_loss`、`leaderboard[].total_value` 等字段，Worker 已兼容并重新部署，线上 `/signal-arena` 已显示真实总资产与 A 股持仓，不再显示 fallback 数据
 - [x] 2026-05-23：修复首页 `SIGNAL ARENA` 入口卡片布局回归；去掉全宽 `grid-column`，保持它和其他 portal 卡片同尺寸、同完整卡片跳转结构，并补充 `pnpm test:portal` 回归断言
 - [x] 2026-05-23：完成 Signal Arena 行情终端视觉、红绿分段收益曲线、曲线点决策弹窗与增强交易 prompt 的设计文档；实现尚未开始，下一步按 Superpowers 写 implementation plan
+- [x] 2026-05-23：完成 Signal Arena 行情终端实现；新增 `7D / 30D / ALL` ECharts 收益曲线、红涨绿跌分段、单点/点位决策弹窗、公开 decision trace / before-after snapshot / equity history 类型与 sanitizer、D1 快照持久化、Runner richer context、top-movers/snapshots 上游读取，以及可审计 AI prompt；本地浏览器已验证 `/signal-arena` 图表渲染、范围按钮与弹窗打开
 
 ## 进行中
 
@@ -131,7 +133,7 @@
 
 ## 下一步
 
-1. 请用户 review `docs/superpowers/specs/2026-05-23-signal-arena-market-dashboard-design.md`；确认后进入 Superpowers writing-plans，生成实现计划
+1. 部署 Signal Arena 行情终端 Worker 与前端后，线上确认 `https://maysssss.cn/signal-arena` 的收益曲线、范围切换和决策弹窗
 2. 观察 2026-05-25 周一 A 股交易时段内 Signal Arena cron 是否从 `skipped` 进入 `executed` / `held`，并确认 `/signal-arena/logs` 展示真实 AI 决策日志
 3. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
 4. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态

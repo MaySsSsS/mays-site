@@ -4,7 +4,7 @@ import { afterEach, test } from "node:test";
 import worker from "./index";
 import { fetchArenaTrades } from "./signal-api";
 import { getPublicData } from "./public-data";
-import type { SignalArenaRunRow } from "./storage";
+import type { SignalArenaRunRow, SignalArenaSnapshotRow } from "./storage";
 import type { Env } from "./types";
 
 const originalFetch = globalThis.fetch;
@@ -58,15 +58,15 @@ function makeEnv(kv = makeKv()): Env {
   };
 }
 
-function makeDb(rows: SignalArenaRunRow[] = []): D1Database {
+function makeDb(rows: SignalArenaRunRow[] = [], snapshots: SignalArenaSnapshotRow[] = []): D1Database {
   return {
-    prepare() {
+    prepare(sql: string) {
       return {
         bind() {
           return {
             async all<T>() {
               return {
-                results: rows as T[]
+                results: (sql.includes("signal_arena_snapshots") ? snapshots : rows) as T[]
               };
             }
           };
@@ -101,6 +101,7 @@ function makeSnapshot(updatedAt: string, sourceStatus: WorkerSnapshot["dashboard
       nearby: [],
       updatedAt
     },
+    equityHistory: [],
     recentTrades: []
   };
 }
@@ -126,8 +127,24 @@ test("fresh cache is returned without hitting upstream", async () => {
 
   const result = await getPublicData(env);
 
-  assert.deepEqual(result, cached);
+  assert.equal(result.dashboard.updatedAt, cached.dashboard.updatedAt);
+  assert.equal(result.dashboard.sourceStatus, "live");
   assert.equal(fetchCalls, 0);
+});
+
+test("dashboard snapshot seeds equity history when no stored snapshots exist", async () => {
+  const cached = makeSnapshot(new Date().toISOString(), "live");
+  const env = makeEnv(makeKv({ "public:all": cached }));
+
+  globalThis.fetch = async () => {
+    throw new Error("unexpected upstream call");
+  };
+
+  const result = await getPublicData(env);
+
+  assert.equal(result.equityHistory.length, 1);
+  assert.equal(result.equityHistory[0]?.totalAssets, cached.dashboard.totalAssets);
+  assert.equal(result.equityHistory[0]?.status, "snapshot");
 });
 
 test("cached public data is sanitized before returning", async () => {
@@ -237,7 +254,10 @@ test("public data merges D1 logs without leaking private order data", async () =
         reason: "测试"
       }),
       risk_result_json: JSON.stringify({ allowed: true, reasons: [] }),
-      order_result_json: JSON.stringify({ status: "filled", message: "done", orderId: "private-order" })
+      order_result_json: JSON.stringify({ status: "filled", message: "done", orderId: "private-order" }),
+      before_state_json: null,
+      decision_trace_json: null,
+      after_snapshot_json: null
     }
   ]);
 
@@ -253,6 +273,72 @@ test("public data merges D1 logs without leaking private order data", async () =
   assert.equal(result.logs[0]?.orderResult.status, "filled");
   assert.equal(result.logs[0]?.orderResult.message, "done");
   assert.equal(bodyText.includes("private-order"), false);
+});
+
+test("public data merges D1 snapshots and decision traces into equity history", async () => {
+  const updatedAt = new Date().toISOString();
+  const env = makeEnv(
+    makeKv({
+      "public:all": makeSnapshot(updatedAt, "live")
+    })
+  );
+  env.SIGNAL_ARENA_DB = makeDb(
+    [
+      {
+        id: "run-1",
+        started_at: "2026-05-22T00:05:00.000Z",
+        finished_at: "2026-05-22T00:06:00.000Z",
+        status: "executed",
+        trigger: "cron",
+        market_view: "neutral",
+        risk_level: "low",
+        summary: "保持观察",
+        candidates_json: "[]",
+        selected_action_json: null,
+        risk_result_json: JSON.stringify({ allowed: true, reasons: [] }),
+        order_result_json: JSON.stringify({ status: "held", message: "no order", orderId: "private-order" }),
+        before_state_json: JSON.stringify({ totalAssets: 1200000, cash: 300000, returnRate: 0.2, currentRank: 2, holdingsCount: 1 }),
+        decision_trace_json: JSON.stringify({
+          beforeStateSummary: "现金充足，仓位适中。",
+          decisionRoute: ["检查现金"],
+          marketAssessment: ["涨幅榜未形成明确主线"],
+          portfolioAssessment: ["持仓未触发止损"],
+          rejectedActions: [],
+          publicExplanation: "继续观察。",
+          privateThought: "hidden"
+        }),
+        after_snapshot_json: JSON.stringify({ totalAssets: 1200000, cash: 300000, returnRate: 0.2, currentRank: 2, holdingsCount: 1 })
+      }
+    ],
+    [
+      {
+        id: "snapshot-1",
+        run_id: "run-1",
+        created_at: "2026-05-22T00:06:00.000Z",
+        source_status: "live",
+        dashboard_json: JSON.stringify({
+          totalAssets: 1200000,
+          cash: 300000,
+          returnRate: 0.2,
+          currentRank: 2
+        }),
+        rank_json: "{}"
+      }
+    ]
+  );
+
+  globalThis.fetch = async () => {
+    throw new Error("unexpected upstream call");
+  };
+
+  const result = await getPublicData(env);
+
+  assert.ok(Array.isArray(result.equityHistory));
+  assert.equal(result.equityHistory[0]?.runId, "run-1");
+  assert.equal(result.equityHistory[0]?.totalAssets, 1200000);
+  assert.equal(result.logs[0]?.decisionTrace?.decisionRoute[0], "检查现金");
+  assert.equal(JSON.stringify(result).includes("private-order"), false);
+  assert.equal(JSON.stringify(result).includes("privateThought"), false);
 });
 
 test("stale cache is returned when upstream fails", async () => {

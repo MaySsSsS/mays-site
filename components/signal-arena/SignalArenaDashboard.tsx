@@ -1,8 +1,20 @@
-import type { SignalArenaDashboard as DashboardData } from "@/types/signal-arena";
+"use client";
+
+import { useMemo, useState } from "react";
+
+import { SignalArenaDecisionModal } from "@/components/signal-arena/SignalArenaDecisionModal";
+import { SignalArenaEquityChart } from "@/components/signal-arena/SignalArenaEquityChart";
+import type {
+  SignalArenaDashboard as DashboardData,
+  SignalArenaEquityPoint,
+  SignalArenaRunLog
+} from "@/types/signal-arena";
 import styles from "@/styles/signal-arena.module.css";
 
 type SignalArenaDashboardProps = {
   dashboard: DashboardData;
+  logs: SignalArenaRunLog[];
+  equityHistory: SignalArenaEquityPoint[];
 };
 
 function formatMoney(value: number): string {
@@ -34,9 +46,42 @@ function formatRunStatus(status: DashboardData["latestRun"] extends { status: in
   }
 }
 
-export function SignalArenaDashboard({ dashboard }: SignalArenaDashboardProps) {
+export function SignalArenaDashboard({ dashboard, logs, equityHistory }: SignalArenaDashboardProps) {
+  const [selectedPoint, setSelectedPoint] = useState<SignalArenaEquityPoint | null>(null);
+  const runById = useMemo(() => new Map(logs.map((log) => [log.id, log])), [logs]);
+  const chartHistory = useMemo<SignalArenaEquityPoint[]>(() => {
+    if (equityHistory.length > 0) {
+      return equityHistory;
+    }
+
+    return [
+      {
+        id: `dashboard-${dashboard.updatedAt}`,
+        runId: dashboard.latestRun?.id ?? null,
+        capturedAt: dashboard.updatedAt,
+        totalAssets: dashboard.totalAssets,
+        returnRate: dashboard.returnRate,
+        currentRank: dashboard.currentRank,
+        status: dashboard.latestRun?.status ?? "snapshot",
+        actionSummary: dashboard.latestRun?.summary ?? "当前总览快照"
+      }
+    ];
+  }, [dashboard, equityHistory]);
+  const selectedRun = selectedPoint?.runId ? runById.get(selectedPoint.runId) ?? null : null;
+
   return (
     <section className={styles.dashboard}>
+      <SignalArenaEquityChart
+        history={chartHistory}
+        defaultRange="7D"
+        onPointClick={setSelectedPoint}
+      />
+      <SignalArenaDecisionModal
+        point={selectedPoint}
+        run={selectedRun}
+        onClose={() => setSelectedPoint(null)}
+      />
+
       {dashboard.metrics.length === 0 ? (
         <p className={styles.empty}>关键指标暂未同步。</p>
       ) : (
@@ -77,7 +122,9 @@ export function SignalArenaDashboard({ dashboard }: SignalArenaDashboardProps) {
                 <span>{holding.symbol}</span>
                 <span>{holding.shares} 股</span>
                 <span>{formatMoney(holding.marketValue)}</span>
-                <span>{formatPercent(holding.profitRate)}</span>
+                <span className={holding.profitRate >= 0 ? styles.ratePositive : styles.rateNegative}>
+                  {formatPercent(holding.profitRate)}
+                </span>
               </div>
             ))}
           </div>
@@ -103,6 +150,9 @@ export function SignalArenaDashboard({ dashboard }: SignalArenaDashboardProps) {
             <p className={styles.runText}>
               {dashboard.latestRun.riskResult.reasons.join(" / ") || "风控通过或本轮无需执行交易。"}
             </p>
+            {dashboard.latestRun.decisionTrace?.publicExplanation ? (
+              <p className={styles.runText}>{dashboard.latestRun.decisionTrace.publicExplanation}</p>
+            ) : null}
             {dashboard.latestRun.selectedAction ? (
               <p className={styles.runText}>
                 当前动作：{dashboard.latestRun.selectedAction.action.toUpperCase()}{" "}
@@ -129,7 +179,9 @@ export function SignalArenaDashboard({ dashboard }: SignalArenaDashboardProps) {
               <article key={`${market.market}-${index}`} className={styles.marketCard}>
                 <span className={styles.marketLabel}>{market.label}</span>
                 <strong className={styles.marketValue}>{formatMoney(market.totalValue)}</strong>
-                <span className={styles.marketMeta}>收益率 {formatPercent(market.profitRate)}</span>
+                <span className={market.profitRate >= 0 ? styles.ratePositive : styles.rateNegative}>
+                  收益率 {formatPercent(market.profitRate)}
+                </span>
                 <span className={styles.marketMeta}>{market.holdingsCount} 个持仓</span>
               </article>
             ))}

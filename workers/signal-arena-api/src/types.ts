@@ -118,6 +118,37 @@ export type ArenaTradesData = {
   }>;
 };
 
+export type ArenaTopMoversData = {
+  movers?: Array<{
+    symbol: string;
+    name?: string;
+    change_rate?: number;
+    changeRate?: number;
+    price?: number;
+    market?: string;
+  }>;
+  top_movers?: Array<{
+    symbol: string;
+    name?: string;
+    change_rate?: number;
+    changeRate?: number;
+    price?: number;
+    market?: string;
+  }>;
+};
+
+export type ArenaSnapshotsData = {
+  snapshots?: Array<{
+    created_at?: string;
+    captured_at?: string;
+    total_assets?: number;
+    total_value?: number;
+    return_rate?: number;
+    rank?: number;
+    current_rank?: number;
+  }>;
+};
+
 export type DecisionPromptContext = {
   now: string;
   account: {
@@ -139,6 +170,26 @@ export type DecisionPromptContext = {
     name: string;
     changeRate: number;
   }>;
+  recentTrades: Array<{
+    symbol: string;
+    action: "buy" | "sell";
+    shares: number;
+    status: string;
+    reason: string | null;
+    createdAt: string | null;
+  }>;
+  topMovers: Array<{
+    symbol: string;
+    name: string;
+    changeRate: number;
+    price: number | null;
+  }>;
+  snapshots: Array<{
+    capturedAt: string | null;
+    totalAssets: number;
+    returnRate: number;
+    rank: number | null;
+  }>;
   constraints: string[];
 };
 
@@ -155,9 +206,21 @@ export type AiDecision = {
   market_view: "cautious" | "neutral" | "aggressive";
   risk_level: "low" | "medium" | "high";
   summary: string;
+  before_state_summary: string;
+  decision_route: string[];
+  market_assessment: string[];
+  portfolio_assessment: string[];
   candidates: AiCandidateAction[];
+  rejected_actions: Array<{
+    symbol: string;
+    action: "buy" | "sell" | "hold";
+    shares: number;
+    reason: string;
+  }>;
+  final_action: AiCandidateAction | null;
   cash_plan: string;
   watchlist: string[];
+  public_explanation: string;
 };
 
 export type RiskContext = {

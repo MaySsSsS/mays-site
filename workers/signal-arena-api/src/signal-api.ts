@@ -4,6 +4,8 @@ import type {
   ArenaHomeData,
   ArenaLeaderboardData,
   ArenaPortfolioData,
+  ArenaSnapshotsData,
+  ArenaTopMoversData,
   ArenaTradesData,
   Env
 } from "./types";
@@ -47,6 +49,14 @@ export async function fetchArenaTrades(env: Env): Promise<ArenaTradesData> {
 
 export async function fetchArenaLeaderboard(env: Env): Promise<ArenaLeaderboardData> {
   return await requestArena<ArenaLeaderboardData>(env, "/api/v1/arena/leaderboard");
+}
+
+export async function fetchArenaTopMovers(env: Env): Promise<ArenaTopMoversData> {
+  return await requestArena<ArenaTopMoversData>(env, "/api/v1/arena/top-movers");
+}
+
+export async function fetchArenaSnapshots(env: Env): Promise<ArenaSnapshotsData> {
+  return await requestArena<ArenaSnapshotsData>(env, "/api/v1/arena/snapshots");
 }
 
 export async function submitArenaTrade(env: Env, action: AiCandidateAction): Promise<unknown> {

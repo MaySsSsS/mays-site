@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS signal_arena_runs (
   selected_action_json TEXT,
   risk_result_json TEXT NOT NULL DEFAULT '{"allowed":false,"reasons":[]}',
   order_result_json TEXT,
+  before_state_json TEXT,
+  decision_trace_json TEXT,
+  after_snapshot_json TEXT,
   error_message TEXT
 );
 
@@ -20,6 +23,7 @@ ON signal_arena_runs (started_at DESC);
 
 CREATE TABLE IF NOT EXISTS signal_arena_snapshots (
   id TEXT PRIMARY KEY,
+  run_id TEXT,
   created_at TEXT NOT NULL,
   source_status TEXT NOT NULL,
   dashboard_json TEXT NOT NULL,

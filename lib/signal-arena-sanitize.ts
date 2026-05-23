@@ -2,6 +2,8 @@ import type {
   SignalArenaActionType,
   SignalArenaCandidateAction,
   SignalArenaDashboard,
+  SignalArenaDecisionTrace,
+  SignalArenaEquityPoint,
   SignalArenaHolding,
   SignalArenaMarket,
   SignalArenaMarketSummary,
@@ -9,8 +11,10 @@ import type {
   SignalArenaPublicData,
   SignalArenaRank,
   SignalArenaRankEntry,
+  SignalArenaRejectedAction,
   SignalArenaRunLog,
-  SignalArenaRunStatus
+  SignalArenaRunStatus,
+  SignalArenaSnapshotState
 } from "@/types/signal-arena";
 
 const MARKETS = new Set<SignalArenaMarket>(["CN", "HK", "US"]);
@@ -19,6 +23,15 @@ const ACTION_TYPES = new Set<SignalArenaActionType>(["buy", "sell", "hold"]);
 const METRIC_TONES = new Set<SignalArenaMetric["tone"]>(["neutral", "positive", "negative", "warning"]);
 const RISK_LEVELS = new Set<SignalArenaRunLog["riskLevel"]>(["low", "medium", "high", "unknown"]);
 const SOURCE_STATUSES = new Set<SignalArenaDashboard["sourceStatus"]>(["live", "stale", "fallback", "error"]);
+const TRIGGERS = new Set<SignalArenaRunLog["trigger"]>(["cron", "manual"]);
+const EQUITY_STATUSES = new Set<SignalArenaEquityPoint["status"]>([
+  "executed",
+  "held",
+  "blocked",
+  "skipped",
+  "failed",
+  "snapshot"
+]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -42,6 +55,10 @@ function nullableNumber(value: unknown): number | null {
 
 function arrayValue(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
+}
+
+function stringArray(value: unknown): string[] {
+  return arrayValue(value).filter((item): item is string => typeof item === "string" && item.length > 0);
 }
 
 function enumValue<T extends string>(value: unknown, options: Set<T>, fallback: T): T {
@@ -102,6 +119,61 @@ function sanitizeCandidateAction(value: unknown): SignalArenaCandidateAction {
   };
 }
 
+function sanitizeSnapshotState(value: unknown): SignalArenaSnapshotState | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    totalAssets: numberValue(value.totalAssets),
+    cash: numberValue(value.cash),
+    returnRate: numberValue(value.returnRate),
+    currentRank: nullableNumber(value.currentRank),
+    holdingsCount: numberValue(value.holdingsCount)
+  };
+}
+
+function sanitizeRejectedAction(value: unknown): SignalArenaRejectedAction {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    symbol: stringValue(record.symbol),
+    action: enumValue(record.action, ACTION_TYPES, "hold"),
+    shares: numberValue(record.shares),
+    reason: stringValue(record.reason)
+  };
+}
+
+function sanitizeDecisionTrace(value: unknown): SignalArenaDecisionTrace | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    beforeStateSummary: stringValue(value.beforeStateSummary),
+    decisionRoute: stringArray(value.decisionRoute),
+    marketAssessment: stringArray(value.marketAssessment),
+    portfolioAssessment: stringArray(value.portfolioAssessment),
+    rejectedActions: arrayValue(value.rejectedActions).map(sanitizeRejectedAction),
+    publicExplanation: stringValue(value.publicExplanation)
+  };
+}
+
+function sanitizeEquityPoint(value: unknown): SignalArenaEquityPoint {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    id: stringValue(record.id),
+    runId: nullableString(record.runId),
+    capturedAt: stringValue(record.capturedAt),
+    totalAssets: numberValue(record.totalAssets),
+    returnRate: numberValue(record.returnRate),
+    currentRank: nullableNumber(record.currentRank),
+    status: enumValue(record.status, EQUITY_STATUSES, "snapshot"),
+    actionSummary: nullableString(record.actionSummary)
+  };
+}
+
 function sanitizeRunLog(value: unknown): SignalArenaRunLog {
   const record = isRecord(value) ? value : {};
   const riskResult = isRecord(record.riskResult) ? record.riskResult : {};
@@ -112,7 +184,7 @@ function sanitizeRunLog(value: unknown): SignalArenaRunLog {
     startedAt: stringValue(record.startedAt),
     finishedAt: nullableString(record.finishedAt),
     status: enumValue(record.status, RUN_STATUSES, "skipped"),
-    trigger: enumValue(record.trigger, new Set(["cron", "manual"]), "manual"),
+    trigger: enumValue(record.trigger, TRIGGERS, "manual"),
     marketView: stringValue(record.marketView),
     riskLevel: enumValue(record.riskLevel, RISK_LEVELS, "unknown"),
     summary: stringValue(record.summary),
@@ -125,7 +197,12 @@ function sanitizeRunLog(value: unknown): SignalArenaRunLog {
     orderResult: {
       status: nullableString(orderResult.status),
       message: nullableString(orderResult.message)
-    }
+    },
+    beforeState: sanitizeSnapshotState(record.beforeState),
+    decisionTrace: sanitizeDecisionTrace(record.decisionTrace),
+    cashPlan: nullableString(record.cashPlan),
+    watchlist: stringArray(record.watchlist),
+    afterSnapshot: sanitizeSnapshotState(record.afterSnapshot)
   };
 }
 
@@ -194,6 +271,7 @@ export function toSignalArenaPublicData(value: unknown): SignalArenaPublicData |
   return {
     dashboard: sanitizeDashboard(dashboard),
     logs: logs.map(sanitizeRunLog),
-    rank: sanitizeRank(rank)
+    rank: sanitizeRank(rank),
+    equityHistory: arrayValue(value.equityHistory).map(sanitizeEquityPoint)
   };
 }

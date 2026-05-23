@@ -42,6 +42,41 @@ export type SignalArenaCandidateAction = {
   reason: string;
 };
 
+export type SignalArenaSnapshotState = {
+  totalAssets: number;
+  cash: number;
+  returnRate: number;
+  currentRank: number | null;
+  holdingsCount: number;
+};
+
+export type SignalArenaRejectedAction = {
+  symbol: string;
+  action: SignalArenaActionType;
+  shares: number;
+  reason: string;
+};
+
+export type SignalArenaDecisionTrace = {
+  beforeStateSummary: string;
+  decisionRoute: string[];
+  marketAssessment: string[];
+  portfolioAssessment: string[];
+  rejectedActions: SignalArenaRejectedAction[];
+  publicExplanation: string;
+};
+
+export type SignalArenaEquityPoint = {
+  id: string;
+  runId: string | null;
+  capturedAt: string;
+  totalAssets: number;
+  returnRate: number;
+  currentRank: number | null;
+  status: SignalArenaRunStatus | "snapshot";
+  actionSummary: string | null;
+};
+
 export type SignalArenaRunLog = {
   id: string;
   startedAt: string;
@@ -61,6 +96,11 @@ export type SignalArenaRunLog = {
     status: string | null;
     message: string | null;
   };
+  beforeState: SignalArenaSnapshotState | null;
+  decisionTrace: SignalArenaDecisionTrace | null;
+  cashPlan: string | null;
+  watchlist: string[];
+  afterSnapshot: SignalArenaSnapshotState | null;
 };
 
 export type SignalArenaRankEntry = {
@@ -99,4 +139,5 @@ export type SignalArenaPublicData = {
   dashboard: SignalArenaDashboard;
   logs: SignalArenaRunLog[];
   rank: SignalArenaRank;
+  equityHistory: SignalArenaEquityPoint[];
 };
