@@ -10,7 +10,7 @@
 - `make check`：通过（2026-05-04，`/tools/style-prompt` 原始 demo 预览尺寸改为方形后）
 - `pnpm test:ai-daily` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-17，将 AI Daily 自动同步时间从北京时间 11:00 改为 12:00；workflow cron 为 `0 4 * * *`）
 - `make check` / `pnpm run deploy` 内部 build：通过（2026-05-10，v1.3 Phase 10 完成并归档后；构建仍出现既有 `mays-game-api.mays.workers.dev` 超时警告但最终成功）
-- 部署状态：2026-05-23 已发布 Signal Arena 前端与 Worker 到 Cloudflare；`mays-site-web` 当前版本 `925c2afe-7e92-45c6-8306-39cf758c8884`，`mays-signal-arena-api` 当前版本 `ee95f8a0-f5cf-4c1e-9d96-5305f7bf387a`，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
+- 部署状态：2026-05-23 已发布 Signal Arena 前端与 Worker 到 Cloudflare；手工部署与 `main` push 后的 GitHub `Deploy Frontend` 均已通过，`mays-signal-arena-api` 当前版本 `ee95f8a0-f5cf-4c1e-9d96-5305f7bf387a`，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
 
 ## 已完成
 
