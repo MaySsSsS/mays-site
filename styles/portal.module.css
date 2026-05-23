@@ -334,7 +334,6 @@ button.panel {
 }
 
 .signalArenaPanel {
-  grid-column: 1 / -1;
   background:
     linear-gradient(135deg, rgba(255, 212, 38, 0.92), rgba(255, 253, 240, 0.84)),
     repeating-linear-gradient(

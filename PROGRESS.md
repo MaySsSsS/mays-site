@@ -10,6 +10,7 @@
 - `make check`：通过（2026-05-04，`/tools/style-prompt` 原始 demo 预览尺寸改为方形后）
 - `pnpm test:ai-daily` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-17，将 AI Daily 自动同步时间从北京时间 11:00 改为 12:00；workflow cron 为 `0 4 * * *`）
 - `make check` / `pnpm run deploy` 内部 build：通过（2026-05-10，v1.3 Phase 10 完成并归档后；构建仍出现既有 `mays-game-api.mays.workers.dev` 超时警告但最终成功）
+- `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-23，修复首页 `SIGNAL ARENA` 入口恢复为普通可点击 portal 卡片）
 - 部署状态：2026-05-23 已发布 Signal Arena 前端与 Worker 到 Cloudflare；手工部署与 `main` push 后的 GitHub `Deploy Frontend` 均已通过，`mays-signal-arena-api` 当前版本 `ee95f8a0-f5cf-4c1e-9d96-5305f7bf387a`，公开 API 域名为 `https://signal-arena-api.maysssss.cn`
 
 ## 已完成
@@ -86,6 +87,7 @@
 - [x] 2026-05-23：修复首页 `SIGNAL ARENA` 入口不易发现的问题；将入口提升为门户第一张卡片，并缩短封面高度，让当前本地浏览器首屏可见入口标题与 `OPEN` 按钮
 - [x] 2026-05-23：完成 Signal Arena 线上部署；创建并绑定 Cloudflare D1 `signal-arena` 与 KV `SIGNAL_ARENA_KV`，部署 Worker 到 `signal-arena-api.maysssss.cn`，配置 `SIGNAL_ARENA_AGENT_API_KEY` / `SIGNAL_ARENA_AI_API_KEY` / `SIGNAL_ARENA_ADMIN_TOKEN` secrets，并用 `dryRun=true` 写入一条周六非交易时段 `skipped` 日志
 - [x] 2026-05-23：修复 Signal Arena 真实上游字段映射；策场当前返回 `portfolio.total_value`、`holdings.avg_cost`、`holdings.profit_loss`、`leaderboard[].total_value` 等字段，Worker 已兼容并重新部署，线上 `/signal-arena` 已显示真实总资产与 A 股持仓，不再显示 fallback 数据
+- [x] 2026-05-23：修复首页 `SIGNAL ARENA` 入口卡片布局回归；去掉全宽 `grid-column`，保持它和其他 portal 卡片同尺寸、同完整卡片跳转结构，并补充 `pnpm test:portal` 回归断言
 
 ## 进行中
 

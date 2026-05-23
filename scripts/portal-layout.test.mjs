@@ -32,8 +32,16 @@ test("portal exposes Signal Arena while preserving sealed panel", () => {
   assert.match(portalPage, /sealedPanels/);
 });
 
-test("Signal Arena is promoted as the first visible portal entry", () => {
+test("Signal Arena keeps the same clickable card layout as other portal entries", () => {
   assert.ok(portalPage.indexOf("SIGNAL ARENA") < portalPage.indexOf("PLAYER ONE"));
   assert.match(portalCss, /\.cover\s*\{[\s\S]*min-height:\s*58svh/);
-  assert.match(portalCss, /\.signalArenaPanel\s*\{[\s\S]*grid-column:\s*1 \/ -1/);
+  assert.match(
+    portalPage,
+    /<Link[\s\S]*href=\{item\.href\}[\s\S]*className=\{`\$\{styles\.panel\} \$\{styles\.panelLink\} \$\{item\.className\}`\}/
+  );
+
+  const signalArenaPanel = portalCss.match(/\.signalArenaPanel\s*\{(?<body>[\s\S]*?)\n\}/);
+
+  assert.ok(signalArenaPanel?.groups?.body);
+  assert.doesNotMatch(signalArenaPanel.groups.body, /grid-column\s*:/);
 });
