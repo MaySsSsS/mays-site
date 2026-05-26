@@ -1,6 +1,18 @@
 {
-  "latestDate": "2026-05-25",
+  "latestDate": "2026-05-26",
   "entries": [
+    {
+      "date": "2026-05-26",
+      "title": "AI资讯日报 2026/5/26",
+      "mode": "ai_summary",
+      "summary": [
+        "xAI发布1.5万亿参数GrokV9，香农理论重构大模型缩放规律并揭示退化本质",
+        "Robin system开启全自动科研模式，XWind利用风能推理，智能体办公测评集体翻车",
+        "Copilot曝出机密窃取漏洞，Anthropic涉嫌操纵监管，具身智能创业获亿元融资"
+      ],
+      "updatedAt": "2026-05-26T07:42:48.713Z",
+      "path": "/ai-daily/2026-05-26"
+    },
     {
       "date": "2026-05-25",
       "title": "AI资讯日报 2026/5/25",
