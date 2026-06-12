@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -419,6 +419,21 @@ test("Signal Arena no longer merges old local AI history into Quant Lab", () => 
   assert.doesNotMatch(logsComponent, /来源筛选/);
   assert.doesNotMatch(decisionModalComponent, /HISTORICAL REPORT/);
   assert.doesNotMatch(decisionModalComponent, /历史报告摘要/);
+});
+
+test("Signal Arena no longer publishes old WorkBuddy history artifacts", async () => {
+  await assert.rejects(
+    access(new URL("../public/data/signal-arena/history.json", import.meta.url)),
+    /ENOENT/
+  );
+  await assert.rejects(
+    access(new URL("../lib/signal-arena-history.ts", import.meta.url)),
+    /ENOENT/
+  );
+  await assert.rejects(
+    access(new URL("./sync-signal-arena-history.mjs", import.meta.url)),
+    /ENOENT/
+  );
 });
 
 test("Signal Arena rank page shows quant account gaps", () => {

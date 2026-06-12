@@ -32,7 +32,7 @@
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-28，排查 `Runner 执行失败。` 最新记录，根因是 AI provider 返回 `524` 网关超时，不是交易流程或风控错误；新增 `publicRunnerErrorFor()` 将 524 公开归一为 `AI 服务响应超时，本轮未生成交易决策。`，后续 Runner 落库写入准确摘要，旧 D1 记录通过 public API 展示层兼容归一；Worker 版本 `31ea530e-b685-494c-b337-2c9688fb1361`，前端版本 `778c9f70-44a0-49b6-a330-d38a908269d0`，线上 `/api/public/all` 最新日志已显示新文案）
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-01，排查线上再次出现 `Runner 执行失败。`；根因是新失败类型未被公开归一，包括 `AI provider returned 502`、`Signal Arena request failed: 504`、`Responses API returned no text output`。现已扩展 `publicRunnerErrorFor()` 文案，并让严格 AI 模型遇到短暂 5xx 或空文本时先 fallback 到轻量模型；Worker 部署版本 `9f6c7071-1bab-4f8d-86a3-0bbb2d860ad4`，线上 `/api/public/all` 最新 failed 已显示 `AI 未返回有效决策内容，本轮未生成交易决策。`）
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-12，将 Signal Arena 主决策模型从 `gpt-5.5 / xhigh` 改为 `gpt-5.4 / high`，轻量兜底保持 `gpt-5.4 / low`；fallback 回归测试改为校验 `reasoning.effort`，Worker 部署输出确认新环境变量，部署版本 `df0e9267-e17e-488b-8de6-12402b58866b`）
-- `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-12，将 `/signal-arena` 改造为 Quant Lab；Worker Runner 改用确定性 `Q-Alpha v1` 多因子策略和程序风控，不再让 AI 进入每日下单闭环；新增 market-data 缓存、指标计算、策略 trace、`quant-v1` scope 过滤、D1 migration、首页 `QUANT LAB` 入口、策略日志/弹窗/持仓策略分与入场理由展示；公开页面不再合并旧本地 AI 历史。补充审计后，migration 会把旧行默认保留为 `legacy-ai`，Rank 页展示距前一名/前 10/榜首差距。构建仍出现既有 `mays-game-api.mays.workers.dev` DNS fallback 告警但最终成功，未部署。）
+- `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-12，将 `/signal-arena` 改造为 Quant Lab；Worker Runner 改用确定性 `Q-Alpha v1` 多因子策略和程序风控，不再让 AI 进入每日下单闭环；新增 market-data 缓存、指标计算、策略 trace、`quant-v1` scope 过滤、D1 migration、首页 `QUANT LAB` 入口、策略日志/弹窗/持仓策略分与入场理由展示；公开页面不再合并旧本地 AI 历史，且旧公开 `public/data/signal-arena/history.json` 与 WorkBuddy 历史导入脚本已删除。补充审计后，migration 会把旧行默认保留为 `legacy-ai`，Rank 页展示距前一名/前 10/榜首差距。构建仍出现既有 `mays-game-api.mays.workers.dev` DNS fallback 告警但最终成功，未部署。）
 - 2026-06-12：新增 Signal Arena 量化实验室路线图 `docs/superpowers/plans/2026-06-12-signal-arena-quant-lab-roadmap.md`；规划新账号从 0 跑确定性量化策略，当前公开体验移除旧 AI 账号历史/对照，采用 `Q-Alpha v1` 多因子趋势动量策略、页面改造、回测版本化、每周 AI 复盘，以及 TradingAgents 作为研究/复盘层参考而非第一版交易闭环依赖。
 - 2026-06-12：补充 Signal Arena 量化路线图的策略版本时间表；明确 `Q-Alpha v1-v4` 的最早/稳妥时间、进入下一版的样本量与证据门槛、每版范围边界、回滚/冻结规则，避免把“代码写完”误认为“策略有效”。
 - 2026-06-12：补充 Quant Lab 用户参与与调参机制；路线图新增“用户参与与调参机制”，并新增用户向使用指南草稿 `docs/signal-arena-quant-lab-user-guide.md`，覆盖每日查看、每周复盘、参数含义、调参触发条件、候选版本流程和向 Codex 发起调参实验的模板。
@@ -150,10 +150,6 @@
 - [x] 2026-06-01：补齐 Signal Arena failed 用语与 AI 兜底；`AI provider returned 502`、`Signal Arena request failed: 504`、`Responses API returned no text output` 会分别展示为 AI 服务暂不可用、上游响应超时、AI 未返回有效决策内容；严格模型遇到这些短暂异常时会先尝试轻量模型，减少直接 failed。
 - [x] 2026-06-12：调整 Signal Arena AI 决策模型；主决策改用 `gpt-5.4` + `high` reasoning，兜底仍为 `gpt-5.4` + `low` reasoning，并重新部署 Worker。
 - [x] 2026-06-04：执行 Signal Arena 信号层巡检；生产域名/API/D1 读取仍被当前环境 DNS 与 Wrangler auth fetch 阻塞，未取得线上最新 run 的 live JSON 证据。已复核 Worker Runner、public-data sanitizer、前端 sanitizer 与弹窗展示链路，并完成 Worker 测试、Worker typecheck、Signal Arena 前端回归、根目录 typecheck、lint、build；未发现需要修复的本地链路问题，未部署。
-
-## 本地数据产物
-
-- `public/data/signal-arena/history.json`：由 `node scripts/sync-signal-arena-history.mjs` 从 `~/.workbuddy/workbuddy.db` 的 `automation-7` 生成；当前包含 169 条清洗后的公开日志、96 个历史收益点
 
 ## 进行中
 
