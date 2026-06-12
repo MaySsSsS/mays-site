@@ -115,7 +115,7 @@ export function buildDecisionPrompt(context: DecisionPromptContext): { system: s
         task: "根据账户、持仓、市场信号和约束，提出本轮 A 股模拟交易候选动作。",
         decision_process: [
           "1. 复盘操作前账户状态，包括现金、总资产、收益率、排名和持仓集中度。",
-          "2. 判断市场状态和可交易信号，只使用输入里提供的行情、涨跌幅、交易记录和快照。",
+          "2. 判断市场状态和可交易信号，只使用输入里提供的前置信号、行情、涨跌幅、交易记录和快照。",
           "3. 检查现有持仓是否触发止盈、止损、减仓或继续持有条件。",
           "4. 生成候选动作，并说明被放弃动作的原因。",
           "5. 在候选动作中选择一个最终动作；如果没有足够置信度，final_action 必须为 null。",
@@ -123,6 +123,8 @@ export function buildDecisionPrompt(context: DecisionPromptContext): { system: s
         ],
         strategy_rules: [
           "只交易 A 股标的，买卖股数必须是 100 的整数倍。",
+          "卖出动作必须小于或等于对应持仓的 availableShares；availableShares 为 0 时不要给 sell final_action。",
+          "signals 是前置信号，用来提示可审计的市场机会或风险，不是强制交易指令。",
           "单一持仓不应过度集中，现金不足或置信度不足时优先持有。",
           "不要为了交易而交易；没有明确胜率时保持现金和观察名单。",
           "风险等级 high 时必须给出更保守的 final_action 或 null。"

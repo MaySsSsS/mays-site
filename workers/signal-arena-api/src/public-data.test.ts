@@ -50,8 +50,8 @@ function makeEnv(kv = makeKv()): Env {
     SIGNAL_ARENA_AI_PROVIDER: "custom-responses",
     SIGNAL_ARENA_AI_BASE_URL: "https://ai.example",
     SIGNAL_ARENA_AI_API_KEY: "ai-secret",
-    SIGNAL_ARENA_AI_STRICT_MODEL: "gpt-5.5",
-    SIGNAL_ARENA_AI_STRICT_REASONING_EFFORT: "xhigh",
+    SIGNAL_ARENA_AI_STRICT_MODEL: "gpt-5.4",
+    SIGNAL_ARENA_AI_STRICT_REASONING_EFFORT: "high",
     SIGNAL_ARENA_AI_LIGHT_MODEL: "gpt-5.4",
     SIGNAL_ARENA_AI_LIGHT_REASONING_EFFORT: "low",
     SIGNAL_ARENA_AI_DISABLE_RESPONSE_STORAGE: "true"
@@ -314,6 +314,155 @@ test("public data merges D1 logs without leaking private order data", async () =
   assert.equal(bodyText.includes("private-order"), false);
 });
 
+test("public data presents legacy hold-only blocked runs as held decisions", async () => {
+  const updatedAt = new Date().toISOString();
+  const env = makeEnv(
+    makeKv({
+      "public:all": makeSnapshot(updatedAt, "live")
+    })
+  );
+  env.SIGNAL_ARENA_DB = makeDb([
+    {
+      id: "run-hold",
+      started_at: updatedAt,
+      finished_at: updatedAt,
+      status: "blocked",
+      trigger: "cron",
+      market_view: "cautious",
+      risk_level: "medium",
+      summary: "AI 已完成判断，本轮持有观察",
+      candidates_json: JSON.stringify([
+        {
+          symbol: "sh600519",
+          action: "hold",
+          shares: 0,
+          priority: 1,
+          confidence: 0.7,
+          reason: "继续观察"
+        }
+      ]),
+      selected_action_json: JSON.stringify({
+        symbol: "sh600519",
+        action: "hold",
+        shares: 0,
+        priority: 1,
+        confidence: 0.7,
+        reason: "继续观察"
+      }),
+      risk_result_json: JSON.stringify({
+        allowed: false,
+        reasons: ["本轮建议为 hold，无需下单。", "A 股交易股数必须是 100 的整数倍。"]
+      }),
+      order_result_json: null,
+      before_state_json: null,
+      decision_trace_json: JSON.stringify({
+        decisionRoute: ["检查账户", "选择持有观察"],
+        publicExplanation: "AI 已完成判断，本轮不提交订单。"
+      }),
+      after_snapshot_json: null
+    }
+  ]);
+
+  globalThis.fetch = async () => {
+    throw new Error("unexpected upstream call");
+  };
+
+  const result = await getPublicData(env);
+
+  assert.equal(result.logs[0]?.status, "held");
+  assert.equal(result.dashboard.latestRun?.status, "held");
+  assert.deepEqual(result.logs[0]?.riskResult.reasons, ["AI 最终选择 HOLD，观望/持有，不需要下单。"]);
+});
+
+test("public data explains legacy combined sell limit risk reasons", async () => {
+  const updatedAt = new Date().toISOString();
+  const env = makeEnv(
+    makeKv({
+      "public:all": makeSnapshot(updatedAt, "live")
+    })
+  );
+  env.SIGNAL_ARENA_DB = makeDb([
+    {
+      id: "run-sell-limit",
+      started_at: updatedAt,
+      finished_at: updatedAt,
+      status: "blocked",
+      trigger: "cron",
+      market_view: "neutral",
+      risk_level: "medium",
+      summary: "旧版卖出风控拦截",
+      candidates_json: "[]",
+      selected_action_json: JSON.stringify({
+        symbol: "sh600703",
+        action: "sell",
+        shares: 1000,
+        priority: 1,
+        confidence: 0.68,
+        reason: "分批止盈"
+      }),
+      risk_result_json: JSON.stringify({
+        allowed: false,
+        reasons: ["卖出数量超过可卖数量或触发 T+1 限制。"]
+      }),
+      order_result_json: null,
+      before_state_json: null,
+      decision_trace_json: null,
+      after_snapshot_json: null
+    }
+  ]);
+
+  globalThis.fetch = async () => {
+    throw new Error("unexpected upstream call");
+  };
+
+  const result = await getPublicData(env);
+
+  assert.equal(result.logs[0]?.status, "blocked");
+  assert.deepEqual(result.logs[0]?.riskResult.reasons, [
+    "旧版 Runner 将“超出可卖数量”和“T+1”合并提示；新版本已拆分，后续会显示具体原因。"
+  ]);
+});
+
+test("public data presents AI provider timeout failures as no-decision runs", async () => {
+  const updatedAt = new Date().toISOString();
+  const env = makeEnv(
+    makeKv({
+      "public:all": makeSnapshot(updatedAt, "live")
+    })
+  );
+  env.SIGNAL_ARENA_DB = makeDb([
+    {
+      id: "run-ai-timeout",
+      started_at: updatedAt,
+      finished_at: updatedAt,
+      status: "failed",
+      trigger: "cron",
+      market_view: null,
+      risk_level: null,
+      summary: "Runner 执行失败。",
+      candidates_json: "[]",
+      selected_action_json: null,
+      risk_result_json: JSON.stringify({ allowed: false, reasons: [] }),
+      order_result_json: null,
+      before_state_json: null,
+      decision_trace_json: null,
+      after_snapshot_json: null,
+      error_message: "AI provider returned 524"
+    } as SignalArenaRunRow & { error_message: string }
+  ]);
+
+  globalThis.fetch = async () => {
+    throw new Error("unexpected upstream call");
+  };
+
+  const result = await getPublicData(env);
+
+  assert.equal(result.logs[0]?.status, "failed");
+  assert.equal(result.logs[0]?.summary, "AI 服务响应超时，本轮未生成交易决策。");
+  assert.deepEqual(result.logs[0]?.riskResult.reasons, ["AI 服务响应超时，本轮未提交订单。"]);
+  assert.equal(result.dashboard.latestRun?.summary, "AI 服务响应超时，本轮未生成交易决策。");
+});
+
 test("public data merges D1 snapshots and decision traces into equity history", async () => {
   const updatedAt = new Date().toISOString();
   const env = makeEnv(
@@ -342,6 +491,19 @@ test("public data merges D1 snapshots and decision traces into equity history", 
           decisionRoute: ["检查现金"],
           marketAssessment: ["涨幅榜未形成明确主线"],
           portfolioAssessment: ["持仓未触发止损"],
+          signalContext: [
+            {
+              symbol: "sz000858",
+              name: "五粮液",
+              signalType: "pullback_entry",
+              suggestedAction: "buy",
+              confidence: 0.62,
+              risk: "medium",
+              changeRate: 0.036,
+              price: 128,
+              reason: "温和走强，纳入小仓位候选。"
+            }
+          ],
           rejectedActions: [],
           publicExplanation: "继续观察。",
           privateThought: "hidden"
@@ -376,6 +538,8 @@ test("public data merges D1 snapshots and decision traces into equity history", 
   assert.equal(result.equityHistory[0]?.runId, "run-1");
   assert.equal(result.equityHistory[0]?.totalAssets, 1200000);
   assert.equal(result.logs[0]?.decisionTrace?.decisionRoute[0], "检查现金");
+  assert.equal(result.logs[0]?.decisionTrace?.signalContext[0]?.signalType, "pullback_entry");
+  assert.equal(result.logs[0]?.decisionTrace?.signalContext[0]?.suggestedAction, "buy");
   assert.equal(JSON.stringify(result).includes("private-order"), false);
   assert.equal(JSON.stringify(result).includes("privateThought"), false);
 });
@@ -552,6 +716,113 @@ test("upstream refresh stays public and keeps private fields out", async () => {
   assert.equal(calls[0].headers.get("agent-auth-api-key"), "agent-secret");
   assert.equal(calls[0].headers.get("Content-Type"), "application/json");
   assert.ok(result.dashboard.updatedAt >= currentDate);
+});
+
+test("upstream refresh tolerates wrapped list payloads", async () => {
+  const env = makeEnv(makeKv());
+  env.SIGNAL_ARENA_DB = makeDb();
+
+  globalThis.fetch = async (input) => {
+    const url = typeof input === "string" || input instanceof URL ? new URL(input.toString()) : new URL(input.url);
+
+    if (url.pathname === "/api/v1/arena/home") {
+      return jsonResponse({
+        success: true,
+        data: {
+          agent_id: "agent-123",
+          initial_capital: 1000000,
+          total_assets: 1200000,
+          cash: 300000,
+          return_rate: 0.2,
+          rank: 2
+        }
+      });
+    }
+
+    if (url.pathname === "/api/v1/arena/portfolio") {
+      return jsonResponse({
+        success: true,
+        data: {
+          portfolio: {
+            cash: 300000,
+            total_value: 1200000,
+            total_invested: 1000000,
+            return_rate: 0.2
+          },
+          holdings: {
+            items: [
+              {
+                symbol: "sh600519",
+                name: "贵州茅台",
+                market: "CN",
+                shares: 100,
+                avg_cost: 1200,
+                current_price: 1300,
+                market_value: 130000,
+                profit_loss: 10000,
+                profit_rate: 0.0833
+              }
+            ]
+          }
+        }
+      });
+    }
+
+    if (url.pathname === "/api/v1/arena/trades") {
+      return jsonResponse({
+        success: true,
+        data: {
+          trades: {
+            records: [
+              {
+                symbol: "sh600519",
+                action: "buy",
+                shares: 100,
+                status: "filled",
+                note: { reason: "包装交易记录" },
+                submitted_at: "2026-05-22T00:00:00.000Z"
+              }
+            ]
+          }
+        }
+      });
+    }
+
+    if (url.pathname === "/api/v1/arena/leaderboard") {
+      return jsonResponse({
+        success: true,
+        data: {
+          leaderboard: {
+            records: [
+              {
+                rank: 1,
+                nickname: "Alpha",
+                total_value: 1300000,
+                return_rate: 0.3
+              },
+              {
+                rank: 2,
+                agent_id: "agent-123",
+                nickname: "Me",
+                total_value: 1200000,
+                return_rate: 0.2
+              }
+            ]
+          }
+        }
+      });
+    }
+
+    throw new Error(`unexpected endpoint ${url.pathname}`);
+  };
+
+  const result = await getPublicData(env);
+
+  assert.equal(result.dashboard.sourceStatus, "live");
+  assert.equal(result.dashboard.cnHoldings[0]?.symbol, "sh600519");
+  assert.equal(result.rank.leaders[0]?.nickname, "Alpha");
+  assert.equal(result.rank.leaders.find((entry) => entry.rank === 2)?.isCurrentAgent, true);
+  assert.equal(result.recentTrades[0]?.reason, "包装交易记录");
 });
 
 test("trade client sends the expected endpoint and auth header", async () => {

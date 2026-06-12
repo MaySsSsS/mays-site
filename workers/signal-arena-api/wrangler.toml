@@ -15,15 +15,19 @@ binding = "SIGNAL_ARENA_KV"
 id = "e1b7f7c61df542eaa4c7ea82bbe14545"
 
 [triggers]
-crons = ["*/15 1-7 * * 1-5"]
+crons = [
+  "35,50 1 * * 1-5",
+  "5,20,35,50 2,5,6 * * 1-5",
+  "5,20 3 * * 1-5"
+]
 
 [vars]
 CORS_ORIGIN = "https://maysssss.cn"
 SIGNAL_ARENA_BASE_URL = "https://signal.coze.com"
 SIGNAL_ARENA_AI_PROVIDER = "custom-responses"
 SIGNAL_ARENA_AI_BASE_URL = "https://sub2.de5.net"
-SIGNAL_ARENA_AI_STRICT_MODEL = "gpt-5.5"
-SIGNAL_ARENA_AI_STRICT_REASONING_EFFORT = "xhigh"
+SIGNAL_ARENA_AI_STRICT_MODEL = "gpt-5.4"
+SIGNAL_ARENA_AI_STRICT_REASONING_EFFORT = "high"
 SIGNAL_ARENA_AI_LIGHT_MODEL = "gpt-5.4"
 SIGNAL_ARENA_AI_LIGHT_REASONING_EFFORT = "low"
 SIGNAL_ARENA_AI_DISABLE_RESPONSE_STORAGE = "true"

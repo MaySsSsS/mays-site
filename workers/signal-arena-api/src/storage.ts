@@ -98,6 +98,7 @@ export type SignalArenaRunRow = {
   before_state_json: string | null;
   decision_trace_json: string | null;
   after_snapshot_json: string | null;
+  error_message?: string | null;
 };
 
 export type SignalArenaSnapshotRow = {
@@ -118,7 +119,7 @@ export async function listRecentRuns(env: Env, limit = 30): Promise<SignalArenaR
     const result = await env.SIGNAL_ARENA_DB.prepare(
       `SELECT id, started_at, finished_at, status, trigger, market_view, risk_level, summary,
         candidates_json, selected_action_json, risk_result_json, order_result_json,
-        before_state_json, decision_trace_json, after_snapshot_json
+        before_state_json, decision_trace_json, after_snapshot_json, error_message
        FROM signal_arena_runs
        ORDER BY started_at DESC
        LIMIT ?`
