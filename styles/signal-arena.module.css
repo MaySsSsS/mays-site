@@ -227,6 +227,7 @@
 
 .metric,
 .section,
+.strategyPanel,
 .runCard,
 .logItem,
 .rankHero,
@@ -274,11 +275,42 @@
 }
 
 .section,
+.strategyPanel,
 .chartPanel,
 .operationsPanel {
   display: grid;
   gap: 14px;
   padding: 16px;
+}
+
+.strategyGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.strategyGrid article {
+  display: grid;
+  gap: 8px;
+  min-height: 82px;
+  padding: 12px;
+  border: 1px solid #253241;
+  border-radius: 4px;
+  background: #0a1118;
+}
+
+.strategyGrid span {
+  color: #718196;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.strategyGrid strong {
+  align-self: end;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
 }
 
 .sectionHeader,
@@ -384,10 +416,10 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: minmax(120px, 1.2fr) minmax(80px, 0.8fr) minmax(90px, 0.9fr) minmax(120px, 1fr) minmax(100px, 0.9fr);
+  grid-template-columns: minmax(120px, 1.2fr) minmax(80px, 0.8fr) minmax(90px, 0.9fr) minmax(120px, 1fr) minmax(100px, 0.9fr) minmax(80px, 0.7fr) minmax(180px, 1.4fr) minmax(150px, 1.2fr);
   gap: 12px;
   align-items: center;
-  min-width: 620px;
+  min-width: 820px;
   padding: 12px 0;
   border-top: 1px solid #253241;
 }
@@ -691,6 +723,7 @@
   .metricGrid,
   .marketStrip,
   .operationsGrid,
+  .strategyGrid,
   .traceGrid,
   .chartFallbackList,
   .modalGrid,
@@ -716,6 +749,7 @@
   .metricGrid,
   .marketStrip,
   .operationsGrid,
+  .strategyGrid,
   .traceGrid,
   .chartFallbackList,
   .modalGrid,

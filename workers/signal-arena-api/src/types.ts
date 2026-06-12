@@ -4,6 +4,8 @@ export interface Env {
   CORS_ORIGIN: string;
   SIGNAL_ARENA_BASE_URL: string;
   SIGNAL_ARENA_AGENT_API_KEY: string;
+  SIGNAL_ARENA_ACCOUNT_SCOPE?: string;
+  SIGNAL_ARENA_STRATEGY_VERSION?: string;
   SIGNAL_ARENA_ADMIN_TOKEN: string;
   SIGNAL_ARENA_AI_PROVIDER: string;
   SIGNAL_ARENA_AI_BASE_URL: string;
@@ -130,10 +132,11 @@ export type ArenaTradesData = {
 export type ArenaTopMover = {
   symbol: string;
   name?: string;
+  market?: string;
   change_rate?: number;
   changeRate?: number;
   price?: number;
-  market?: string;
+  volume?: number;
 };
 
 export type ArenaTopMoverGroups = Record<string, ArenaTopMover[]>;
@@ -155,6 +158,56 @@ export type ArenaSnapshot = {
 
 export type ArenaSnapshotsData = {
   snapshots?: ArenaListShape<ArenaSnapshot>;
+};
+
+export type ArenaStock = {
+  symbol: string;
+  name?: string;
+  market?: string;
+  price?: number;
+  current_price?: number;
+  change_rate?: number;
+  changeRate?: number;
+  volume?: number;
+};
+
+export type ArenaStocksData = {
+  stocks?: ArenaListShape<ArenaStock>;
+  total?: number;
+  page?: number;
+};
+
+export type ArenaStocksListData =
+  | ArenaListShape<ArenaStock>
+  | {
+      stocks?: ArenaListShape<ArenaStock>;
+      items?: ArenaListShape<ArenaStock>;
+      records?: ArenaListShape<ArenaStock>;
+      data?: ArenaListShape<ArenaStock>;
+      total?: number;
+    };
+
+export type ArenaHistoryBar = {
+  date?: string;
+  time?: string;
+  timestamp?: string;
+  open?: number;
+  high?: number;
+  low?: number;
+  close?: number;
+  price?: number;
+  volume?: number;
+  amount?: number;
+};
+
+export type ArenaStockHistoryData = {
+  symbol?: string;
+  name?: string;
+  market?: string;
+  history?: ArenaListShape<ArenaHistoryBar>;
+  daily?: ArenaListShape<ArenaHistoryBar>;
+  bars?: ArenaListShape<ArenaHistoryBar>;
+  snapshots?: ArenaListShape<ArenaHistoryBar>;
 };
 
 export type DecisionPromptContext = {
@@ -218,6 +271,8 @@ export type AiCandidateAction = {
   reason: string;
 };
 
+export type StrategyAction = AiCandidateAction;
+
 export type AiDecision = {
   market_view: "cautious" | "neutral" | "aggressive";
   risk_level: "low" | "medium" | "high";
@@ -258,5 +313,5 @@ export type RiskContext = {
 export type RiskSelection = {
   allowed: boolean;
   reasons: string[];
-  selectedAction: AiCandidateAction | null;
+  selectedAction: StrategyAction | null;
 };

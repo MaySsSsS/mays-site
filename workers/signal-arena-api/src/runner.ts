@@ -1,9 +1,14 @@
-import { requestStrictDecision } from "./ai-provider";
 import { arenaList } from "./arena-normalize";
-import { buildDecisionPrompt } from "./prompt";
+import { getCachedCnStocks, getCachedStockHistory } from "./market-data";
+import {
+  Q_ALPHA_ACCOUNT_SCOPE,
+  Q_ALPHA_DEFAULT_PARAMETERS,
+  Q_ALPHA_STRATEGY_VERSION,
+  buildQAlphaCandidatePool,
+  runQAlphaV1
+} from "./q-alpha-v1";
 import { publicRunnerErrorFor } from "./run-error";
 import { selectExecutableAction } from "./risk";
-import { generateTradingSignals } from "./signal-generator";
 import {
   fetchArenaHome,
   fetchArenaPortfolio,
@@ -14,17 +19,25 @@ import {
 } from "./signal-api";
 import { acquireRunnerLock, insertRun, insertSnapshot, releaseRunnerLock } from "./storage";
 import type {
+  ArenaHistoryBar,
   ArenaHomeData,
   ArenaHolding,
   ArenaPortfolioData,
   ArenaSnapshot,
   ArenaTopMover,
   ArenaTrade,
-  DecisionPromptContext,
   Env,
   RiskContext,
   RunnerTrigger
 } from "./types";
+
+function accountScope(env: Env): string {
+  return env.SIGNAL_ARENA_ACCOUNT_SCOPE || Q_ALPHA_ACCOUNT_SCOPE;
+}
+
+function strategyVersion(env: Env): string {
+  return env.SIGNAL_ARENA_STRATEGY_VERSION || Q_ALPHA_STRATEGY_VERSION;
+}
 
 function isCnTradingSession(date = new Date()): boolean {
   const shanghai = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
@@ -46,19 +59,6 @@ function firstNumber(...values: unknown[]): number | undefined {
   }
 
   return undefined;
-}
-
-function noteReason(value: unknown): string | null {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-    const record = value as Record<string, unknown>;
-    return typeof record.reason === "string" ? record.reason : null;
-  }
-
-  return null;
 }
 
 function isArenaMarketClosed(value: unknown): boolean {
@@ -102,53 +102,106 @@ function accountState(home: ArenaHomeData, portfolio: ArenaPortfolioData, holdin
   };
 }
 
+function priceBySymbol(holdings: ArenaHolding[], histories: Record<string, ArenaHistoryBar[]>): Record<string, number> {
+  const prices: Record<string, number> = {};
+
+  for (const [symbol, history] of Object.entries(histories)) {
+    const latestBar = history.length > 0 ? history[history.length - 1] : undefined;
+    const latestHistoryPrice = firstNumber(latestBar?.close, latestBar?.price);
+    if (latestHistoryPrice !== undefined) {
+      prices[symbol] = latestHistoryPrice;
+    }
+  }
+
+  for (const holding of holdings) {
+    prices[holding.symbol] = firstNumber(holding.current_price, prices[holding.symbol], holding.avg_cost, holding.cost_price) ?? 0;
+  }
+
+  return prices;
+}
+
+async function loadHistories(
+  env: Env,
+  now: Date,
+  symbols: string[]
+): Promise<Record<string, ArenaHistoryBar[]>> {
+  const histories: Record<string, ArenaHistoryBar[]> = {};
+
+  await Promise.all(
+    symbols.slice(0, Q_ALPHA_DEFAULT_PARAMETERS.maxHistorySymbolsPerRun).map(async (symbol) => {
+      histories[symbol] = await getCachedStockHistory(env, symbol, now);
+    })
+  );
+
+  return histories;
+}
+
+async function insertSkippedRun(
+  env: Env,
+  args: {
+    id: string;
+    startedAt: string;
+    trigger: RunnerTrigger;
+    marketSession: string;
+    summary: string;
+    reason: string;
+  }
+): Promise<void> {
+  await insertRun(env, {
+    id: args.id,
+    startedAt: args.startedAt,
+    finishedAt: new Date().toISOString(),
+    status: "skipped",
+    trigger: args.trigger,
+    marketSession: args.marketSession,
+    marketView: null,
+    riskLevel: null,
+    summary: args.summary,
+    candidatesJson: "[]",
+    selectedActionJson: null,
+    riskResultJson: JSON.stringify({ allowed: false, reasons: [args.reason] }),
+    orderResultJson: null,
+    errorMessage: null,
+    accountScope: accountScope(env),
+    strategyVersion: strategyVersion(env),
+    strategyParametersJson: JSON.stringify(Q_ALPHA_DEFAULT_PARAMETERS)
+  });
+}
+
 export async function runSignalArenaTrader(
   env: Env,
   options: { trigger: RunnerTrigger; dryRun: boolean; now?: Date }
 ): Promise<{ id: string; status: string }> {
   const id = crypto.randomUUID();
   const startedAt = new Date().toISOString();
+  const now = options.now ?? new Date();
+  const scope = accountScope(env);
+  const version = strategyVersion(env);
   const locked = await acquireRunnerLock(env, id, 600);
 
   if (!locked) {
-    await insertRun(env, {
+    await insertSkippedRun(env, {
       id,
       startedAt,
-      finishedAt: new Date().toISOString(),
-      status: "skipped",
       trigger: options.trigger,
       marketSession: "lock_busy",
-      marketView: null,
-      riskLevel: null,
-      summary: "上一次 Runner 尚未结束，本轮跳过。",
-      candidatesJson: "[]",
-      selectedActionJson: null,
-      riskResultJson: JSON.stringify({ allowed: false, reasons: ["Runner lock is busy."] }),
-      orderResultJson: null,
-      errorMessage: null
+      summary: "上一次 Quant Lab Runner 尚未结束，本轮跳过。",
+      reason: "Runner lock is busy."
     });
     return { id, status: "skipped" };
   }
 
   try {
-    const isTradingSession = isCnTradingSession(options.now);
+    const isTradingSession = isCnTradingSession(now);
 
     if (!isTradingSession) {
-      await insertRun(env, {
+      await insertSkippedRun(env, {
         id,
         startedAt,
-        finishedAt: new Date().toISOString(),
-        status: "skipped",
         trigger: options.trigger,
         marketSession: "closed",
-        marketView: null,
-        riskLevel: null,
-        summary: "当前不是 A 股交易时段，本轮不调用 AI。",
-        candidatesJson: "[]",
-        selectedActionJson: null,
-        riskResultJson: JSON.stringify({ allowed: false, reasons: ["Market closed."] }),
-        orderResultJson: null,
-        errorMessage: null
+        summary: "当前不是 A 股交易时段，Q-Alpha v1 本轮跳过。",
+        reason: "Market closed."
       });
       return { id, status: "skipped" };
     }
@@ -156,102 +209,64 @@ export async function runSignalArenaTrader(
     const home = await fetchArenaHome(env);
 
     if (isArenaMarketClosed(home.market_status)) {
-      await insertRun(env, {
+      await insertSkippedRun(env, {
         id,
         startedAt,
-        finishedAt: new Date().toISOString(),
-        status: "skipped",
         trigger: options.trigger,
         marketSession: "closed",
-        marketView: null,
-        riskLevel: null,
-        summary: "上游显示 A 股当前未开盘，本轮不调用 AI。",
-        candidatesJson: "[]",
-        selectedActionJson: null,
-        riskResultJson: JSON.stringify({ allowed: false, reasons: ["Arena market is closed."] }),
-        orderResultJson: null,
-        errorMessage: null
+        summary: "上游显示 A 股当前未开盘，Q-Alpha v1 本轮跳过。",
+        reason: "Arena market is closed."
       });
       return { id, status: "skipped" };
     }
 
-    const [portfolio, trades, topMovers, snapshots] = await Promise.all([
+    const [portfolio, tradesPayload, topMoversPayload, snapshotsPayload, stockUniverse] = await Promise.all([
       fetchArenaPortfolio(env),
       fetchArenaTrades(env),
       fetchArenaTopMovers(env),
-      fetchArenaSnapshots(env)
+      fetchArenaSnapshots(env),
+      getCachedCnStocks(env, now)
     ]);
 
     const allHoldings = portfolioHoldings(portfolio);
-    const beforeState = accountState(home, portfolio, allHoldings);
-    const totalAssets = beforeState.totalAssets;
     const holdings = allHoldings.filter((holding) => holding.market === "CN");
-    const recentTrades = tradeRecords(trades);
-    const topMoverRecords = topMoverList(topMovers);
-    const snapshotsRecords = snapshotRecords(snapshots);
-    const signals = generateTradingSignals({
-      now: (options.now ?? new Date()).toISOString(),
-      totalAssets,
+    const beforeState = accountState(home, portfolio, allHoldings);
+    const recentTrades = tradeRecords(tradesPayload);
+    const topMovers = topMoverList(topMoversPayload).filter((mover) => mover.market === undefined || mover.market === "CN");
+    const snapshots = snapshotRecords(snapshotsPayload);
+    const candidatePool = buildQAlphaCandidatePool({
+      now,
+      dryRun: options.dryRun,
+      accountScope: scope,
+      strategyVersion: version,
+      totalAssets: beforeState.totalAssets,
       cash: beforeState.cash,
       holdings,
-      topMovers: topMoverRecords,
-      recentTrades
+      topMovers,
+      recentTrades,
+      stockUniverse
+    }, Q_ALPHA_DEFAULT_PARAMETERS.maxHistorySymbolsPerRun);
+    const symbols = candidatePool.map((candidate) => candidate.symbol);
+    const histories = await loadHistories(env, now, symbols);
+    const strategy = runQAlphaV1({
+      now,
+      dryRun: options.dryRun,
+      accountScope: scope,
+      strategyVersion: version,
+      totalAssets: beforeState.totalAssets,
+      cash: beforeState.cash,
+      holdings,
+      topMovers,
+      recentTrades,
+      stockUniverse,
+      histories
     });
-    const context: DecisionPromptContext = {
-      now: (options.now ?? new Date()).toISOString(),
-      account: {
-        totalAssets,
-        cash: beforeState.cash,
-        returnRate: beforeState.returnRate,
-        rank: beforeState.currentRank
-      },
-      holdings: holdings.map((holding) => ({
-        symbol: holding.symbol,
-        name: holding.name,
-        shares: holding.shares,
-        availableShares: holding.available_shares ?? holding.shares,
-        positionRate: totalAssets > 0 ? (holding.market_value ?? 0) / totalAssets : 0,
-        profitRate: holding.profit_rate ?? 0
-      })),
-      signals,
-      recentTrades: recentTrades.slice(0, 20).map((trade) => ({
-        symbol: trade.symbol,
-        action: trade.action,
-        shares: trade.shares,
-        status: trade.status,
-        reason: trade.reason ?? noteReason(trade.note),
-        createdAt: trade.created_at ?? trade.submitted_at ?? trade.executed_at ?? null
-      })),
-      topMovers: topMoverRecords.slice(0, 20).map((mover) => ({
-        symbol: mover.symbol,
-        name: mover.name ?? mover.symbol,
-        changeRate: firstNumber(mover.change_rate, mover.changeRate) ?? 0,
-        price: firstNumber(mover.price) ?? null
-      })),
-      snapshots: snapshotsRecords.slice(0, 20).map((snapshot) => ({
-        capturedAt: snapshot.created_at ?? snapshot.captured_at ?? null,
-        totalAssets: firstNumber(snapshot.total_assets, snapshot.total_value) ?? 0,
-        returnRate: firstNumber(snapshot.return_rate) ?? 0,
-        rank: firstNumber(snapshot.rank, snapshot.current_rank) ?? null
-      })),
-      constraints: [
-        "Only A-share symbols are tradable in v1.",
-        "Buy and sell shares must be multiples of 100.",
-        "Execute at most one order per run.",
-        "Keep at least 20% cash after buys.",
-        "Single stock target position must stay below 20%."
-      ]
-    };
 
-    const decision = await requestStrictDecision(env, buildDecisionPrompt(context));
-    const prices = Object.fromEntries(
-      holdings.map((holding) => [holding.symbol, holding.current_price ?? 0])
-    );
     const riskContext: RiskContext = {
       isTradingSession,
-      totalAssets,
+      totalAssets: beforeState.totalAssets,
       cash: beforeState.cash,
-      prices,
+      prices: priceBySymbol(holdings, histories),
       holdings: Object.fromEntries(
         holdings.map((holding) => [
           holding.symbol,
@@ -259,31 +274,24 @@ export async function runSignalArenaTrader(
             shares: holding.shares,
             availableShares: holding.available_shares ?? holding.shares,
             marketValue: holding.market_value ?? 0,
-            positionRate: totalAssets > 0 ? (holding.market_value ?? 0) / totalAssets : 0
+            positionRate: beforeState.totalAssets > 0 ? (holding.market_value ?? 0) / beforeState.totalAssets : 0
           }
         ])
       )
     };
-    const risk = selectExecutableAction(decision, riskContext);
+    const risk = selectExecutableAction(strategy.selectedAction, riskContext);
     const orderResult =
       risk.allowed && risk.selectedAction && !options.dryRun
         ? await submitArenaTrade(env, risk.selectedAction)
         : null;
-
-    const isObserveDecision = risk.selectedAction?.action === "hold" || (!risk.selectedAction && decision.final_action === null);
-    const status = isObserveDecision ? "held" : risk.allowed ? (options.dryRun ? "held" : "executed") : "blocked";
+    const status = !risk.selectedAction ? "held" : risk.allowed ? (options.dryRun ? "held" : "executed") : "blocked";
     const finishedAt = new Date().toISOString();
     const afterSnapshot = beforeState;
-    const decisionTrace = {
-      beforeStateSummary: decision.before_state_summary,
-      decisionRoute: decision.decision_route,
-      marketAssessment: decision.market_assessment,
-      portfolioAssessment: decision.portfolio_assessment,
-      rejectedActions: decision.rejected_actions,
-      publicExplanation: decision.public_explanation,
-      cashPlan: decision.cash_plan,
-      watchlist: decision.watchlist,
-      signalContext: signals
+    const strategyTrace = {
+      ...strategy.strategyTrace,
+      finalAction: risk.selectedAction,
+      riskReasons: risk.reasons,
+      recentSnapshots: snapshots.slice(0, 10)
     };
 
     await insertRun(env, {
@@ -293,17 +301,21 @@ export async function runSignalArenaTrader(
       status,
       trigger: options.trigger,
       marketSession: "open",
-      marketView: decision.market_view,
-      riskLevel: decision.risk_level,
-      summary: decision.summary,
-      candidatesJson: JSON.stringify(decision.candidates),
+      marketView: strategy.marketView,
+      riskLevel: strategy.riskLevel,
+      summary: strategy.summary,
+      candidatesJson: JSON.stringify(strategy.candidates),
       selectedActionJson: risk.selectedAction ? JSON.stringify(risk.selectedAction) : null,
       riskResultJson: JSON.stringify({ allowed: risk.allowed, reasons: risk.reasons }),
       orderResultJson: orderResult ? JSON.stringify(orderResult) : null,
       beforeStateJson: JSON.stringify(beforeState),
-      decisionTraceJson: JSON.stringify(decisionTrace),
+      decisionTraceJson: null,
+      strategyTraceJson: JSON.stringify(strategyTrace),
+      strategyParametersJson: JSON.stringify(Q_ALPHA_DEFAULT_PARAMETERS),
       afterSnapshotJson: JSON.stringify(afterSnapshot),
-      errorMessage: null
+      errorMessage: null,
+      accountScope: scope,
+      strategyVersion: version
     });
 
     await insertSnapshot(env, {
@@ -315,12 +327,18 @@ export async function runSignalArenaTrader(
         totalAssets: afterSnapshot.totalAssets,
         cash: afterSnapshot.cash,
         returnRate: afterSnapshot.returnRate,
-        currentRank: afterSnapshot.currentRank
+        currentRank: afterSnapshot.currentRank,
+        accountScope: scope,
+        strategyVersion: version
       }),
       rankJson: JSON.stringify({
         currentRank: afterSnapshot.currentRank,
-        returnRate: afterSnapshot.returnRate
-      })
+        returnRate: afterSnapshot.returnRate,
+        accountScope: scope,
+        strategyVersion: version
+      }),
+      accountScope: scope,
+      strategyVersion: version
     });
 
     return { id, status };
@@ -337,12 +355,15 @@ export async function runSignalArenaTrader(
       marketSession: "unknown",
       marketView: null,
       riskLevel: null,
-      summary: publicError?.summary ?? "Runner 执行失败。",
+      summary: publicError?.summary ?? "Quant Lab Runner 执行失败。",
       candidatesJson: "[]",
       selectedActionJson: null,
       riskResultJson: JSON.stringify({ allowed: false, reasons: publicError?.riskReasons ?? [] }),
       orderResultJson: null,
-      errorMessage
+      errorMessage,
+      accountScope: scope,
+      strategyVersion: version,
+      strategyParametersJson: JSON.stringify(Q_ALPHA_DEFAULT_PARAMETERS)
     });
     return { id, status: "failed" };
   } finally {

@@ -43,21 +43,16 @@ function formatSnapshot(snapshot: SignalArenaSnapshotState | null): string {
 
 function formatAction(action: SignalArenaRunLog["selectedAction"]): string {
   if (!action) {
-    return "AI 本轮选择观望，未提交买卖动作";
+    return "策略本轮选择观望，未提交买卖动作";
   }
 
   return `${action.action.toUpperCase()} ${action.symbol} ${action.shares} 股 / ${action.reason}`;
 }
 
-function formatSource(point: SignalArenaEquityPoint, run: SignalArenaRunLog | null): string {
-  return run?.sourceLabel ?? point.sourceLabel ?? "实时 Runner";
-}
-
-function formatSignal(signal: NonNullable<SignalArenaRunLog["decisionTrace"]>["signalContext"][number]): string {
-  const change = signal.changeRate === null ? "无涨跌幅" : `涨跌幅 ${(signal.changeRate * 100).toFixed(2)}%`;
-  const price = signal.price === null ? "无价格" : `价格 ${signal.price}`;
-
-  return `${signal.signalType} / ${signal.suggestedAction.toUpperCase()} ${signal.symbol} / 置信度 ${signal.confidence.toFixed(2)} / ${signal.risk} / ${change} / ${price} / ${signal.reason}`;
+function factorText(candidate: NonNullable<SignalArenaRunLog["strategyTrace"]>["candidateRanking"][number]): string {
+  return Object.entries(candidate.factorScore)
+    .map(([key, value]) => `${key} ${value}`)
+    .join(" / ");
 }
 
 function DetailList({ items, empty }: { items: string[]; empty: string }) {
@@ -79,6 +74,8 @@ export function SignalArenaDecisionModal({ point, run, onClose }: SignalArenaDec
     return null;
   }
 
+  const trace = run?.strategyTrace ?? null;
+
   return (
     <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
       <section
@@ -90,12 +87,12 @@ export function SignalArenaDecisionModal({ point, run, onClose }: SignalArenaDec
       >
         <header className={styles.modalHeader}>
           <div>
-            <p className={styles.eyebrow}>{point.source === "imported" ? "HISTORICAL REPORT" : "DECISION TRACE"}</p>
+            <p className={styles.eyebrow}>STRATEGY TRACE</p>
             <h2 id="signal-arena-decision-title" className={styles.modalTitle}>
               {formatDateTime(point.capturedAt)}
             </h2>
             <p className={styles.modalText}>
-              {formatSource(point, run)} / 置信度 {run?.confidence ?? point.confidence ?? "high"}
+              {point.strategyVersion ?? run?.strategyVersion ?? "Q-Alpha v1"} / {point.accountScope}
             </p>
           </div>
           <button className={styles.closeButton} type="button" onClick={onClose} aria-label="关闭弹窗">
@@ -105,79 +102,68 @@ export function SignalArenaDecisionModal({ point, run, onClose }: SignalArenaDec
 
         <div className={styles.modalGrid}>
           <article className={styles.modalBlock}>
-            <h3>{point.source === "imported" ? "历史账户快照" : "操作前账户状态"}</h3>
+            <h3>操作前账户状态</h3>
             <p className={styles.modalText}>{formatSnapshot(run?.beforeState ?? null)}</p>
           </article>
 
           <article className={styles.modalBlock}>
-            <h3>{point.source === "imported" ? "历史文本解析路线" : "决策路线"}</h3>
-            <DetailList items={run?.decisionTrace?.decisionRoute ?? []} empty="暂无决策路线。" />
+            <h3>规则触发</h3>
+            <p className={styles.modalText}>{trace?.finalRule ?? "暂无规则触发。"}</p>
           </article>
 
           <article className={styles.modalBlock}>
-            <h3>市场评估</h3>
-            <DetailList items={run?.decisionTrace?.marketAssessment ?? []} empty="暂无市场评估。" />
-          </article>
-
-          <article className={styles.modalBlock}>
-            <h3>前置信号</h3>
-            <DetailList
-              items={(run?.decisionTrace?.signalContext ?? []).map(formatSignal)}
-              empty="本轮没有生成前置信号。"
-            />
-          </article>
-
-          <article className={styles.modalBlock}>
-            <h3>组合评估</h3>
-            <DetailList items={run?.decisionTrace?.portfolioAssessment ?? []} empty="暂无组合评估。" />
-          </article>
-
-          <article className={styles.modalBlock}>
-            <h3>候选判断</h3>
-            <DetailList
-              items={(run?.candidates ?? []).map(
-                (candidate) => `${candidate.action.toUpperCase()} ${candidate.symbol} ${candidate.shares} 股 / ${candidate.reason}`
-              )}
-              empty="本轮没有候选买卖动作，AI 仍可能给出观望判断。"
-            />
-          </article>
-
-          <article className={styles.modalBlock}>
-            <h3>被否决动作</h3>
-            <DetailList
-              items={(run?.decisionTrace?.rejectedActions ?? []).map(
-                (action) => `${action.action.toUpperCase()} ${action.symbol} ${action.shares} 股 / ${action.reason}`
-              )}
-              empty="没有记录被否决动作。"
-            />
-          </article>
-
-          <article className={styles.modalBlock}>
-            <h3>最终判断</h3>
+            <h3>最终动作</h3>
             <p className={styles.modalText}>{formatAction(run?.selectedAction ?? null)}</p>
-            {run?.decisionTrace?.publicExplanation ? (
-              <p className={styles.modalText}>{run.decisionTrace.publicExplanation}</p>
-            ) : null}
           </article>
 
           <article className={styles.modalBlock}>
-            <h3>执行结果</h3>
+            <h3>历史覆盖</h3>
             <p className={styles.modalText}>
-              风控：{run?.riskResult.allowed ? "通过" : "未通过"} /{" "}
-              {run?.riskResult.reasons.join(" / ") || "无拦截原因"}
+              {trace
+                ? `${trace.historyCoverage.coveredSymbols}/${trace.historyCoverage.requestedSymbols} 只完成，${trace.historyCoverage.insufficientSymbols.length} 只不足。`
+                : "暂无历史覆盖信息。"}
+            </p>
+          </article>
+
+          <article className={styles.modalBlock}>
+            <h3>候选排序</h3>
+            <DetailList
+              items={(trace?.candidateRanking ?? []).slice(0, 8).map(
+                (candidate) => `${candidate.symbol} ${candidate.name} / 总分 ${candidate.score} / ${factorText(candidate)}`
+              )}
+              empty="暂无候选排序。"
+            />
+          </article>
+
+          <article className={styles.modalBlock}>
+            <h3>因子评分</h3>
+            <DetailList
+              items={(trace?.candidateRanking ?? []).slice(0, 5).map(
+                (candidate) => `${candidate.symbol}: ${candidate.entryReasons.join("、") || candidate.rejectionReasons.join("、") || "无附加原因"}`
+              )}
+              empty="暂无因子评分。"
+            />
+          </article>
+
+          <article className={styles.modalBlock}>
+            <h3>拒绝原因</h3>
+            <DetailList items={trace?.rejectedReasons ?? []} empty="没有策略拒绝原因。" />
+          </article>
+
+          <article className={styles.modalBlock}>
+            <h3>风控结果</h3>
+            <p className={styles.modalText}>
+              {run?.riskResult.allowed ? "通过" : "未通过"} / {run?.riskResult.reasons.join(" / ") || "无拦截原因"}
             </p>
             <p className={styles.modalText}>
               订单：{run?.orderResult.status ?? "未下单"} / {run?.orderResult.message ?? "无附加消息"}
             </p>
-            <p className={styles.modalText}>操作后：{formatSnapshot(run?.afterSnapshot ?? null)}</p>
           </article>
 
-          {point.source === "imported" ? (
-            <article className={styles.modalBlock}>
-              <h3>历史报告摘要</h3>
-              <p className={styles.modalText}>{run?.rawSummary ?? point.rawSummary ?? "历史文本没有可展示摘要。"}</p>
-            </article>
-          ) : null}
+          <article className={styles.modalBlock}>
+            <h3>操作后</h3>
+            <p className={styles.modalText}>{formatSnapshot(run?.afterSnapshot ?? null)}</p>
+          </article>
         </div>
       </section>
     </div>

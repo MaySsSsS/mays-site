@@ -18,8 +18,26 @@ import type {
   SignalArenaRejectedAction,
   SignalArenaRunLog,
   SignalArenaRunStatus,
+  SignalArenaStrategy,
+  SignalArenaStrategyParameters,
+  SignalArenaStrategyTrace,
   SignalArenaSnapshotState
 } from "@/types/signal-arena";
+
+const DEFAULT_STRATEGY_PARAMETERS: SignalArenaStrategyParameters = {
+  buyThreshold: 70,
+  sellScoreThreshold: 45,
+  targetPositionRate: 0.12,
+  maxPositionRate: 0.2,
+  rebalancePositionRate: 0.15,
+  minCashRate: 0.2,
+  maxHoldings: 6,
+  stopLossRate: -0.08,
+  takeProfitRate: 0.12,
+  recentSellPenaltyDays: 7,
+  maxHistorySymbolsPerRun: 24,
+  maxDailyBuys: 1
+};
 
 const MARKETS = new Set<SignalArenaMarket>(["CN", "HK", "US"]);
 const RUN_STATUSES = new Set<SignalArenaRunStatus>(["executed", "held", "blocked", "skipped", "failed"]);
@@ -199,6 +217,77 @@ function sanitizeDecisionTrace(value: unknown): SignalArenaDecisionTrace | null 
   };
 }
 
+function numericRecord(value: unknown): Record<string, number> {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, number] => typeof entry[1] === "number" && Number.isFinite(entry[1]))
+  );
+}
+
+function sanitizeStrategyParameters(value: unknown): SignalArenaStrategyParameters {
+  const record = numericRecord(value);
+
+  return {
+    buyThreshold: numberValue(record.buyThreshold, DEFAULT_STRATEGY_PARAMETERS.buyThreshold),
+    sellScoreThreshold: numberValue(record.sellScoreThreshold, DEFAULT_STRATEGY_PARAMETERS.sellScoreThreshold),
+    targetPositionRate: numberValue(record.targetPositionRate, DEFAULT_STRATEGY_PARAMETERS.targetPositionRate),
+    maxPositionRate: numberValue(record.maxPositionRate, DEFAULT_STRATEGY_PARAMETERS.maxPositionRate),
+    rebalancePositionRate: numberValue(record.rebalancePositionRate, DEFAULT_STRATEGY_PARAMETERS.rebalancePositionRate),
+    minCashRate: numberValue(record.minCashRate, DEFAULT_STRATEGY_PARAMETERS.minCashRate),
+    maxHoldings: numberValue(record.maxHoldings, DEFAULT_STRATEGY_PARAMETERS.maxHoldings),
+    stopLossRate: numberValue(record.stopLossRate, DEFAULT_STRATEGY_PARAMETERS.stopLossRate),
+    takeProfitRate: numberValue(record.takeProfitRate, DEFAULT_STRATEGY_PARAMETERS.takeProfitRate),
+    recentSellPenaltyDays: numberValue(record.recentSellPenaltyDays, DEFAULT_STRATEGY_PARAMETERS.recentSellPenaltyDays),
+    maxHistorySymbolsPerRun: numberValue(record.maxHistorySymbolsPerRun, DEFAULT_STRATEGY_PARAMETERS.maxHistorySymbolsPerRun),
+    maxDailyBuys: numberValue(record.maxDailyBuys, DEFAULT_STRATEGY_PARAMETERS.maxDailyBuys)
+  };
+}
+
+function sanitizeStrategyCandidate(value: unknown): SignalArenaStrategyTrace["candidateRanking"][number] {
+  const record = isRecord(value) ? value : {};
+  const factorScore = numericRecord(record.factorScore);
+  const allowedFactors = new Set(["trend", "momentum", "breakout", "volume", "portfolioFit", "penalties", "total"]);
+
+  return {
+    symbol: stringValue(record.symbol),
+    name: stringValue(record.name),
+    score: numberValue(record.score),
+    source: stringArray(record.source),
+    factorScore: Object.fromEntries(Object.entries(factorScore).filter(([key]) => allowedFactors.has(key))),
+    rejectionReasons: stringArray(record.rejectionReasons),
+    entryReasons: stringArray(record.entryReasons)
+  };
+}
+
+function sanitizeStrategyTrace(value: unknown): SignalArenaStrategyTrace | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const coverage = isRecord(value.historyCoverage) ? value.historyCoverage : {};
+
+  return {
+    strategyName: stringValue(value.strategyName, "Q-Alpha"),
+    strategyVersion: stringValue(value.strategyVersion, "Q-Alpha v1"),
+    accountScope: stringValue(value.accountScope, "quant-v1"),
+    runMode: value.runMode === "dry-run" ? "dry-run" : "live",
+    parameters: sanitizeStrategyParameters(value.parameters),
+    candidateCount: numberValue(value.candidateCount),
+    historyCoverage: {
+      requestedSymbols: numberValue(coverage.requestedSymbols),
+      coveredSymbols: numberValue(coverage.coveredSymbols),
+      insufficientSymbols: stringArray(coverage.insufficientSymbols)
+    },
+    candidateRanking: arrayValue(value.candidateRanking).map(sanitizeStrategyCandidate),
+    rejectedReasons: stringArray(value.rejectedReasons),
+    finalRule: stringValue(value.finalRule),
+    marketRegime: stringValue(value.marketRegime, "unknown")
+  };
+}
+
 function sanitizeSourceMeta(record: Record<string, unknown>) {
   return {
     source: typeof record.source === "string" && DATA_SOURCES.has(record.source as SignalArenaDataSource)
@@ -224,6 +313,8 @@ function sanitizeEquityPoint(value: unknown): SignalArenaEquityPoint {
     currentRank: nullableNumber(record.currentRank),
     status: enumValue(record.status, EQUITY_STATUSES, "snapshot"),
     actionSummary: nullableString(record.actionSummary),
+    accountScope: stringValue(record.accountScope, "quant-v1"),
+    strategyVersion: nullableString(record.strategyVersion) ?? "Q-Alpha v1",
     ...sanitizeSourceMeta(record)
   };
 }
@@ -254,9 +345,12 @@ function sanitizeRunLog(value: unknown): SignalArenaRunLog {
     },
     beforeState: sanitizeSnapshotState(record.beforeState),
     decisionTrace: sanitizeDecisionTrace(record.decisionTrace),
+    strategyTrace: sanitizeStrategyTrace(record.strategyTrace),
     cashPlan: nullableString(record.cashPlan),
     watchlist: stringArray(record.watchlist),
     afterSnapshot: sanitizeSnapshotState(record.afterSnapshot),
+    accountScope: stringValue(record.accountScope, "quant-v1"),
+    strategyVersion: nullableString(record.strategyVersion) ?? "Q-Alpha v1",
     ...sanitizeSourceMeta(record)
   };
 }
@@ -278,6 +372,8 @@ function sanitizeRank(value: Record<string, unknown>): SignalArenaRank {
     currentRank: nullableNumber(value.currentRank),
     returnRate: numberValue(value.returnRate),
     leaderGap: nullableNumber(value.leaderGap),
+    previousGap: nullableNumber(value.previousGap),
+    topTenGap: nullableNumber(value.topTenGap),
     leaders: arrayValue(value.leaders).map(sanitizeRankEntry),
     nearby: arrayValue(value.nearby).map(sanitizeRankEntry),
     updatedAt: stringValue(value.updatedAt)
@@ -298,6 +394,28 @@ function sanitizeDashboard(value: Record<string, unknown>): SignalArenaDashboard
     cnHoldings: arrayValue(value.cnHoldings).map(sanitizeHolding),
     marketSummaries: arrayValue(value.marketSummaries).map(sanitizeMarketSummary),
     latestRun: isRecord(value.latestRun) ? sanitizeRunLog(value.latestRun) : null
+  };
+}
+
+function sanitizeStrategy(value: unknown): SignalArenaStrategy {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    name: stringValue(record.name, "Q-Alpha"),
+    version: stringValue(record.version, "Q-Alpha v1"),
+    accountScope: stringValue(record.accountScope, "quant-v1"),
+    runMode: "live",
+    parameters: sanitizeStrategyParameters(record.parameters)
+  };
+}
+
+function sanitizeAccount(value: unknown): SignalArenaPublicData["account"] {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    scope: stringValue(record.scope, "quant-v1"),
+    strategyVersion: stringValue(record.strategyVersion, "Q-Alpha v1"),
+    displayName: stringValue(record.displayName, "Quant Lab")
   };
 }
 
@@ -376,7 +494,9 @@ export function toSignalArenaPublicData(value: unknown): SignalArenaPublicData |
     dashboard: sanitizeDashboard(dashboard),
     logs: logs.map(sanitizeRunLog),
     rank: sanitizeRank(rank),
-    equityHistory: arrayValue(value.equityHistory).map(sanitizeEquityPoint)
+    equityHistory: arrayValue(value.equityHistory).map(sanitizeEquityPoint),
+    strategy: sanitizeStrategy(value.strategy),
+    account: sanitizeAccount(value.account)
   };
 
   return {

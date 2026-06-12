@@ -1,7 +1,7 @@
 # Signal Arena Quant Lab Roadmap
 
 日期：2026-06-12  
-状态：路线图已生成，待拆分 implementation plan  
+状态：v1 主体已实现，本文件作为后续迭代路线图维护
 目标路由：`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`
 
 ## 1. 目标
@@ -11,12 +11,12 @@
 核心变化：
 
 - 新开一个 Signal Arena / Agent World 账号，从 0 开始跑量化模拟盘。
-- 取消旧账号作为“AI 决策账号”的继续交易职责，只保留历史数据归档和对照价值。
+- 取消旧账号作为“AI 决策账号”的继续交易职责；当前公开体验不展示旧账号历史、不做归档入口、不做对照。
 - 交易决策由确定性的量化策略产生，不再由 AI 直接决定买卖。
 - AI 只作为每周复盘、策略研究和解释辅助，不进入每日下单闭环。
 - 网站从“AI 决策页面”升级为“Quant Lab 页面”，展示策略版本、因子分数、风控、收益曲线、交易归因和复盘结论。
 
-这个路线图不是逐行实现计划。真正开发前，需要再按阶段拆成 `docs/superpowers/plans/YYYY-MM-DD-<phase>.md` 的 implementation plan。
+这个路线图不是逐行实现计划。`Q-Alpha v1` 主体实现完成后，后续版本仍应继续按阶段拆分 implementation plan。
 
 ## 2. 当前系统与目标系统
 
@@ -180,15 +180,15 @@ score =
 
 - 注册或接入新的 Signal Arena / Agent World 账号。
 - 配置新的 `SIGNAL_ARENA_AGENT_API_KEY` secret。
-- 将旧账号标记为历史归档，不再由 Runner 下单。
+- 将旧账号从当前 Runner 和公开读取边界移除，不再下单、不再展示。
 - 明确页面文案：从 `AI Trader` 改为 `Quant Lab`。
-- 保留旧历史曲线作为“旧 AI 账号历史”，但不要混入新账号收益。
+- 当前页面只读取 `quant-v1` 账号数据；旧历史文件即使仍在仓库中，也不参与公开页面、曲线、排名或筛选。
 
 验收：
 
 - Worker 使用新账号读取 `home` 成功。
 - 旧账号不会再触发交易。
-- 页面上能区分“新量化账户”和“历史 AI 账户”。
+- 页面只展示新量化账户，不出现旧 AI 账户归档或对照入口。
 
 ### Phase 1：数据层与策略基础设施（2-3 天）
 
@@ -247,7 +247,7 @@ score =
   - 点击曲线点弹窗展示该轮完整策略快照。
 - `/signal-arena/rank`：竞技排名。
   - 当前量化账号排名。
-  - 与旧 AI 账号、排行榜前列的差距。
+  - 与排行榜前列的差距。
   - 排名变化趋势。
 
 验收：
@@ -658,18 +658,18 @@ GitHub 上最相关的项目是 [TauricResearch/TradingAgents](https://github.co
 - Signal Arena 订单每 15 分钟结算，策略不能假设立即成交。
 - A 股 T+1 和 100 股限制必须继续由程序风控兜底。
 - 公开页面不得展示 API key、上游认证 header、模型 key、完整私有响应。
-- 旧 AI 账号历史和新量化账号历史不能混算收益。
+- 旧 AI 账号历史不进入当前公开体验；新量化账号曲线、日志和排名只读取当前 `quant-v1` 数据。
 - 参数调整不能绕过回测、影子运行和版本审批。
 
 ## 12. 下一步
 
 建议按顺序执行：
 
-1. 为 Phase 0 写一个小 implementation plan：新账号接入、旧账号归档、页面命名边界。
-2. 完成 Phase 0 后，再写 Phase 1 的 implementation plan：数据层、指标层、D1 schema、测试。
-3. Phase 1 通过后，实现 `Q-Alpha v1`。
-4. 先本地和 dry-run 验证，再切到新账号正式模拟交易。
-5. 随 Phase 3 同步更新 `docs/signal-arena-quant-lab-user-guide.md`，确保用户能阅读策略、判断效果、提出候选参数实验。
+1. 部署前执行 D1 migration 与 Worker secret 切换，确保 `SIGNAL_ARENA_AGENT_API_KEY` 指向新的量化账号。
+2. 先用 `dryRun=true` 手动运行，确认 `home / portfolio / stocks-list / stock-history` 都能返回。
+3. 在 A 股交易时段执行一次非 dry-run，确认新 run 写入 `account_scope=quant-v1` 与 `strategy_trace_json`。
+4. 确认线上 `/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank` 只显示新量化账号数据。
+5. 后续进入回测、候选版本和每周 AI 复盘阶段，继续维护 `docs/signal-arena-quant-lab-user-guide.md`。
 
 ## 13. 参考来源
 

@@ -10,7 +10,7 @@ type SignalArenaShellProps = {
 
 const navItems = [
   { id: "dashboard", label: "总览", href: "/signal-arena" },
-  { id: "logs", label: "决策日志", href: "/signal-arena/logs" },
+  { id: "logs", label: "策略日志", href: "/signal-arena/logs" },
   { id: "rank", label: "竞技排名", href: "/signal-arena/rank" }
 ] as const;
 
@@ -29,9 +29,9 @@ export function SignalArenaShell({
     <main className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerCopy}>
-          <p className={styles.eyebrow}>SIGNAL ARENA</p>
-          <h1 className={styles.title}>AI Trader Runner</h1>
-          <p className={styles.description}>公开只读看板，展示策略状态、决策轨迹与当前竞技位置。</p>
+          <p className={styles.eyebrow}>SIGNAL ARENA / QUANT</p>
+          <h1 className={styles.title}>Quant Lab</h1>
+          <p className={styles.description}>公开只读看板，展示 Q-Alpha v1 的策略状态、规则触发与当前竞技位置。</p>
         </div>
         <div className={styles.headerMeta}>
           <Link href="/" className={styles.homeLink} aria-label="返回首页">

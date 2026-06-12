@@ -1,10 +1,10 @@
-import type { AiCandidateAction, AiDecision, RiskContext, RiskSelection } from "./types";
+import type { RiskContext, RiskSelection, StrategyAction } from "./types";
 
 const A_SHARE_PATTERN = /^(sh|sz)\d{6}$/;
 const MAX_POSITION_RATE = 0.2;
 const MIN_CASH_RATE = 0.2;
 
-function validateAction(action: AiCandidateAction, context: RiskContext): string[] {
+function validateAction(action: StrategyAction, context: RiskContext): string[] {
   const reasons: string[] = [];
 
   if (!context.isTradingSession) {
@@ -16,7 +16,7 @@ function validateAction(action: AiCandidateAction, context: RiskContext): string
   }
 
   if (action.action === "hold") {
-    return ["AI 最终选择 HOLD，观望/持有，不需要下单。"];
+    return ["策略最终选择 HOLD，观望/持有，不需要下单。"];
   }
 
   if (action.shares <= 0 || action.shares % 100 !== 0) {
@@ -25,6 +25,10 @@ function validateAction(action: AiCandidateAction, context: RiskContext): string
 
   const price = context.prices[action.symbol] ?? 0;
   const holding = context.holdings[action.symbol];
+
+  if (price <= 0) {
+    reasons.push("缺少有效成交价格，无法校验现金和仓位。");
+  }
 
   if (action.action === "buy") {
     const estimatedCost = price * action.shares;
@@ -63,13 +67,11 @@ function validateAction(action: AiCandidateAction, context: RiskContext): string
   return reasons;
 }
 
-export function selectExecutableAction(decision: AiDecision, context: RiskContext): RiskSelection {
-  const action = decision.final_action;
-
+export function selectExecutableAction(action: StrategyAction | null, context: RiskContext): RiskSelection {
   if (!action) {
     return {
       allowed: false,
-      reasons: ["AI 最终选择观望，未提交交易动作。"],
+      reasons: ["策略最终选择观望，未提交交易动作。"],
       selectedAction: null
     };
   }

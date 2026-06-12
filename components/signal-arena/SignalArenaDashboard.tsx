@@ -9,7 +9,8 @@ import type {
   SignalArenaDashboard as DashboardData,
   SignalArenaEquityPoint,
   SignalArenaOperations,
-  SignalArenaRunLog
+  SignalArenaRunLog,
+  SignalArenaStrategy
 } from "@/types/signal-arena";
 import styles from "@/styles/signal-arena.module.css";
 
@@ -18,6 +19,7 @@ type SignalArenaDashboardProps = {
   logs: SignalArenaRunLog[];
   equityHistory: SignalArenaEquityPoint[];
   operations: SignalArenaOperations;
+  strategy: SignalArenaStrategy;
 };
 
 function formatMoney(value: number): string {
@@ -49,7 +51,7 @@ function formatRunStatus(status: DashboardData["latestRun"] extends { status: in
   }
 }
 
-export function SignalArenaDashboard({ dashboard, logs, equityHistory, operations }: SignalArenaDashboardProps) {
+export function SignalArenaDashboard({ dashboard, logs, equityHistory, operations, strategy }: SignalArenaDashboardProps) {
   const [selectedPoint, setSelectedPoint] = useState<SignalArenaEquityPoint | null>(null);
   const runById = useMemo(() => new Map(logs.map((log) => [log.id, log])), [logs]);
   const chartHistory = useMemo<SignalArenaEquityPoint[]>(() => {
@@ -66,11 +68,21 @@ export function SignalArenaDashboard({ dashboard, logs, equityHistory, operation
         returnRate: dashboard.returnRate,
         currentRank: dashboard.currentRank,
         status: dashboard.latestRun?.status ?? "snapshot",
-        actionSummary: dashboard.latestRun?.summary ?? "当前总览快照"
+        actionSummary: dashboard.latestRun?.summary ?? "当前总览快照",
+        accountScope: strategy.accountScope,
+        strategyVersion: strategy.version
       }
     ];
-  }, [dashboard, equityHistory]);
+  }, [dashboard, equityHistory, strategy]);
   const selectedRun = selectedPoint?.runId ? runById.get(selectedPoint.runId) ?? null : null;
+  const latestTrace = dashboard.latestRun?.strategyTrace ?? logs.find((log) => log.strategyTrace)?.strategyTrace ?? null;
+  const scoreBySymbol = useMemo(() => {
+    const map = new Map<string, NonNullable<SignalArenaRunLog["strategyTrace"]>["candidateRanking"][number]>();
+    for (const candidate of latestTrace?.candidateRanking ?? []) {
+      map.set(candidate.symbol, candidate);
+    }
+    return map;
+  }, [latestTrace]);
 
   return (
     <section className={styles.dashboard}>
@@ -86,6 +98,43 @@ export function SignalArenaDashboard({ dashboard, logs, equityHistory, operation
       />
 
       <SignalArenaOperationsPanel operations={operations} />
+
+      <section className={styles.strategyPanel}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>{strategy.version}</h2>
+          <p className={styles.sectionNote}>确定性多因子趋势动量策略，AI 不进入每日下单闭环。</p>
+        </div>
+        <div className={styles.strategyGrid}>
+          <article>
+            <span>运行模式</span>
+            <strong>{latestTrace?.runMode === "dry-run" ? "DRY RUN" : "LIVE"}</strong>
+          </article>
+          <article>
+            <span>今日候选</span>
+            <strong>{latestTrace?.candidateCount ?? 0}</strong>
+          </article>
+          <article>
+            <span>历史覆盖</span>
+            <strong>
+              {latestTrace
+                ? `${latestTrace.historyCoverage.coveredSymbols}/${latestTrace.historyCoverage.requestedSymbols}`
+                : "0/0"}
+            </strong>
+          </article>
+          <article>
+            <span>买入阈值</span>
+            <strong>{strategy.parameters.buyThreshold}</strong>
+          </article>
+          <article>
+            <span>现金下限</span>
+            <strong>{formatPercent(strategy.parameters.minCashRate)}</strong>
+          </article>
+          <article>
+            <span>单票上限</span>
+            <strong>{formatPercent(strategy.parameters.maxPositionRate)}</strong>
+          </article>
+        </div>
+      </section>
 
       {dashboard.metrics.length === 0 ? (
         <p className={styles.empty}>关键指标暂未同步。</p>
@@ -119,17 +168,32 @@ export function SignalArenaDashboard({ dashboard, logs, equityHistory, operation
               <span>持仓</span>
               <span>市值</span>
               <span>收益率</span>
+              <span>策略分</span>
+              <span>入场理由</span>
+              <span>风控状态</span>
             </div>
 
             {dashboard.cnHoldings.map((holding, index) => (
               <div key={`${holding.symbol}-${index}`} className={styles.tableRow}>
-                <strong>{holding.name}</strong>
-                <span>{holding.symbol}</span>
-                <span>{holding.shares} 股</span>
-                <span>{formatMoney(holding.marketValue)}</span>
-                <span className={holding.profitRate >= 0 ? styles.ratePositive : styles.rateNegative}>
-                  {formatPercent(holding.profitRate)}
-                </span>
+                {(() => {
+                  const trace = scoreBySymbol.get(holding.symbol);
+                  const riskState = holding.availableShares <= 0 ? "T+1/暂无可卖" : trace?.rejectionReasons[0] ?? "未触发硬风控";
+
+                  return (
+                    <>
+                      <strong>{holding.name}</strong>
+                      <span>{holding.symbol}</span>
+                      <span>{holding.shares} 股</span>
+                      <span>{formatMoney(holding.marketValue)}</span>
+                      <span className={holding.profitRate >= 0 ? styles.ratePositive : styles.rateNegative}>
+                        {formatPercent(holding.profitRate)}
+                      </span>
+                      <span>{trace ? `${trace.score}` : "未评分"}</span>
+                      <span>{trace?.entryReasons.join(" / ") || "暂无入场理由"}</span>
+                      <span>{riskState}</span>
+                    </>
+                  );
+                })()}
               </div>
             ))}
           </div>
@@ -138,8 +202,8 @@ export function SignalArenaDashboard({ dashboard, logs, equityHistory, operation
 
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>最近一轮 AI 动作</h2>
-          <p className={styles.sectionNote}>公开视图仅保留风控结论和结果摘要。</p>
+          <h2 className={styles.sectionTitle}>最近一轮策略决策</h2>
+          <p className={styles.sectionNote}>公开视图展示规则触发、因子评分和风控结论。</p>
         </div>
 
         {dashboard.latestRun ? (
@@ -158,6 +222,9 @@ export function SignalArenaDashboard({ dashboard, logs, equityHistory, operation
             {dashboard.latestRun.decisionTrace?.publicExplanation ? (
               <p className={styles.runText}>{dashboard.latestRun.decisionTrace.publicExplanation}</p>
             ) : null}
+            {dashboard.latestRun.strategyTrace?.finalRule ? (
+              <p className={styles.runText}>规则触发：{dashboard.latestRun.strategyTrace.finalRule}</p>
+            ) : null}
             {dashboard.latestRun.selectedAction ? (
               <p className={styles.runText}>
                 当前动作：{dashboard.latestRun.selectedAction.action.toUpperCase()}{" "}
@@ -166,7 +233,7 @@ export function SignalArenaDashboard({ dashboard, logs, equityHistory, operation
             ) : null}
           </article>
         ) : (
-          <p className={styles.empty}>Runner 尚未产生公开日志。</p>
+          <p className={styles.empty}>Quant Lab Runner 尚未产生公开日志。</p>
         )}
       </section>
 

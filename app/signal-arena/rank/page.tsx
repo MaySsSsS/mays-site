@@ -7,8 +7,8 @@ import { getSignalArenaPublicData } from "@/lib/signal-arena-data";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Signal Arena Rank",
-  description: "MAYS UNIVERSE 的 AI Trader Runner 排名看板。"
+  title: "Quant Lab Rank",
+  description: "MAYS UNIVERSE 的 Q-Alpha v1 排名看板。"
 };
 
 export default async function SignalArenaRankPage() {

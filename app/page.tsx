@@ -13,8 +13,8 @@ type PortalItem = {
 
 const portalItems: PortalItem[] = [
   {
-    eyebrow: "ARENA",
-    title: "SIGNAL ARENA",
+    eyebrow: "QUANT",
+    title: "QUANT LAB",
     href: "/signal-arena",
     domain: "maysssss.cn/signal-arena",
     className: styles.signalArenaPanel,

@@ -17,6 +17,21 @@ export type SignalArenaSourceMeta = {
   rawSummary?: string;
 };
 
+export type SignalArenaStrategyParameters = {
+  buyThreshold: number;
+  sellScoreThreshold: number;
+  targetPositionRate: number;
+  maxPositionRate: number;
+  rebalancePositionRate: number;
+  minCashRate: number;
+  maxHoldings: number;
+  stopLossRate: number;
+  takeProfitRate: number;
+  recentSellPenaltyDays: number;
+  maxHistorySymbolsPerRun: number;
+  maxDailyBuys: number;
+};
+
 export type SignalArenaMetric = {
   label: string;
   value: string;
@@ -92,6 +107,32 @@ export type SignalArenaDecisionTrace = {
   publicExplanation: string;
 };
 
+export type SignalArenaStrategyTrace = {
+  strategyName: string;
+  strategyVersion: string;
+  accountScope: string;
+  runMode: "dry-run" | "live";
+  parameters: Partial<SignalArenaStrategyParameters>;
+  candidateCount: number;
+  historyCoverage: {
+    requestedSymbols: number;
+    coveredSymbols: number;
+    insufficientSymbols: string[];
+  };
+  candidateRanking: Array<{
+    symbol: string;
+    name: string;
+    score: number;
+    source: string[];
+    factorScore: Record<string, number>;
+    rejectionReasons: string[];
+    entryReasons: string[];
+  }>;
+  rejectedReasons: string[];
+  finalRule: string;
+  marketRegime: string;
+};
+
 export type SignalArenaEquityPoint = SignalArenaSourceMeta & {
   id: string;
   runId: string | null;
@@ -101,6 +142,8 @@ export type SignalArenaEquityPoint = SignalArenaSourceMeta & {
   currentRank: number | null;
   status: SignalArenaRunStatus | "snapshot";
   actionSummary: string | null;
+  accountScope: string;
+  strategyVersion: string | null;
 };
 
 export type SignalArenaRunLog = SignalArenaSourceMeta & {
@@ -124,9 +167,12 @@ export type SignalArenaRunLog = SignalArenaSourceMeta & {
   };
   beforeState: SignalArenaSnapshotState | null;
   decisionTrace: SignalArenaDecisionTrace | null;
+  strategyTrace: SignalArenaStrategyTrace | null;
   cashPlan: string | null;
   watchlist: string[];
   afterSnapshot: SignalArenaSnapshotState | null;
+  accountScope: string;
+  strategyVersion: string | null;
 };
 
 export type SignalArenaRankEntry = {
@@ -141,6 +187,8 @@ export type SignalArenaRank = {
   currentRank: number | null;
   returnRate: number;
   leaderGap: number | null;
+  previousGap: number | null;
+  topTenGap: number | null;
   leaders: SignalArenaRankEntry[];
   nearby: SignalArenaRankEntry[];
   updatedAt: string;
@@ -173,10 +221,26 @@ export type SignalArenaDashboard = {
   latestRun: SignalArenaRunLog | null;
 };
 
+export type SignalArenaStrategy = {
+  name: string;
+  version: string;
+  accountScope: string;
+  runMode: "live";
+  parameters: SignalArenaStrategyParameters;
+};
+
+export type SignalArenaAccount = {
+  scope: string;
+  strategyVersion: string;
+  displayName: string;
+};
+
 export type SignalArenaPublicData = {
   dashboard: SignalArenaDashboard;
   logs: SignalArenaRunLog[];
   rank: SignalArenaRank;
   equityHistory: SignalArenaEquityPoint[];
   operations: SignalArenaOperations;
+  strategy: SignalArenaStrategy;
+  account: SignalArenaAccount;
 };

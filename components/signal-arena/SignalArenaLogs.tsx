@@ -2,29 +2,24 @@
 
 import { useMemo, useState } from "react";
 
-import type { SignalArenaRunLog } from "@/types/signal-arena";
+import type { SignalArenaRunLog, SignalArenaStrategyTrace } from "@/types/signal-arena";
 import styles from "@/styles/signal-arena.module.css";
 
 type SignalArenaLogsProps = {
   logs: SignalArenaRunLog[];
 };
 
-const SOURCE_FILTERS = [
-  { id: "all", label: "全部来源" },
-  { id: "live", label: "实时" },
-  { id: "imported", label: "历史" }
-] as const;
-
 const FILTERS = [
   { id: "all", label: "全部" },
-  { id: "active", label: "执行/持有" },
-  { id: "blocked", label: "拦截" },
-  { id: "skipped", label: "跳过" },
-  { id: "failed", label: "失败" }
+  { id: "buy", label: "买入" },
+  { id: "sell", label: "卖出" },
+  { id: "held", label: "观望" },
+  { id: "blocked", label: "风控拦截" },
+  { id: "data", label: "数据不足" },
+  { id: "failed", label: "流程失败" }
 ] as const;
 
 type LogFilter = (typeof FILTERS)[number]["id"];
-type SourceFilter = (typeof SOURCE_FILTERS)[number]["id"];
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString("zh-CN", {
@@ -43,14 +38,23 @@ function formatAction(action: SignalArenaRunLog["candidates"][number]["action"])
   }
 }
 
+function hasDataGap(log: SignalArenaRunLog): boolean {
+  return (log.strategyTrace?.historyCoverage.insufficientSymbols.length ?? 0) > 0 ||
+    log.strategyTrace?.rejectedReasons.some((reason) => reason.includes("历史数据不足")) === true;
+}
+
 function matchesFilter(log: SignalArenaRunLog, filter: LogFilter): boolean {
   switch (filter) {
-    case "active":
-      return log.status === "executed" || log.status === "held";
+    case "buy":
+      return log.selectedAction?.action === "buy";
+    case "sell":
+      return log.selectedAction?.action === "sell";
+    case "held":
+      return log.status === "held" && !log.selectedAction;
     case "blocked":
       return log.status === "blocked";
-    case "skipped":
-      return log.status === "skipped";
+    case "data":
+      return hasDataGap(log);
     case "failed":
       return log.status === "failed";
     case "all":
@@ -58,40 +62,39 @@ function matchesFilter(log: SignalArenaRunLog, filter: LogFilter): boolean {
   }
 }
 
-function matchesSource(log: SignalArenaRunLog, filter: SourceFilter): boolean {
-  if (filter === "all") {
-    return true;
-  }
+function factorLine(candidate: SignalArenaStrategyTrace["candidateRanking"][number]): string {
+  const parts = Object.entries(candidate.factorScore)
+    .filter(([key]) => key !== "total")
+    .map(([key, value]) => `${key} ${value}`);
 
-  return (log.source ?? "live") === filter;
+  return parts.join(" / ");
 }
 
 export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
   const [activeFilter, setActiveFilter] = useState<LogFilter>("all");
-  const [activeSource, setActiveSource] = useState<SourceFilter>("all");
-  const summary = useMemo(() => {
-    const active = logs.filter((log) => log.status === "executed" || log.status === "held").length;
-
-    return {
-      all: logs.length,
-      active,
-      blocked: logs.filter((log) => log.status === "blocked").length,
-      skipped: logs.filter((log) => log.status === "skipped").length,
-      failed: logs.filter((log) => log.status === "failed").length
-    };
-  }, [logs]);
+  const summary = useMemo(() => ({
+    all: logs.length,
+    buy: logs.filter((log) => log.selectedAction?.action === "buy").length,
+    sell: logs.filter((log) => log.selectedAction?.action === "sell").length,
+    held: logs.filter((log) => log.status === "held" && !log.selectedAction).length,
+    blocked: logs.filter((log) => log.status === "blocked").length,
+    data: logs.filter(hasDataGap).length,
+    failed: logs.filter((log) => log.status === "failed").length
+  }), [logs]);
   const filteredLogs = useMemo(
-    () => logs.filter((log) => matchesFilter(log, activeFilter) && matchesSource(log, activeSource)),
-    [activeFilter, activeSource, logs]
+    () => logs.filter((log) => matchesFilter(log, activeFilter)),
+    [activeFilter, logs]
   );
 
   return (
     <section className={styles.timeline}>
       <div className={styles.logSummary}>
         <span className={styles.logSummaryItem}>全部 {summary.all}</span>
-        <span className={styles.logSummaryItem}>执行/持有 {summary.active}</span>
+        <span className={styles.logSummaryItem}>买入 {summary.buy}</span>
+        <span className={styles.logSummaryItem}>卖出 {summary.sell}</span>
+        <span className={styles.logSummaryItem}>观望 {summary.held}</span>
         <span className={styles.logSummaryItem}>拦截 {summary.blocked}</span>
-        <span className={styles.logSummaryItem}>跳过 {summary.skipped}</span>
+        <span className={styles.logSummaryItem}>数据不足 {summary.data}</span>
         <span className={styles.logSummaryItem}>失败 {summary.failed}</span>
       </div>
 
@@ -109,22 +112,8 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
         ))}
       </div>
 
-      <div className={styles.logFilters} aria-label="来源筛选">
-        {SOURCE_FILTERS.map((filter) => (
-          <button
-            key={filter.id}
-            type="button"
-            className={activeSource === filter.id ? styles.logFilterButtonActive : styles.logFilterButton}
-            aria-pressed={activeSource === filter.id}
-            onClick={() => setActiveSource(filter.id)}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
-
       {filteredLogs.length === 0 ? (
-        <p className={styles.empty}>当前筛选下暂无 AI Runner 日志。</p>
+        <p className={styles.empty}>当前筛选下暂无 Quant Lab 策略日志。</p>
       ) : null}
 
       {filteredLogs.map((log, logIndex) => (
@@ -132,33 +121,52 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
           <div className={styles.logTopline}>
             <time className={styles.logTime}>{formatDateTime(log.startedAt)}</time>
             <span className={styles.status}>{log.status}</span>
-            <span className={styles.sourceBadge}>{log.sourceLabel ?? "实时 Runner"}</span>
-            <span className={styles.sourceBadge}>置信度 {log.confidence ?? "high"}</span>
+            <span className={styles.sourceBadge}>{log.strategyVersion ?? "Q-Alpha v1"}</span>
+            <span className={styles.sourceBadge}>{log.accountScope}</span>
           </div>
 
           <h2 className={styles.logTitle}>{log.summary}</h2>
           <p className={styles.logMeta}>
             市场判断：{log.marketView} / 风险级别：{log.riskLevel}
           </p>
-          {log.decisionTrace ? (
+
+          {log.strategyTrace ? (
             <div className={styles.traceGrid}>
               <section className={styles.traceBlock}>
-                <h3>决策路线</h3>
-                <p className={styles.logNote}>{log.decisionTrace.decisionRoute.join(" / ") || "暂无路线。"}</p>
+                <h3>规则触发</h3>
+                <p className={styles.logNote}>{log.strategyTrace.finalRule || "本轮无规则触发。"}</p>
               </section>
               <section className={styles.traceBlock}>
-                <h3>操作前账户状态</h3>
-                <p className={styles.logNote}>{log.decisionTrace.beforeStateSummary}</p>
+                <h3>历史覆盖</h3>
+                <p className={styles.logNote}>
+                  {log.strategyTrace.historyCoverage.coveredSymbols}/{log.strategyTrace.historyCoverage.requestedSymbols} 只完成；
+                  不足 {log.strategyTrace.historyCoverage.insufficientSymbols.length} 只。
+                </p>
               </section>
               <section className={styles.traceBlock}>
-                <h3>执行结果</h3>
-                <p className={styles.logNote}>{log.decisionTrace.publicExplanation}</p>
+                <h3>候选排序</h3>
+                <p className={styles.logNote}>
+                  {log.strategyTrace.candidateRanking.slice(0, 3).map((candidate) => `${candidate.symbol} ${candidate.score}`).join(" / ") || "暂无候选。"}
+                </p>
               </section>
             </div>
           ) : null}
 
-          {log.status === "failed" ? (
-            <p className={styles.logNote}>本轮没有生成可执行决策。</p>
+          {log.strategyTrace?.candidateRanking.length ? (
+            <ul className={styles.candidateList}>
+              {log.strategyTrace.candidateRanking.slice(0, 6).map((candidate, candidateIndex) => (
+                <li
+                  key={`${log.id}-${candidate.symbol}-${candidateIndex}`}
+                  className={styles.candidateItem}
+                >
+                  <span className={styles.candidateAction}>{candidate.score}</span>
+                  <span className={styles.candidateText}>
+                    {candidate.symbol} {candidate.name}：{factorLine(candidate) || "因子暂无"}；
+                    {candidate.entryReasons.join("、") || candidate.rejectionReasons.join("、") || "无附加原因"}
+                  </span>
+                </li>
+              ))}
+            </ul>
           ) : log.candidates.length > 0 ? (
             <ul className={styles.candidateList}>
               {log.candidates.map((candidate, candidateIndex) => (
@@ -174,14 +182,21 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
               ))}
             </ul>
           ) : (
-            <p className={styles.logNote}>本轮没有候选买卖动作，AI 已给出观望判断。</p>
+            <p className={styles.logNote}>本轮没有候选买卖动作，策略给出观望判断。</p>
           )}
 
-          {log.status === "failed" ? (
-            <p className={styles.logNote}>{log.riskResult.reasons.join(" / ") || "本轮未进入风控阶段。"}</p>
-          ) : (
-            <p className={styles.logNote}>{log.riskResult.reasons.join(" / ") || "无风控拦截。"}</p>
-          )}
+          <p className={styles.logNote}>
+            拒绝原因：{log.strategyTrace?.rejectedReasons.join(" / ") || "无策略拒绝原因。"}
+          </p>
+          <p className={styles.logNote}>
+            风控结果：{log.riskResult.reasons.join(" / ") || "无风控拦截。"}
+          </p>
+
+          {log.selectedAction ? (
+            <p className={styles.logNote}>
+              最终动作：{log.selectedAction.action.toUpperCase()} {log.selectedAction.symbol} {log.selectedAction.shares} 股 / {log.selectedAction.reason}
+            </p>
+          ) : null}
 
           {log.orderResult.status || log.orderResult.message ? (
             <p className={styles.logNote}>

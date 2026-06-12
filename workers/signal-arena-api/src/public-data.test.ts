@@ -62,11 +62,14 @@ function makeDb(rows: SignalArenaRunRow[] = [], snapshots: SignalArenaSnapshotRo
   return {
     prepare(sql: string) {
       return {
-        bind() {
+        bind(...values: unknown[]) {
           return {
             async all<T>() {
+              const scope = typeof values[0] === "string" ? values[0] : null;
+              const scopedRows = scope ? rows.filter((row) => row.account_scope === scope) : rows;
+              const scopedSnapshots = scope ? snapshots.filter((snapshot) => snapshot.account_scope === scope) : snapshots;
               return {
-                results: (sql.includes("signal_arena_snapshots") ? snapshots : rows) as T[]
+                results: (sql.includes("signal_arena_snapshots") ? scopedSnapshots : scopedRows) as T[]
               };
             }
           };
@@ -97,6 +100,8 @@ function makeSnapshot(updatedAt: string, sourceStatus: WorkerSnapshot["dashboard
       currentRank: 2,
       returnRate: 0.1,
       leaderGap: null,
+      previousGap: null,
+      topTenGap: null,
       leaders: [],
       nearby: [],
       updatedAt
@@ -113,7 +118,32 @@ function makeSnapshot(updatedAt: string, sourceStatus: WorkerSnapshot["dashboard
       equityCoverageDays: 0,
       logCount: 0
     },
-    recentTrades: []
+    recentTrades: [],
+    strategy: {
+      name: "Q-Alpha",
+      version: "Q-Alpha v1",
+      accountScope: "quant-v1",
+      runMode: "live",
+      parameters: {
+        buyThreshold: 70,
+        sellScoreThreshold: 45,
+        targetPositionRate: 0.12,
+        maxPositionRate: 0.2,
+        rebalancePositionRate: 0.15,
+        minCashRate: 0.2,
+        maxHoldings: 6,
+        stopLossRate: -0.08,
+        takeProfitRate: 0.12,
+        recentSellPenaltyDays: 7,
+        maxHistorySymbolsPerRun: 24,
+        maxDailyBuys: 1
+      }
+    },
+    account: {
+      scope: "quant-v1",
+      strategyVersion: "Q-Alpha v1",
+      displayName: "Quant Lab"
+    }
   };
 }
 
@@ -128,7 +158,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 test("fresh cache is returned without hitting upstream", async () => {
   const cached = makeSnapshot(new Date().toISOString(), "live");
-  const env = makeEnv(makeKv({ "public:all": cached }));
+  const env = makeEnv(makeKv({ "public:all:quant-v1": cached }));
   let fetchCalls = 0;
 
   globalThis.fetch = async () => {
@@ -145,7 +175,7 @@ test("fresh cache is returned without hitting upstream", async () => {
 
 test("dashboard snapshot seeds equity history when no stored snapshots exist", async () => {
   const cached = makeSnapshot(new Date().toISOString(), "live");
-  const env = makeEnv(makeKv({ "public:all": cached }));
+  const env = makeEnv(makeKv({ "public:all:quant-v1": cached }));
 
   globalThis.fetch = async () => {
     throw new Error("unexpected upstream call");
@@ -160,7 +190,7 @@ test("dashboard snapshot seeds equity history when no stored snapshots exist", a
 
 test("public data includes generated operations status", async () => {
   const cached = makeSnapshot(new Date().toISOString(), "live");
-  const env = makeEnv(makeKv({ "public:all": cached }));
+  const env = makeEnv(makeKv({ "public:all:quant-v1": cached }));
 
   globalThis.fetch = async () => {
     throw new Error("unexpected upstream call");
@@ -177,7 +207,7 @@ test("cached public data is sanitized before returning", async () => {
   const updatedAt = new Date().toISOString();
   const env = makeEnv(
     makeKv({
-      "public:all": {
+      "public:all:quant-v1": {
         dashboard: {
           updatedAt,
           sourceStatus: "live",
@@ -237,6 +267,18 @@ test("cached public data is sanitized before returning", async () => {
             order_id: "private-order"
           }
         ],
+        strategy: {
+          name: "Q-Alpha",
+          version: "Q-Alpha v1",
+          accountScope: "quant-v1",
+          runMode: "live",
+          parameters: {}
+        },
+        account: {
+          scope: "quant-v1",
+          strategyVersion: "Q-Alpha v1",
+          displayName: "Quant Lab"
+        },
         agent_id: "hidden",
         order_id: "private-top-level"
       }
@@ -261,7 +303,7 @@ test("public data merges D1 logs without leaking private order data", async () =
   const updatedAt = new Date().toISOString();
   const env = makeEnv(
     makeKv({
-      "public:all": makeSnapshot(updatedAt, "live")
+      "public:all:quant-v1": makeSnapshot(updatedAt, "live")
     })
   );
   env.SIGNAL_ARENA_DB = makeDb([
@@ -296,7 +338,9 @@ test("public data merges D1 logs without leaking private order data", async () =
       order_result_json: JSON.stringify({ status: "filled", message: "done", orderId: "private-order" }),
       before_state_json: null,
       decision_trace_json: null,
-      after_snapshot_json: null
+      after_snapshot_json: null,
+      account_scope: "quant-v1",
+      strategy_version: "Q-Alpha v1"
     }
   ]);
 
@@ -314,11 +358,117 @@ test("public data merges D1 logs without leaking private order data", async () =
   assert.equal(bodyText.includes("private-order"), false);
 });
 
+test("public data only exposes quant-v1 scoped runs with strategy traces", async () => {
+  const updatedAt = new Date().toISOString();
+  const env = makeEnv(
+    makeKv({
+      "public:all:quant-v1": makeSnapshot(updatedAt, "live")
+    })
+  );
+  env.SIGNAL_ARENA_DB = makeDb([
+    {
+      id: "run-quant",
+      started_at: updatedAt,
+      finished_at: updatedAt,
+      status: "held",
+      trigger: "cron",
+      market_view: "neutral",
+      risk_level: "medium",
+      summary: "Q-Alpha v1 本轮观望",
+      candidates_json: "[]",
+      selected_action_json: null,
+      risk_result_json: JSON.stringify({ allowed: false, reasons: ["策略最终选择观望，未提交交易动作。"] }),
+      order_result_json: null,
+      before_state_json: null,
+      decision_trace_json: null,
+      strategy_trace_json: JSON.stringify({
+        strategyName: "Q-Alpha",
+        strategyVersion: "Q-Alpha v1",
+        accountScope: "quant-v1",
+        runMode: "live",
+        parameters: { buyThreshold: 70, secret: "hidden" },
+        candidateCount: 1,
+        historyCoverage: { requestedSymbols: 1, coveredSymbols: 1, insufficientSymbols: [] },
+        candidateRanking: [
+          {
+            symbol: "sh600519",
+            name: "贵州茅台",
+            score: 72,
+            source: ["top-movers"],
+            factorScore: { trend: 30, momentum: 20, private: 999 },
+            rejectionReasons: [],
+            entryReasons: ["趋势结构向上"]
+          }
+        ],
+        rejectedReasons: ["今日已达到新增买入上限 1 个。"],
+        finalRule: "本轮观望",
+        marketRegime: "mixed",
+        privateThought: "hidden"
+      }),
+      strategy_parameters_json: JSON.stringify({ buyThreshold: 70 }),
+      after_snapshot_json: null,
+      account_scope: "quant-v1",
+      strategy_version: "Q-Alpha v1"
+    },
+    {
+      id: "run-legacy",
+      started_at: updatedAt,
+      finished_at: updatedAt,
+      status: "executed",
+      trigger: "cron",
+      market_view: "neutral",
+      risk_level: "low",
+      summary: "旧 AI 账号不应出现",
+      candidates_json: "[]",
+      selected_action_json: null,
+      risk_result_json: JSON.stringify({ allowed: true, reasons: [] }),
+      order_result_json: null,
+      before_state_json: null,
+      decision_trace_json: null,
+      after_snapshot_json: null,
+      account_scope: "legacy-ai",
+      strategy_version: "AI"
+    },
+    {
+      id: "run-unscoped-old",
+      started_at: updatedAt,
+      finished_at: updatedAt,
+      status: "executed",
+      trigger: "cron",
+      market_view: "neutral",
+      risk_level: "low",
+      summary: "迁移前旧 AI 账号不应出现",
+      candidates_json: "[]",
+      selected_action_json: null,
+      risk_result_json: JSON.stringify({ allowed: true, reasons: [] }),
+      order_result_json: null,
+      before_state_json: null,
+      decision_trace_json: null,
+      after_snapshot_json: null
+    }
+  ]);
+
+  globalThis.fetch = async () => {
+    throw new Error("unexpected upstream call");
+  };
+
+  const result = await getPublicData(env);
+  const bodyText = JSON.stringify(result);
+
+  assert.equal(result.logs.length, 1);
+  assert.equal(result.logs[0]?.id, "run-quant");
+  assert.equal(result.logs[0]?.strategyTrace?.candidateRanking[0]?.score, 72);
+  assert.equal(result.logs[0]?.strategyTrace?.candidateRanking[0]?.factorScore.trend, 30);
+  assert.equal(bodyText.includes("run-legacy"), false);
+  assert.equal(bodyText.includes("run-unscoped-old"), false);
+  assert.equal(bodyText.includes("privateThought"), false);
+});
+
 test("public data presents legacy hold-only blocked runs as held decisions", async () => {
   const updatedAt = new Date().toISOString();
   const env = makeEnv(
     makeKv({
-      "public:all": makeSnapshot(updatedAt, "live")
+      "public:all:quant-v1": makeSnapshot(updatedAt, "live")
     })
   );
   env.SIGNAL_ARENA_DB = makeDb([
@@ -359,7 +509,9 @@ test("public data presents legacy hold-only blocked runs as held decisions", asy
         decisionRoute: ["检查账户", "选择持有观察"],
         publicExplanation: "AI 已完成判断，本轮不提交订单。"
       }),
-      after_snapshot_json: null
+      after_snapshot_json: null,
+      account_scope: "quant-v1",
+      strategy_version: "Q-Alpha v1"
     }
   ]);
 
@@ -378,7 +530,7 @@ test("public data explains legacy combined sell limit risk reasons", async () =>
   const updatedAt = new Date().toISOString();
   const env = makeEnv(
     makeKv({
-      "public:all": makeSnapshot(updatedAt, "live")
+      "public:all:quant-v1": makeSnapshot(updatedAt, "live")
     })
   );
   env.SIGNAL_ARENA_DB = makeDb([
@@ -407,7 +559,9 @@ test("public data explains legacy combined sell limit risk reasons", async () =>
       order_result_json: null,
       before_state_json: null,
       decision_trace_json: null,
-      after_snapshot_json: null
+      after_snapshot_json: null,
+      account_scope: "quant-v1",
+      strategy_version: "Q-Alpha v1"
     }
   ]);
 
@@ -427,7 +581,7 @@ test("public data presents AI provider timeout failures as no-decision runs", as
   const updatedAt = new Date().toISOString();
   const env = makeEnv(
     makeKv({
-      "public:all": makeSnapshot(updatedAt, "live")
+      "public:all:quant-v1": makeSnapshot(updatedAt, "live")
     })
   );
   env.SIGNAL_ARENA_DB = makeDb([
@@ -447,7 +601,9 @@ test("public data presents AI provider timeout failures as no-decision runs", as
       before_state_json: null,
       decision_trace_json: null,
       after_snapshot_json: null,
-      error_message: "AI provider returned 524"
+      error_message: "AI provider returned 524",
+      account_scope: "quant-v1",
+      strategy_version: "Q-Alpha v1"
     } as SignalArenaRunRow & { error_message: string }
   ]);
 
@@ -467,7 +623,7 @@ test("public data merges D1 snapshots and decision traces into equity history", 
   const updatedAt = new Date().toISOString();
   const env = makeEnv(
     makeKv({
-      "public:all": makeSnapshot(updatedAt, "live")
+      "public:all:quant-v1": makeSnapshot(updatedAt, "live")
     })
   );
   env.SIGNAL_ARENA_DB = makeDb(
@@ -508,7 +664,9 @@ test("public data merges D1 snapshots and decision traces into equity history", 
           publicExplanation: "继续观察。",
           privateThought: "hidden"
         }),
-        after_snapshot_json: JSON.stringify({ totalAssets: 1200000, cash: 300000, returnRate: 0.2, currentRank: 2, holdingsCount: 1 })
+        after_snapshot_json: JSON.stringify({ totalAssets: 1200000, cash: 300000, returnRate: 0.2, currentRank: 2, holdingsCount: 1 }),
+        account_scope: "quant-v1",
+        strategy_version: "Q-Alpha v1"
       }
     ],
     [
@@ -523,7 +681,9 @@ test("public data merges D1 snapshots and decision traces into equity history", 
           returnRate: 0.2,
           currentRank: 2
         }),
-        rank_json: "{}"
+        rank_json: "{}",
+        account_scope: "quant-v1",
+        strategy_version: "Q-Alpha v1"
       }
     ]
   );
@@ -546,7 +706,7 @@ test("public data merges D1 snapshots and decision traces into equity history", 
 
 test("stale cache is returned when upstream fails", async () => {
   const cached = makeSnapshot(new Date(Date.now() - 10 * 60 * 1000).toISOString(), "live");
-  const env = makeEnv(makeKv({ "public:all": cached }));
+  const env = makeEnv(makeKv({ "public:all:quant-v1": cached }));
 
   globalThis.fetch = async () => {
     throw new Error("upstream down");
