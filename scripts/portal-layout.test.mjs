@@ -26,6 +26,7 @@ test("portal keeps a visible sealed panel for future sub-sites", () => {
 test("portal exposes Signal Arena while preserving sealed panel", () => {
   assert.match(portalPage, /SIGNAL ARENA/);
   assert.match(portalPage, /href:\s*"\/signal-arena"/);
+  assert.match(portalPage, /prefetch:\s*true/);
   assert.match(portalPage, /maysssss\.cn\/signal-arena/);
   assert.match(portalPage, /CLASSIFIED/);
   assert.match(portalPage, /未完待续/);
@@ -34,14 +35,18 @@ test("portal exposes Signal Arena while preserving sealed panel", () => {
 
 test("Signal Arena keeps the same clickable card layout as other portal entries", () => {
   assert.ok(portalPage.indexOf("SIGNAL ARENA") < portalPage.indexOf("PLAYER ONE"));
-  assert.match(portalCss, /\.cover\s*\{[\s\S]*min-height:\s*58svh/);
   assert.match(
     portalPage,
-    /<Link[\s\S]*href=\{item\.href\}[\s\S]*className=\{`\$\{styles\.panel\} \$\{styles\.panelLink\} \$\{item\.className\}`\}/
+    /<Link[\s\S]*href=\{item\.href\}[\s\S]*prefetch=\{item\.prefetch\}[\s\S]*className=\{`\$\{styles\.panel\} \$\{styles\.panelLink\} \$\{item\.className\}`\}/
   );
 
   const signalArenaPanel = portalCss.match(/\.signalArenaPanel\s*\{(?<body>[\s\S]*?)\n\}/);
 
   assert.ok(signalArenaPanel?.groups?.body);
   assert.doesNotMatch(signalArenaPanel.groups.body, /grid-column\s*:/);
+});
+
+test("portal cover fills the first viewport before the directory panels", () => {
+  assert.match(portalCss, /\.cover\s*\{[\s\S]*min-height:\s*100svh/);
+  assert.doesNotMatch(portalCss, /\.cover\s*\{[\s\S]*min-height:\s*58svh/);
 });

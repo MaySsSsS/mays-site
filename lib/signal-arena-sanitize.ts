@@ -1,6 +1,8 @@
 import type {
   SignalArenaActionType,
   SignalArenaCandidateAction,
+  SignalArenaDataConfidence,
+  SignalArenaDataSource,
   SignalArenaDashboard,
   SignalArenaDecisionTrace,
   SignalArenaEquityPoint,
@@ -22,11 +24,21 @@ import type {
 const MARKETS = new Set<SignalArenaMarket>(["CN", "HK", "US"]);
 const RUN_STATUSES = new Set<SignalArenaRunStatus>(["executed", "held", "blocked", "skipped", "failed"]);
 const ACTION_TYPES = new Set<SignalArenaActionType>(["buy", "sell", "hold"]);
+const SIGNAL_TYPES = new Set<SignalArenaDecisionTrace["signalContext"][number]["signalType"]>([
+  "pullback_entry",
+  "momentum_watch",
+  "take_profit_watch",
+  "stop_loss_watch",
+  "position_rebalance"
+]);
+const SIGNAL_RISKS = new Set<SignalArenaDecisionTrace["signalContext"][number]["risk"]>(["low", "medium", "high"]);
 const METRIC_TONES = new Set<SignalArenaMetric["tone"]>(["neutral", "positive", "negative", "warning"]);
 const RISK_LEVELS = new Set<SignalArenaRunLog["riskLevel"]>(["low", "medium", "high", "unknown"]);
 const SOURCE_STATUSES = new Set<SignalArenaDashboard["sourceStatus"]>(["live", "stale", "fallback", "error"]);
 const TRIGGERS = new Set<SignalArenaRunLog["trigger"]>(["cron", "manual"]);
 const OPERATIONS_TONES = new Set<SignalArenaOperationsTone>(["healthy", "watch", "quiet", "attention"]);
+const DATA_SOURCES = new Set<SignalArenaDataSource>(["live", "imported"]);
+const DATA_CONFIDENCES = new Set<SignalArenaDataConfidence>(["high", "medium", "low"]);
 const EQUITY_STATUSES = new Set<SignalArenaEquityPoint["status"]>([
   "executed",
   "held",
@@ -155,6 +167,22 @@ function sanitizeRejectedAction(value: unknown): SignalArenaRejectedAction {
   };
 }
 
+function sanitizeTradingSignal(value: unknown): SignalArenaDecisionTrace["signalContext"][number] {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    symbol: stringValue(record.symbol),
+    name: stringValue(record.name),
+    signalType: enumValue(record.signalType, SIGNAL_TYPES, "momentum_watch"),
+    suggestedAction: enumValue(record.suggestedAction, ACTION_TYPES, "hold"),
+    confidence: numberValue(record.confidence),
+    risk: enumValue(record.risk, SIGNAL_RISKS, "medium"),
+    changeRate: nullableNumber(record.changeRate),
+    price: nullableNumber(record.price),
+    reason: stringValue(record.reason)
+  };
+}
+
 function sanitizeDecisionTrace(value: unknown): SignalArenaDecisionTrace | null {
   if (!isRecord(value)) {
     return null;
@@ -165,8 +193,22 @@ function sanitizeDecisionTrace(value: unknown): SignalArenaDecisionTrace | null 
     decisionRoute: stringArray(value.decisionRoute),
     marketAssessment: stringArray(value.marketAssessment),
     portfolioAssessment: stringArray(value.portfolioAssessment),
+    signalContext: arrayValue(value.signalContext).map(sanitizeTradingSignal),
     rejectedActions: arrayValue(value.rejectedActions).map(sanitizeRejectedAction),
     publicExplanation: stringValue(value.publicExplanation)
+  };
+}
+
+function sanitizeSourceMeta(record: Record<string, unknown>) {
+  return {
+    source: typeof record.source === "string" && DATA_SOURCES.has(record.source as SignalArenaDataSource)
+      ? (record.source as SignalArenaDataSource)
+      : undefined,
+    sourceLabel: typeof record.sourceLabel === "string" ? record.sourceLabel : undefined,
+    confidence: typeof record.confidence === "string" && DATA_CONFIDENCES.has(record.confidence as SignalArenaDataConfidence)
+      ? (record.confidence as SignalArenaDataConfidence)
+      : undefined,
+    rawSummary: typeof record.rawSummary === "string" ? record.rawSummary : undefined
   };
 }
 
@@ -181,7 +223,8 @@ function sanitizeEquityPoint(value: unknown): SignalArenaEquityPoint {
     returnRate: numberValue(record.returnRate),
     currentRank: nullableNumber(record.currentRank),
     status: enumValue(record.status, EQUITY_STATUSES, "snapshot"),
-    actionSummary: nullableString(record.actionSummary)
+    actionSummary: nullableString(record.actionSummary),
+    ...sanitizeSourceMeta(record)
   };
 }
 
@@ -213,7 +256,8 @@ function sanitizeRunLog(value: unknown): SignalArenaRunLog {
     decisionTrace: sanitizeDecisionTrace(record.decisionTrace),
     cashPlan: nullableString(record.cashPlan),
     watchlist: stringArray(record.watchlist),
-    afterSnapshot: sanitizeSnapshotState(record.afterSnapshot)
+    afterSnapshot: sanitizeSnapshotState(record.afterSnapshot),
+    ...sanitizeSourceMeta(record)
   };
 }
 

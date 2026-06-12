@@ -9,6 +9,12 @@ type SignalArenaLogsProps = {
   logs: SignalArenaRunLog[];
 };
 
+const SOURCE_FILTERS = [
+  { id: "all", label: "全部来源" },
+  { id: "live", label: "实时" },
+  { id: "imported", label: "历史" }
+] as const;
+
 const FILTERS = [
   { id: "all", label: "全部" },
   { id: "active", label: "执行/持有" },
@@ -18,6 +24,7 @@ const FILTERS = [
 ] as const;
 
 type LogFilter = (typeof FILTERS)[number]["id"];
+type SourceFilter = (typeof SOURCE_FILTERS)[number]["id"];
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString("zh-CN", {
@@ -51,8 +58,17 @@ function matchesFilter(log: SignalArenaRunLog, filter: LogFilter): boolean {
   }
 }
 
+function matchesSource(log: SignalArenaRunLog, filter: SourceFilter): boolean {
+  if (filter === "all") {
+    return true;
+  }
+
+  return (log.source ?? "live") === filter;
+}
+
 export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
   const [activeFilter, setActiveFilter] = useState<LogFilter>("all");
+  const [activeSource, setActiveSource] = useState<SourceFilter>("all");
   const summary = useMemo(() => {
     const active = logs.filter((log) => log.status === "executed" || log.status === "held").length;
 
@@ -65,8 +81,8 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
     };
   }, [logs]);
   const filteredLogs = useMemo(
-    () => logs.filter((log) => matchesFilter(log, activeFilter)),
-    [activeFilter, logs]
+    () => logs.filter((log) => matchesFilter(log, activeFilter) && matchesSource(log, activeSource)),
+    [activeFilter, activeSource, logs]
   );
 
   return (
@@ -93,6 +109,20 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
         ))}
       </div>
 
+      <div className={styles.logFilters} aria-label="来源筛选">
+        {SOURCE_FILTERS.map((filter) => (
+          <button
+            key={filter.id}
+            type="button"
+            className={activeSource === filter.id ? styles.logFilterButtonActive : styles.logFilterButton}
+            aria-pressed={activeSource === filter.id}
+            onClick={() => setActiveSource(filter.id)}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+
       {filteredLogs.length === 0 ? (
         <p className={styles.empty}>当前筛选下暂无 AI Runner 日志。</p>
       ) : null}
@@ -102,6 +132,8 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
           <div className={styles.logTopline}>
             <time className={styles.logTime}>{formatDateTime(log.startedAt)}</time>
             <span className={styles.status}>{log.status}</span>
+            <span className={styles.sourceBadge}>{log.sourceLabel ?? "实时 Runner"}</span>
+            <span className={styles.sourceBadge}>置信度 {log.confidence ?? "high"}</span>
           </div>
 
           <h2 className={styles.logTitle}>{log.summary}</h2>
@@ -125,7 +157,9 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
             </div>
           ) : null}
 
-          {log.candidates.length > 0 ? (
+          {log.status === "failed" ? (
+            <p className={styles.logNote}>本轮没有生成可执行决策。</p>
+          ) : log.candidates.length > 0 ? (
             <ul className={styles.candidateList}>
               {log.candidates.map((candidate, candidateIndex) => (
                 <li
@@ -140,12 +174,14 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
               ))}
             </ul>
           ) : (
-            <p className={styles.logNote}>本轮没有进入候选动作。</p>
+            <p className={styles.logNote}>本轮没有候选买卖动作，AI 已给出观望判断。</p>
           )}
 
-          <p className={styles.logNote}>
-            {log.riskResult.reasons.join(" / ") || "无风控拦截。"}
-          </p>
+          {log.status === "failed" ? (
+            <p className={styles.logNote}>{log.riskResult.reasons.join(" / ") || "本轮未进入风控阶段。"}</p>
+          ) : (
+            <p className={styles.logNote}>{log.riskResult.reasons.join(" / ") || "无风控拦截。"}</p>
+          )}
 
           {log.orderResult.status || log.orderResult.message ? (
             <p className={styles.logNote}>

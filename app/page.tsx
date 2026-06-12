@@ -2,13 +2,23 @@ import Link from "next/link";
 
 import styles from "@/styles/portal.module.css";
 
-const portalItems = [
+type PortalItem = {
+  eyebrow: string;
+  title: string;
+  href: string;
+  domain: string;
+  className: string;
+  prefetch?: boolean;
+};
+
+const portalItems: PortalItem[] = [
   {
     eyebrow: "ARENA",
     title: "SIGNAL ARENA",
     href: "/signal-arena",
     domain: "maysssss.cn/signal-arena",
-    className: styles.signalArenaPanel
+    className: styles.signalArenaPanel,
+    prefetch: true
   },
   {
     eyebrow: "GAME",
@@ -72,6 +82,7 @@ export default function PortalPage() {
             <Link
               key={item.title}
               href={item.href}
+              prefetch={item.prefetch}
               className={`${styles.panel} ${styles.panelLink} ${item.className}`}
               aria-label={`Open ${item.eyebrow}`}
             >

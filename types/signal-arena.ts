@@ -6,6 +6,17 @@ export type SignalArenaActionType = "buy" | "sell" | "hold";
 
 export type SignalArenaOperationsTone = "healthy" | "watch" | "quiet" | "attention";
 
+export type SignalArenaDataSource = "live" | "imported";
+
+export type SignalArenaDataConfidence = "high" | "medium" | "low";
+
+export type SignalArenaSourceMeta = {
+  source?: SignalArenaDataSource;
+  sourceLabel?: string;
+  confidence?: SignalArenaDataConfidence;
+  rawSummary?: string;
+};
+
 export type SignalArenaMetric = {
   label: string;
   value: string;
@@ -59,16 +70,29 @@ export type SignalArenaRejectedAction = {
   reason: string;
 };
 
+export type SignalArenaTradingSignal = {
+  symbol: string;
+  name: string;
+  signalType: "pullback_entry" | "momentum_watch" | "take_profit_watch" | "stop_loss_watch" | "position_rebalance";
+  suggestedAction: SignalArenaActionType;
+  confidence: number;
+  risk: "low" | "medium" | "high";
+  changeRate: number | null;
+  price: number | null;
+  reason: string;
+};
+
 export type SignalArenaDecisionTrace = {
   beforeStateSummary: string;
   decisionRoute: string[];
   marketAssessment: string[];
   portfolioAssessment: string[];
+  signalContext: SignalArenaTradingSignal[];
   rejectedActions: SignalArenaRejectedAction[];
   publicExplanation: string;
 };
 
-export type SignalArenaEquityPoint = {
+export type SignalArenaEquityPoint = SignalArenaSourceMeta & {
   id: string;
   runId: string | null;
   capturedAt: string;
@@ -79,7 +103,7 @@ export type SignalArenaEquityPoint = {
   actionSummary: string | null;
 };
 
-export type SignalArenaRunLog = {
+export type SignalArenaRunLog = SignalArenaSourceMeta & {
   id: string;
   startedAt: string;
   finishedAt: string | null;
