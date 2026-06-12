@@ -23,8 +23,8 @@ test("portal keeps a visible sealed panel for future sub-sites", () => {
   assert.match(portalPage, /styles\.sealedPanel/);
 });
 
-test("portal exposes Signal Arena while preserving sealed panel", () => {
-  assert.match(portalPage, /SIGNAL ARENA/);
+test("portal exposes Quant Lab while preserving sealed panel", () => {
+  assert.match(portalPage, /QUANT LAB/);
   assert.match(portalPage, /href:\s*"\/signal-arena"/);
   assert.match(portalPage, /prefetch:\s*true/);
   assert.match(portalPage, /maysssss\.cn\/signal-arena/);
@@ -33,8 +33,8 @@ test("portal exposes Signal Arena while preserving sealed panel", () => {
   assert.match(portalPage, /sealedPanels/);
 });
 
-test("Signal Arena keeps the same clickable card layout as other portal entries", () => {
-  assert.ok(portalPage.indexOf("SIGNAL ARENA") < portalPage.indexOf("PLAYER ONE"));
+test("Quant Lab keeps the same clickable card layout as other portal entries", () => {
+  assert.ok(portalPage.indexOf("QUANT LAB") < portalPage.indexOf("PLAYER ONE"));
   assert.match(
     portalPage,
     /<Link[\s\S]*href=\{item\.href\}[\s\S]*prefetch=\{item\.prefetch\}[\s\S]*className=\{`\$\{styles\.panel\} \$\{styles\.panelLink\} \$\{item\.className\}`\}/

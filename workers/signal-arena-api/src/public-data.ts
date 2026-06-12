@@ -5,6 +5,7 @@ import {
   fetchArenaTrades
 } from "./signal-api";
 import { arenaList } from "./arena-normalize";
+import { Q_ALPHA_ACCOUNT_SCOPE, Q_ALPHA_DEFAULT_PARAMETERS, Q_ALPHA_STRATEGY_VERSION } from "./q-alpha-v1";
 import { publicRunnerErrorFor } from "./run-error";
 import { getCachedPublicData, listRecentRuns, listRecentSnapshots, putCachedPublicData } from "./storage";
 import type { SignalArenaSnapshotRow } from "./storage";
@@ -20,6 +21,8 @@ import type {
 } from "./types";
 
 const CACHE_TTL_SECONDS = 120;
+const DEFAULT_ACCOUNT_SCOPE = Q_ALPHA_ACCOUNT_SCOPE;
+const DEFAULT_STRATEGY_VERSION = Q_ALPHA_STRATEGY_VERSION;
 const LEGACY_COMBINED_SELL_LIMIT_REASON = "卖出数量超过可卖数量或触发 T+1 限制。";
 const LEGACY_COMBINED_SELL_LIMIT_PUBLIC_REASON =
   "旧版 Runner 将“超出可卖数量”和“T+1”合并提示；新版本已拆分，后续会显示具体原因。";
@@ -85,6 +88,32 @@ type PublicDecisionTrace = {
   publicExplanation: string;
 };
 
+type PublicStrategyTrace = {
+  strategyName: string;
+  strategyVersion: string;
+  accountScope: string;
+  runMode: "dry-run" | "live";
+  parameters: Record<string, unknown>;
+  candidateCount: number;
+  historyCoverage: {
+    requestedSymbols: number;
+    coveredSymbols: number;
+    insufficientSymbols: string[];
+  };
+  candidateRanking: Array<{
+    symbol: string;
+    name: string;
+    score: number;
+    source: string[];
+    factorScore: Record<string, number>;
+    rejectionReasons: string[];
+    entryReasons: string[];
+  }>;
+  rejectedReasons: string[];
+  finalRule: string;
+  marketRegime: string;
+};
+
 type PublicTradingSignal = {
   symbol: string;
   name: string;
@@ -106,6 +135,8 @@ type PublicEquityPoint = {
   currentRank: number | null;
   status: PublicRunLog["status"] | "snapshot";
   actionSummary: string | null;
+  accountScope: string;
+  strategyVersion: string | null;
 };
 
 type PublicOperationsTone = "healthy" | "watch" | "quiet" | "attention";
@@ -157,9 +188,12 @@ type PublicRunLog = {
   };
   beforeState: PublicSnapshotState | null;
   decisionTrace: PublicDecisionTrace | null;
+  strategyTrace: PublicStrategyTrace | null;
   cashPlan: string | null;
   watchlist: string[];
   afterSnapshot: PublicSnapshotState | null;
+  accountScope: string;
+  strategyVersion: string | null;
 };
 
 type PublicRankEntry = {
@@ -174,6 +208,8 @@ type PublicRank = {
   currentRank: number | null;
   returnRate: number;
   leaderGap: number | null;
+  previousGap: number | null;
+  topTenGap: number | null;
   leaders: PublicRankEntry[];
   nearby: PublicRankEntry[];
   updatedAt: string;
@@ -194,6 +230,20 @@ type PublicDashboard = {
   latestRun: PublicRunLog | null;
 };
 
+type PublicStrategy = {
+  name: string;
+  version: string;
+  accountScope: string;
+  runMode: "live";
+  parameters: typeof Q_ALPHA_DEFAULT_PARAMETERS;
+};
+
+type PublicAccount = {
+  scope: string;
+  strategyVersion: string;
+  displayName: string;
+};
+
 type PublicSnapshot = {
   dashboard: PublicDashboard;
   logs: PublicRunLog[];
@@ -201,6 +251,8 @@ type PublicSnapshot = {
   equityHistory: PublicEquityPoint[];
   operations: PublicOperations;
   recentTrades: PublicTrade[];
+  strategy: PublicStrategy;
+  account: PublicAccount;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -401,6 +453,67 @@ function sanitizePublicDecisionTrace(value: unknown): PublicDecisionTrace | null
   };
 }
 
+function numericRecord(value: unknown): Record<string, number> {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter((entry): entry is [string, number] => typeof entry[1] === "number" && Number.isFinite(entry[1]))
+  );
+}
+
+function sanitizeStrategyParameters(value: unknown): Record<string, number> {
+  const record = numericRecord(value);
+  const allowed = new Set(Object.keys(Q_ALPHA_DEFAULT_PARAMETERS));
+
+  return Object.fromEntries(Object.entries(record).filter(([key]) => allowed.has(key)));
+}
+
+function sanitizePublicStrategyCandidate(value: unknown): PublicStrategyTrace["candidateRanking"][number] {
+  const record = isRecord(value) ? value : {};
+  const factorScore = numericRecord(record.factorScore);
+  const allowedFactors = new Set(["trend", "momentum", "breakout", "volume", "portfolioFit", "penalties", "total"]);
+
+  return {
+    symbol: stringValue(record.symbol),
+    name: stringValue(record.name),
+    score: numberValue(record.score),
+    source: stringArray(record.source),
+    factorScore: Object.fromEntries(Object.entries(factorScore).filter(([key]) => allowedFactors.has(key))),
+    rejectionReasons: stringArray(record.rejectionReasons),
+    entryReasons: stringArray(record.entryReasons)
+  };
+}
+
+function sanitizePublicStrategyTrace(value: unknown): PublicStrategyTrace | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const coverage = isRecord(value.historyCoverage) ? value.historyCoverage : {};
+  const runMode = value.runMode === "dry-run" ? "dry-run" : "live";
+
+  return {
+    strategyName: stringValue(value.strategyName, "Q-Alpha"),
+    strategyVersion: stringValue(value.strategyVersion, DEFAULT_STRATEGY_VERSION),
+    accountScope: stringValue(value.accountScope, DEFAULT_ACCOUNT_SCOPE),
+    runMode,
+    parameters: sanitizeStrategyParameters(value.parameters),
+    candidateCount: numberValue(value.candidateCount),
+    historyCoverage: {
+      requestedSymbols: numberValue(coverage.requestedSymbols),
+      coveredSymbols: numberValue(coverage.coveredSymbols),
+      insufficientSymbols: stringArray(coverage.insufficientSymbols)
+    },
+    candidateRanking: arrayValue(value.candidateRanking).map(sanitizePublicStrategyCandidate),
+    rejectedReasons: stringArray(value.rejectedReasons),
+    finalRule: stringValue(value.finalRule),
+    marketRegime: stringValue(value.marketRegime, "unknown")
+  };
+}
+
 function sanitizePublicEquityPoint(value: unknown): PublicEquityPoint {
   const record = isRecord(value) ? value : {};
 
@@ -412,7 +525,9 @@ function sanitizePublicEquityPoint(value: unknown): PublicEquityPoint {
     returnRate: numberValue(record.returnRate),
     currentRank: nullableNumber(record.currentRank),
     status: enumValue(record.status, EQUITY_STATUSES, "snapshot"),
-    actionSummary: nullableString(record.actionSummary)
+    actionSummary: nullableString(record.actionSummary),
+    accountScope: stringValue(record.accountScope, DEFAULT_ACCOUNT_SCOPE),
+    strategyVersion: nullableString(record.strategyVersion) ?? DEFAULT_STRATEGY_VERSION
   };
 }
 
@@ -540,9 +655,12 @@ function sanitizePublicRunLog(value: unknown): PublicRunLog {
     },
     beforeState: sanitizePublicSnapshotState(record.beforeState),
     decisionTrace: sanitizePublicDecisionTrace(record.decisionTrace),
+    strategyTrace: sanitizePublicStrategyTrace(record.strategyTrace),
     cashPlan: nullableString(record.cashPlan),
     watchlist: stringArray(record.watchlist),
-    afterSnapshot: sanitizePublicSnapshotState(record.afterSnapshot)
+    afterSnapshot: sanitizePublicSnapshotState(record.afterSnapshot),
+    accountScope: stringValue(record.accountScope, DEFAULT_ACCOUNT_SCOPE),
+    strategyVersion: nullableString(record.strategyVersion) ?? DEFAULT_STRATEGY_VERSION
   };
 }
 
@@ -591,6 +709,8 @@ function sanitizePublicRank(value: unknown): PublicRank {
     currentRank,
     returnRate: numberValue(record.returnRate),
     leaderGap: nullableNumber(record.leaderGap),
+    previousGap: nullableNumber(record.previousGap),
+    topTenGap: nullableNumber(record.topTenGap),
     leaders: arrayValue(record.leaders).map((entry) => sanitizePublicRankEntry(entry, currentRank)),
     nearby: arrayValue(record.nearby).map((entry) => sanitizePublicRankEntry(entry, currentRank)),
     updatedAt: stringValue(record.updatedAt)
@@ -665,12 +785,36 @@ function sanitizePublicSnapshot(value: unknown): PublicSnapshot | null {
     logs: arrayValue(value.logs).map(sanitizePublicRunLog),
     rank: sanitizePublicRank(value.rank),
     equityHistory: arrayValue(value.equityHistory).map(sanitizePublicEquityPoint),
-    recentTrades: arrayValue(value.recentTrades).map(sanitizePublicTrade)
+    recentTrades: arrayValue(value.recentTrades).map(sanitizePublicTrade),
+    strategy: sanitizePublicStrategy(value.strategy),
+    account: sanitizePublicAccount(value.account)
   };
 
   return {
     ...snapshot,
     operations: sanitizePublicOperations(value.operations, buildOperations(snapshot))
+  };
+}
+
+function sanitizePublicStrategy(value: unknown): PublicStrategy {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    name: stringValue(record.name, "Q-Alpha"),
+    version: stringValue(record.version, DEFAULT_STRATEGY_VERSION),
+    accountScope: stringValue(record.accountScope, DEFAULT_ACCOUNT_SCOPE),
+    runMode: "live",
+    parameters: Q_ALPHA_DEFAULT_PARAMETERS
+  };
+}
+
+function sanitizePublicAccount(value: unknown): PublicAccount {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    scope: stringValue(record.scope, DEFAULT_ACCOUNT_SCOPE),
+    strategyVersion: stringValue(record.strategyVersion, DEFAULT_STRATEGY_VERSION),
+    displayName: stringValue(record.displayName, "Quant Lab")
   };
 }
 
@@ -752,11 +896,16 @@ function mapRunRowToPublicRunLog(row: {
   order_result_json: string | null;
   before_state_json: string | null;
   decision_trace_json: string | null;
+  strategy_trace_json?: string | null;
+  strategy_parameters_json?: string | null;
   after_snapshot_json: string | null;
   error_message?: string | null;
+  account_scope?: string | null;
+  strategy_version?: string | null;
 }): PublicRunLog {
   const decisionTrace = parseJson<unknown>(row.decision_trace_json, null);
   const decisionTraceRecord = isRecord(decisionTrace) ? decisionTrace : {};
+  const strategyTrace = parseJson<unknown>(row.strategy_trace_json ?? null, null);
   const selectedAction = parseJson<unknown>(row.selected_action_json, null);
   const holdDecision = isHoldAction(selectedAction);
   const sellDecision = isSellAction(selectedAction);
@@ -785,9 +934,12 @@ function mapRunRowToPublicRunLog(row: {
     orderResult: pickPublicOrderResult(parseJson<unknown>(row.order_result_json, null)),
     beforeState: parseJson<unknown>(row.before_state_json, null),
     decisionTrace: normalizeDecisionTrace(decisionTrace),
+    strategyTrace,
     cashPlan: nullableString(decisionTraceRecord.cashPlan ?? decisionTraceRecord.cash_plan),
     watchlist: decisionTraceRecord.watchlist,
-    afterSnapshot: parseJson<unknown>(row.after_snapshot_json, null)
+    afterSnapshot: parseJson<unknown>(row.after_snapshot_json, null),
+    accountScope: row.account_scope ?? DEFAULT_ACCOUNT_SCOPE,
+    strategyVersion: row.strategy_version ?? DEFAULT_STRATEGY_VERSION
   });
 }
 
@@ -837,7 +989,9 @@ function mapSnapshotRowToEquityPoint(
     returnRate: dashboard.returnRate,
     currentRank: dashboard.currentRank ?? rank.currentRank,
     status: run?.status ?? "snapshot",
-    actionSummary: actionSummaryForRun(run)
+    actionSummary: actionSummaryForRun(run),
+    accountScope: row.account_scope ?? stringValue(dashboard.accountScope, DEFAULT_ACCOUNT_SCOPE),
+    strategyVersion: row.strategy_version ?? nullableString(dashboard.strategyVersion) ?? DEFAULT_STRATEGY_VERSION
   });
 }
 
@@ -875,7 +1029,9 @@ function seedEquityHistory(snapshot: PublicSnapshot, history: PublicEquityPoint[
       returnRate: snapshot.dashboard.returnRate,
       currentRank: snapshot.dashboard.currentRank,
       status: snapshot.dashboard.latestRun?.status ?? "snapshot",
-      actionSummary: snapshot.dashboard.latestRun?.summary ?? "当前总览快照"
+      actionSummary: snapshot.dashboard.latestRun?.summary ?? "当前总览快照",
+      accountScope: snapshot.account.scope,
+      strategyVersion: snapshot.strategy.version
     })
   ];
 }
@@ -935,6 +1091,10 @@ function toPublicHolding(holding: ArenaHolding, totalAssets: number): PublicHold
   };
 }
 
+function leaderboardTotalAssets(entry: ArenaLeaderboardEntry): number {
+  return entry.total_assets ?? entry.total_value ?? 0;
+}
+
 function toPublicSnapshot(
   home: ArenaHomeData,
   portfolio: ArenaPortfolioData,
@@ -956,7 +1116,7 @@ function toPublicSnapshot(
   const leaderEntries = leaders.slice(0, 10).map((entry) => ({
     rank: entry.rank,
     nickname: entry.nickname ?? entry.agent?.nickname ?? entry.agent?.username ?? "unknown",
-    totalAssets: entry.total_assets ?? entry.total_value ?? 0,
+    totalAssets: leaderboardTotalAssets(entry),
     returnRate: entry.return_rate ?? 0,
     isCurrentAgent: currentAgentId
       ? Boolean((entry.agent_id ?? entry.agent?.id) ? (entry.agent_id ?? entry.agent?.id) === currentAgentId : entry.rank === currentRank)
@@ -970,7 +1130,7 @@ function toPublicSnapshot(
         .map((entry) => ({
           rank: entry.rank,
           nickname: entry.nickname ?? entry.agent?.nickname ?? entry.agent?.username ?? "unknown",
-          totalAssets: entry.total_assets ?? entry.total_value ?? 0,
+          totalAssets: leaderboardTotalAssets(entry),
           returnRate: entry.return_rate ?? 0,
           isCurrentAgent: currentAgentId
             ? Boolean((entry.agent_id ?? entry.agent?.id) ? (entry.agent_id ?? entry.agent?.id) === currentAgentId : entry.rank === currentRank)
@@ -978,7 +1138,19 @@ function toPublicSnapshot(
         }));
 
   const topLeader = leaderEntries[0] ?? null;
+  const previousEntry = currentRank === null
+    ? null
+    : leaders
+        .filter((entry) => entry.rank < currentRank)
+        .sort((left, right) => right.rank - left.rank)[0] ?? null;
+  const tenthEntry = leaders.find((entry) => entry.rank === 10) ?? leaderEntries[9] ?? null;
   const leaderGap = topLeader && currentRank !== null ? Math.max(topLeader.totalAssets - totalAssets, 0) : null;
+  const previousGap = previousEntry
+    ? Math.max(leaderboardTotalAssets(previousEntry) - totalAssets, 0)
+    : null;
+  const topTenGap = tenthEntry && currentRank !== null && currentRank > 10
+    ? Math.max(leaderboardTotalAssets(tenthEntry) - totalAssets, 0)
+    : null;
   const recentTrades = tradeRecords(trades).slice(0, 20).map((trade) => ({
     symbol: trade.symbol,
     action: trade.action,
@@ -1026,6 +1198,8 @@ function toPublicSnapshot(
       currentRank,
       returnRate,
       leaderGap,
+      previousGap,
+      topTenGap,
       leaders: leaderEntries,
       nearby: nearbyEntries,
       updatedAt
@@ -1042,17 +1216,30 @@ function toPublicSnapshot(
       equityCoverageDays: 0,
       logCount: 0
     },
-    recentTrades
+    recentTrades,
+    strategy: {
+      name: "Q-Alpha",
+      version: DEFAULT_STRATEGY_VERSION,
+      accountScope: DEFAULT_ACCOUNT_SCOPE,
+      runMode: "live",
+      parameters: Q_ALPHA_DEFAULT_PARAMETERS
+    },
+    account: {
+      scope: DEFAULT_ACCOUNT_SCOPE,
+      strategyVersion: DEFAULT_STRATEGY_VERSION,
+      displayName: "Quant Lab"
+    }
   };
 }
 
 export async function getPublicData(env: Env): Promise<PublicSnapshot> {
   let cached: PublicSnapshot | null = null;
-  const runs = (await listRecentRuns(env, 30)).map(mapRunRowToPublicRunLog);
-  const snapshots = await listRecentSnapshots(env, 300);
+  const scope = env.SIGNAL_ARENA_ACCOUNT_SCOPE || DEFAULT_ACCOUNT_SCOPE;
+  const runs = (await listRecentRuns(env, 30, scope)).map(mapRunRowToPublicRunLog);
+  const snapshots = await listRecentSnapshots(env, 300, scope);
 
   try {
-    const candidate = sanitizePublicSnapshot(await getCachedPublicData<unknown>(env));
+    const candidate = sanitizePublicSnapshot(await getCachedPublicData<unknown>(env, scope));
     if (candidate) {
       cached = candidate;
       if (isFreshSnapshot(candidate)) {
@@ -1073,7 +1260,7 @@ export async function getPublicData(env: Env): Promise<PublicSnapshot> {
 
     const publicData = toPublicSnapshot(home, portfolio, trades, leaderboard);
     const snapshotWithLogs = mergePublicData(publicData, runs, snapshots);
-    await putCachedPublicData(env, snapshotWithLogs);
+    await putCachedPublicData(env, snapshotWithLogs, scope);
     return snapshotWithLogs;
   } catch {
     if (cached) {

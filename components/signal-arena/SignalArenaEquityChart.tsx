@@ -96,7 +96,7 @@ function tooltipHtml(points: SignalArenaEquityPoint[], value: unknown): string {
 
   return [
     `<strong>${formatDateTime(point.capturedAt)}</strong>`,
-    `来源 ${point.sourceLabel ?? "实时 Runner"} / ${point.confidence ?? "high"}`,
+    `策略 ${point.strategyVersion ?? "Q-Alpha v1"} / ${point.accountScope}`,
     `总资产 ${formatMoney(point.totalAssets)}`,
     `收益率 ${formatPercent(point.returnRate)}`,
     `变动 ${deltaText}`,
@@ -294,7 +294,7 @@ export function SignalArenaEquityChart({
               <button key={point.id} type="button" onClick={() => onPointClick(point)}>
                 <span>{compactDateTime(point.capturedAt)}</span>
                 <strong>{formatPercent(point.returnRate)}</strong>
-                <em>{point.sourceLabel ?? "实时 Runner"}</em>
+                <em>{point.strategyVersion ?? "Q-Alpha v1"}</em>
               </button>
             ))}
           </div>

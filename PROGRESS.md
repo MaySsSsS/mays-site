@@ -32,7 +32,8 @@
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-28，排查 `Runner 执行失败。` 最新记录，根因是 AI provider 返回 `524` 网关超时，不是交易流程或风控错误；新增 `publicRunnerErrorFor()` 将 524 公开归一为 `AI 服务响应超时，本轮未生成交易决策。`，后续 Runner 落库写入准确摘要，旧 D1 记录通过 public API 展示层兼容归一；Worker 版本 `31ea530e-b685-494c-b337-2c9688fb1361`，前端版本 `778c9f70-44a0-49b6-a330-d38a908269d0`，线上 `/api/public/all` 最新日志已显示新文案）
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-01，排查线上再次出现 `Runner 执行失败。`；根因是新失败类型未被公开归一，包括 `AI provider returned 502`、`Signal Arena request failed: 504`、`Responses API returned no text output`。现已扩展 `publicRunnerErrorFor()` 文案，并让严格 AI 模型遇到短暂 5xx 或空文本时先 fallback 到轻量模型；Worker 部署版本 `9f6c7071-1bab-4f8d-86a3-0bbb2d860ad4`，线上 `/api/public/all` 最新 failed 已显示 `AI 未返回有效决策内容，本轮未生成交易决策。`）
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-12，将 Signal Arena 主决策模型从 `gpt-5.5 / xhigh` 改为 `gpt-5.4 / high`，轻量兜底保持 `gpt-5.4 / low`；fallback 回归测试改为校验 `reasoning.effort`，Worker 部署输出确认新环境变量，部署版本 `df0e9267-e17e-488b-8de6-12402b58866b`）
-- 2026-06-12：新增 Signal Arena 量化实验室路线图 `docs/superpowers/plans/2026-06-12-signal-arena-quant-lab-roadmap.md`；规划新账号从 0 跑确定性量化策略、旧 AI 账号归档、`Q-Alpha v1` 多因子趋势动量策略、页面改造、回测版本化、每周 AI 复盘，以及 TradingAgents 作为研究/复盘层参考而非第一版交易闭环依赖。
+- `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-12，将 `/signal-arena` 改造为 Quant Lab；Worker Runner 改用确定性 `Q-Alpha v1` 多因子策略和程序风控，不再让 AI 进入每日下单闭环；新增 market-data 缓存、指标计算、策略 trace、`quant-v1` scope 过滤、D1 migration、首页 `QUANT LAB` 入口、策略日志/弹窗/持仓策略分与入场理由展示；公开页面不再合并旧本地 AI 历史。补充审计后，migration 会把旧行默认保留为 `legacy-ai`，Rank 页展示距前一名/前 10/榜首差距。构建仍出现既有 `mays-game-api.mays.workers.dev` DNS fallback 告警但最终成功，未部署。）
+- 2026-06-12：新增 Signal Arena 量化实验室路线图 `docs/superpowers/plans/2026-06-12-signal-arena-quant-lab-roadmap.md`；规划新账号从 0 跑确定性量化策略，当前公开体验移除旧 AI 账号历史/对照，采用 `Q-Alpha v1` 多因子趋势动量策略、页面改造、回测版本化、每周 AI 复盘，以及 TradingAgents 作为研究/复盘层参考而非第一版交易闭环依赖。
 - 2026-06-12：补充 Signal Arena 量化路线图的策略版本时间表；明确 `Q-Alpha v1-v4` 的最早/稳妥时间、进入下一版的样本量与证据门槛、每版范围边界、回滚/冻结规则，避免把“代码写完”误认为“策略有效”。
 - 2026-06-12：补充 Quant Lab 用户参与与调参机制；路线图新增“用户参与与调参机制”，并新增用户向使用指南草稿 `docs/signal-arena-quant-lab-user-guide.md`，覆盖每日查看、每周复盘、参数含义、调参触发条件、候选版本流程和向 Codex 发起调参实验的模板。
 - 2026-06-12：扩展 Quant Lab 使用指南的参数说明；`docs/signal-arena-quant-lab-user-guide.md` 第 4 节补齐买入/卖出阈值、趋势/动量/突破/成交量/波动/追高、仓位/现金/持仓数、止损和冷却期等参数的作用、调高/调低影响、何时调整、常见误区和参数联动关系。
@@ -196,10 +197,10 @@
 
 ## 下一步
 
-1. 将 `docs/superpowers/plans/2026-06-12-signal-arena-quant-lab-roadmap.md` 拆成 Phase 0 implementation plan：新量化账号接入、旧 AI 账号归档、页面命名从 AI Trader 改为 Quant Lab、确保新旧收益不混算
-2. 开发 Quant Lab 页面时同步维护 `docs/signal-arena-quant-lab-user-guide.md`，并在页面中展示策略参数解释、效果判断指标和候选调参实验入口/说明
-3. 下次网络可访问生产域名时，继续检查最近 A 股安全交易窗口内的新 Signal Arena cron/manual run，确认 `decisionTrace.signalContext` 非空；若未生效，由 10:20 的 `Signal Arena 信号层巡检` 自动定位并修复
-4. 下一个 A 股交易窗口继续观察是否还出现旧版“卖出数量超过可卖数量或触发 T+1 限制。”合并文案；预期公开 API 不再输出该旧文案，新日志会显示具体风控原因
+1. 部署 Quant Lab 前先执行 `workers/signal-arena-api/migrations/2026-06-12-quant-lab.sql`，并把生产 `SIGNAL_ARENA_AGENT_API_KEY` 切到新的量化账号 key；明文 key 不写入仓库
+2. 部署 Worker 后先用 `dryRun=true` 手动运行，确认 `home / portfolio / stocks-list / stock-history` 正常，D1 新 run 写入 `account_scope=quant-v1`、`strategy_version=Q-Alpha v1`、`strategy_trace_json`
+3. A 股交易时段内再执行一次非 dry-run，确认公开 `/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank` 只显示新量化账号数据，不再合并旧本地 AI 历史
+4. Quant Lab 稳定运行后进入下一阶段：回测脚本、候选策略版本和每周 AI 复盘；同步维护 `docs/signal-arena-quant-lab-user-guide.md`
 5. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
 6. 每天北京时间 09:10 通过 `mays-site 每日巡检` 自动检查线上页面是否出现 4xx/5xx、配置缺失、数据异常陈旧或公开密钥泄漏
 7. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态

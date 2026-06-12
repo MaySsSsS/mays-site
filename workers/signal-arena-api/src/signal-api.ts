@@ -2,6 +2,9 @@ import type {
   AiCandidateAction,
   ArenaApiResponse,
   ArenaHomeData,
+  ArenaStockHistoryData,
+  ArenaStocksData,
+  ArenaStocksListData,
   ArenaLeaderboardData,
   ArenaPortfolioData,
   ArenaSnapshotsData,
@@ -57,6 +60,20 @@ export async function fetchArenaTopMovers(env: Env): Promise<ArenaTopMoversData>
 
 export async function fetchArenaSnapshots(env: Env): Promise<ArenaSnapshotsData> {
   return await requestArena<ArenaSnapshotsData>(env, "/api/v1/arena/snapshots");
+}
+
+export async function fetchArenaStocks(env: Env, market = "CN", limit = 300): Promise<ArenaStocksData> {
+  const params = new URLSearchParams({ market, limit: String(limit) });
+  return await requestArena<ArenaStocksData>(env, `/api/v1/arena/stocks?${params.toString()}`);
+}
+
+export async function fetchArenaStocksList(env: Env): Promise<ArenaStocksListData> {
+  return await requestArena<ArenaStocksListData>(env, "/api/v1/arena/stocks-list");
+}
+
+export async function fetchArenaStockHistory(env: Env, symbol: string): Promise<ArenaStockHistoryData> {
+  const params = new URLSearchParams({ symbol });
+  return await requestArena<ArenaStockHistoryData>(env, `/api/v1/arena/stock-history?${params.toString()}`);
 }
 
 export async function submitArenaTrade(env: Env, action: AiCandidateAction): Promise<unknown> {

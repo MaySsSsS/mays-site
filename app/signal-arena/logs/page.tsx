@@ -7,8 +7,8 @@ import { getSignalArenaPublicData } from "@/lib/signal-arena-data";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Signal Arena Logs",
-  description: "MAYS UNIVERSE 的 AI Trader Runner 决策日志。"
+  title: "Quant Lab Logs",
+  description: "MAYS UNIVERSE 的 Q-Alpha v1 策略日志。"
 };
 
 export default async function SignalArenaLogsPage() {

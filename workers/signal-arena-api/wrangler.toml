@@ -24,6 +24,8 @@ crons = [
 [vars]
 CORS_ORIGIN = "https://maysssss.cn"
 SIGNAL_ARENA_BASE_URL = "https://signal.coze.com"
+SIGNAL_ARENA_ACCOUNT_SCOPE = "quant-v1"
+SIGNAL_ARENA_STRATEGY_VERSION = "Q-Alpha v1"
 SIGNAL_ARENA_AI_PROVIDER = "custom-responses"
 SIGNAL_ARENA_AI_BASE_URL = "https://sub2.de5.net"
 SIGNAL_ARENA_AI_STRICT_MODEL = "gpt-5.4"

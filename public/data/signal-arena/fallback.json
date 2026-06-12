@@ -27,6 +27,8 @@
     "currentRank": null,
     "returnRate": 0,
     "leaderGap": null,
+    "previousGap": null,
+    "topTenGap": null,
     "leaders": [],
     "nearby": [],
     "updatedAt": "2026-05-22T00:00:00.000Z"
@@ -40,7 +42,9 @@
       "returnRate": 0,
       "currentRank": null,
       "status": "snapshot",
-      "actionSummary": "等待首次 Runner 快照"
+      "actionSummary": "等待首次 Quant Lab 快照",
+      "accountScope": "quant-v1",
+      "strategyVersion": "Q-Alpha v1"
     }
   ],
   "operations": {
@@ -49,9 +53,34 @@
     "dataAgeSeconds": null,
     "latestRunStatus": null,
     "latestRunFinishedAt": null,
-    "latestRunSummary": "等待 Signal Arena Worker 同步。",
+    "latestRunSummary": "等待 Quant Lab Worker 同步。",
     "equityPointCount": 1,
     "equityCoverageDays": 0,
     "logCount": 0
+  },
+  "strategy": {
+    "name": "Q-Alpha",
+    "version": "Q-Alpha v1",
+    "accountScope": "quant-v1",
+    "runMode": "live",
+    "parameters": {
+      "buyThreshold": 70,
+      "sellScoreThreshold": 45,
+      "targetPositionRate": 0.12,
+      "maxPositionRate": 0.2,
+      "rebalancePositionRate": 0.15,
+      "minCashRate": 0.2,
+      "maxHoldings": 6,
+      "stopLossRate": -0.08,
+      "takeProfitRate": 0.12,
+      "recentSellPenaltyDays": 7,
+      "maxHistorySymbolsPerRun": 24,
+      "maxDailyBuys": 1
+    }
+  },
+  "account": {
+    "scope": "quant-v1",
+    "strategyVersion": "Q-Alpha v1",
+    "displayName": "Quant Lab"
   }
 }

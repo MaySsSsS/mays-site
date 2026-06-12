@@ -14,12 +14,19 @@ CREATE TABLE IF NOT EXISTS signal_arena_runs (
   order_result_json TEXT,
   before_state_json TEXT,
   decision_trace_json TEXT,
+  strategy_trace_json TEXT,
+  strategy_parameters_json TEXT,
   after_snapshot_json TEXT,
-  error_message TEXT
+  error_message TEXT,
+  account_scope TEXT NOT NULL DEFAULT 'quant-v1',
+  strategy_version TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_signal_arena_runs_started_at
 ON signal_arena_runs (started_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_signal_arena_runs_scope_started_at
+ON signal_arena_runs (account_scope, started_at DESC);
 
 CREATE TABLE IF NOT EXISTS signal_arena_snapshots (
   id TEXT PRIMARY KEY,
@@ -27,8 +34,13 @@ CREATE TABLE IF NOT EXISTS signal_arena_snapshots (
   created_at TEXT NOT NULL,
   source_status TEXT NOT NULL,
   dashboard_json TEXT NOT NULL,
-  rank_json TEXT NOT NULL
+  rank_json TEXT NOT NULL,
+  account_scope TEXT NOT NULL DEFAULT 'quant-v1',
+  strategy_version TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_signal_arena_snapshots_created_at
 ON signal_arena_snapshots (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_signal_arena_snapshots_scope_created_at
+ON signal_arena_snapshots (account_scope, created_at DESC);

@@ -17,6 +17,10 @@ function formatRate(value: number): string {
   return `${(value * 100).toFixed(2)}%`;
 }
 
+function formatGap(value: number | null, label: string): string {
+  return value === null ? `${label}待同步` : `${label}${formatMoney(value)}`;
+}
+
 export function SignalArenaRank({ rank }: SignalArenaRankProps) {
   return (
     <section className={styles.rankPage}>
@@ -24,9 +28,9 @@ export function SignalArenaRank({ rank }: SignalArenaRankProps) {
         <span className={styles.rankHeroLabel}>当前排名</span>
         <strong className={styles.rankHeroValue}>{rank.currentRank ?? "未同步"}</strong>
         <em className={styles.rankHeroMeta}>收益率 {formatRate(rank.returnRate)}</em>
-        <p className={styles.rankHeroNote}>
-          {rank.leaderGap === null ? "与榜首差距待同步" : `距榜首 ${formatMoney(rank.leaderGap)}`}
-        </p>
+        <p className={styles.rankHeroNote}>{formatGap(rank.previousGap, "距前一名 ")}</p>
+        <p className={styles.rankHeroNote}>{formatGap(rank.topTenGap, "距前 10 ")}</p>
+        <p className={styles.rankHeroNote}>{formatGap(rank.leaderGap, "距榜首 ")}</p>
       </div>
 
       <section className={styles.section}>

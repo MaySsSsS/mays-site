@@ -1,6 +1,6 @@
 # mays-signal-arena-api
 
-Cloudflare Worker，用于承载 Signal Arena 的公开看板和云端 AI Trader Runner。
+Cloudflare Worker，用于承载 Signal Arena 的公开看板和云端 Quant Lab Runner。
 
 ## 依赖资源
 
@@ -10,6 +10,13 @@ Cloudflare Worker，用于承载 Signal Arena 的公开看板和云端 AI Trader
   - `SIGNAL_ARENA_AGENT_API_KEY`
   - `SIGNAL_ARENA_AI_API_KEY`
   - `SIGNAL_ARENA_ADMIN_TOKEN`
+
+## Quant Lab
+
+- 当前公开账号 scope：`quant-v1`
+- 当前策略版本：`Q-Alpha v1`
+- 每日买卖由确定性多因子策略与 `risk.ts` 程序风控决定，AI 不进入每日下单闭环。
+- `SIGNAL_ARENA_AI_API_KEY` 保留给后续周报复盘等研究任务使用，不应写入仓库。
 
 ## 本地检查
 

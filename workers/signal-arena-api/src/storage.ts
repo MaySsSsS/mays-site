@@ -1,14 +1,18 @@
 import type { Env } from "./types";
 
-const PUBLIC_CACHE_KEY = "public:all";
 const RUNNER_LOCK_KEY = "runner:lock";
+const DEFAULT_ACCOUNT_SCOPE = "quant-v1";
 
-export async function getCachedPublicData<T>(env: Env): Promise<T | null> {
-  return await env.SIGNAL_ARENA_KV.get<T>(PUBLIC_CACHE_KEY, "json");
+function publicCacheKey(accountScope = DEFAULT_ACCOUNT_SCOPE): string {
+  return `public:all:${accountScope}`;
 }
 
-export async function putCachedPublicData(env: Env, value: unknown): Promise<void> {
-  await env.SIGNAL_ARENA_KV.put(PUBLIC_CACHE_KEY, JSON.stringify(value));
+export async function getCachedPublicData<T>(env: Env, accountScope = DEFAULT_ACCOUNT_SCOPE): Promise<T | null> {
+  return await env.SIGNAL_ARENA_KV.get<T>(publicCacheKey(accountScope), "json");
+}
+
+export async function putCachedPublicData(env: Env, value: unknown, accountScope = DEFAULT_ACCOUNT_SCOPE): Promise<void> {
+  await env.SIGNAL_ARENA_KV.put(publicCacheKey(accountScope), JSON.stringify(value));
 }
 
 export async function acquireRunnerLock(env: Env, runId: string, ttlSeconds: number): Promise<boolean> {
@@ -48,8 +52,12 @@ export async function insertRun(
     orderResultJson: string | null;
     beforeStateJson?: string | null;
     decisionTraceJson?: string | null;
+    strategyTraceJson?: string | null;
+    strategyParametersJson?: string | null;
     afterSnapshotJson?: string | null;
     errorMessage: string | null;
+    accountScope?: string;
+    strategyVersion?: string;
   }
 ): Promise<void> {
   await env.SIGNAL_ARENA_DB.prepare(
@@ -57,8 +65,9 @@ export async function insertRun(
       id, started_at, finished_at, status, trigger, market_session,
       market_view, risk_level, summary, candidates_json, selected_action_json,
       risk_result_json, order_result_json, before_state_json, decision_trace_json,
-      after_snapshot_json, error_message
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      strategy_trace_json, strategy_parameters_json, after_snapshot_json, error_message,
+      account_scope, strategy_version
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       run.id,
@@ -76,8 +85,12 @@ export async function insertRun(
       run.orderResultJson,
       run.beforeStateJson ?? null,
       run.decisionTraceJson ?? null,
+      run.strategyTraceJson ?? null,
+      run.strategyParametersJson ?? null,
       run.afterSnapshotJson ?? null,
-      run.errorMessage
+      run.errorMessage,
+      run.accountScope ?? DEFAULT_ACCOUNT_SCOPE,
+      run.strategyVersion ?? null
     )
     .run();
 }
@@ -97,8 +110,12 @@ export type SignalArenaRunRow = {
   order_result_json: string | null;
   before_state_json: string | null;
   decision_trace_json: string | null;
+  strategy_trace_json?: string | null;
+  strategy_parameters_json?: string | null;
   after_snapshot_json: string | null;
   error_message?: string | null;
+  account_scope?: string | null;
+  strategy_version?: string | null;
 };
 
 export type SignalArenaSnapshotRow = {
@@ -108,9 +125,11 @@ export type SignalArenaSnapshotRow = {
   source_status: string;
   dashboard_json: string;
   rank_json: string;
+  account_scope?: string | null;
+  strategy_version?: string | null;
 };
 
-export async function listRecentRuns(env: Env, limit = 30): Promise<SignalArenaRunRow[]> {
+export async function listRecentRuns(env: Env, limit = 30, accountScope = DEFAULT_ACCOUNT_SCOPE): Promise<SignalArenaRunRow[]> {
   if (typeof env.SIGNAL_ARENA_DB.prepare !== "function") {
     return [];
   }
@@ -119,12 +138,14 @@ export async function listRecentRuns(env: Env, limit = 30): Promise<SignalArenaR
     const result = await env.SIGNAL_ARENA_DB.prepare(
       `SELECT id, started_at, finished_at, status, trigger, market_view, risk_level, summary,
         candidates_json, selected_action_json, risk_result_json, order_result_json,
-        before_state_json, decision_trace_json, after_snapshot_json, error_message
+        before_state_json, decision_trace_json, strategy_trace_json, strategy_parameters_json,
+        after_snapshot_json, error_message, account_scope, strategy_version
        FROM signal_arena_runs
+       WHERE account_scope = ?
        ORDER BY started_at DESC
        LIMIT ?`
     )
-      .bind(limit)
+      .bind(accountScope, limit)
       .all<SignalArenaRunRow>();
 
     return result.results ?? [];
@@ -142,12 +163,15 @@ export async function insertSnapshot(
     sourceStatus: string;
     dashboardJson: string;
     rankJson: string;
+    accountScope?: string;
+    strategyVersion?: string | null;
   }
 ): Promise<void> {
   await env.SIGNAL_ARENA_DB.prepare(
     `INSERT INTO signal_arena_snapshots (
-      id, run_id, created_at, source_status, dashboard_json, rank_json
-    ) VALUES (?, ?, ?, ?, ?, ?)`
+      id, run_id, created_at, source_status, dashboard_json, rank_json,
+      account_scope, strategy_version
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       snapshot.id,
@@ -155,24 +179,28 @@ export async function insertSnapshot(
       snapshot.createdAt,
       snapshot.sourceStatus,
       snapshot.dashboardJson,
-      snapshot.rankJson
+      snapshot.rankJson,
+      snapshot.accountScope ?? DEFAULT_ACCOUNT_SCOPE,
+      snapshot.strategyVersion ?? null
     )
     .run();
 }
 
-export async function listRecentSnapshots(env: Env, limit = 300): Promise<SignalArenaSnapshotRow[]> {
+export async function listRecentSnapshots(env: Env, limit = 300, accountScope = DEFAULT_ACCOUNT_SCOPE): Promise<SignalArenaSnapshotRow[]> {
   if (typeof env.SIGNAL_ARENA_DB.prepare !== "function") {
     return [];
   }
 
   try {
     const result = await env.SIGNAL_ARENA_DB.prepare(
-      `SELECT id, run_id, created_at, source_status, dashboard_json, rank_json
+      `SELECT id, run_id, created_at, source_status, dashboard_json, rank_json,
+        account_scope, strategy_version
        FROM signal_arena_snapshots
+       WHERE account_scope = ?
        ORDER BY created_at DESC
        LIMIT ?`
     )
-      .bind(limit)
+      .bind(accountScope, limit)
       .all<SignalArenaSnapshotRow>();
 
     return result.results ?? [];
