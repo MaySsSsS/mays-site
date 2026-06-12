@@ -1,6 +1,9 @@
 import { requestStrictDecision } from "./ai-provider";
+import { arenaList } from "./arena-normalize";
 import { buildDecisionPrompt } from "./prompt";
+import { publicRunnerErrorFor } from "./run-error";
 import { selectExecutableAction } from "./risk";
+import { generateTradingSignals } from "./signal-generator";
 import {
   fetchArenaHome,
   fetchArenaPortfolio,
@@ -10,18 +13,29 @@ import {
   submitArenaTrade
 } from "./signal-api";
 import { acquireRunnerLock, insertRun, insertSnapshot, releaseRunnerLock } from "./storage";
-import type { ArenaHomeData, ArenaPortfolioData, DecisionPromptContext, Env, RiskContext, RunnerTrigger } from "./types";
+import type {
+  ArenaHomeData,
+  ArenaHolding,
+  ArenaPortfolioData,
+  ArenaSnapshot,
+  ArenaTopMover,
+  ArenaTrade,
+  DecisionPromptContext,
+  Env,
+  RiskContext,
+  RunnerTrigger
+} from "./types";
 
 function isCnTradingSession(date = new Date()): boolean {
   const shanghai = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
   const day = shanghai.getDay();
-  const minutes = shanghai.getHours() * 60 + shanghai.getMinutes();
+  const minutes = shanghai.getHours() * 60 + shanghai.getMinutes() + shanghai.getSeconds() / 60;
 
   if (day === 0 || day === 6) {
     return false;
   }
 
-  return (minutes >= 570 && minutes <= 690) || (minutes >= 780 && minutes <= 900);
+  return (minutes >= 570 && minutes < 690) || (minutes >= 780 && minutes < 897);
 }
 
 function firstNumber(...values: unknown[]): number | undefined {
@@ -47,7 +61,31 @@ function noteReason(value: unknown): string | null {
   return null;
 }
 
-function accountState(home: ArenaHomeData, portfolio: ArenaPortfolioData): {
+function isArenaMarketClosed(value: unknown): boolean {
+  const status = typeof value === "string" ? value.trim().toLowerCase() : "";
+
+  return ["closed", "close", "market_closed", "not_open", "not-open", "non_trading", "non-trading", "休市", "未开盘"].some((token) =>
+    status.includes(token)
+  );
+}
+
+function portfolioHoldings(portfolio: ArenaPortfolioData): ArenaHolding[] {
+  return arenaList<ArenaHolding>(portfolio, ["holdings", "positions", "items", "records", "data"]);
+}
+
+function tradeRecords(trades: unknown): ArenaTrade[] {
+  return arenaList<ArenaTrade>(trades, ["trades", "orders", "records", "items", "data"]);
+}
+
+function topMoverList(topMovers: unknown): ArenaTopMover[] {
+  return arenaList<ArenaTopMover>(topMovers, ["movers", "top_movers", "items", "records", "data"]);
+}
+
+function snapshotRecords(snapshots: unknown): ArenaSnapshot[] {
+  return arenaList<ArenaSnapshot>(snapshots, ["snapshots", "records", "items", "data"]);
+}
+
+function accountState(home: ArenaHomeData, portfolio: ArenaPortfolioData, holdings: ArenaHolding[]): {
   totalAssets: number;
   cash: number;
   returnRate: number;
@@ -60,7 +98,7 @@ function accountState(home: ArenaHomeData, portfolio: ArenaPortfolioData): {
     cash: firstNumber(home.cash, home.portfolio?.cash, portfolio.portfolio?.cash) ?? 0,
     returnRate: firstNumber(home.return_rate, home.portfolio?.return_rate, portfolio.portfolio?.return_rate) ?? 0,
     currentRank: home.rank ?? null,
-    holdingsCount: (portfolio.holdings ?? []).length
+    holdingsCount: holdings.length
   };
 }
 
@@ -115,17 +153,50 @@ export async function runSignalArenaTrader(
       return { id, status: "skipped" };
     }
 
-    const [home, portfolio, trades, topMovers, snapshots] = await Promise.all([
-      fetchArenaHome(env),
+    const home = await fetchArenaHome(env);
+
+    if (isArenaMarketClosed(home.market_status)) {
+      await insertRun(env, {
+        id,
+        startedAt,
+        finishedAt: new Date().toISOString(),
+        status: "skipped",
+        trigger: options.trigger,
+        marketSession: "closed",
+        marketView: null,
+        riskLevel: null,
+        summary: "上游显示 A 股当前未开盘，本轮不调用 AI。",
+        candidatesJson: "[]",
+        selectedActionJson: null,
+        riskResultJson: JSON.stringify({ allowed: false, reasons: ["Arena market is closed."] }),
+        orderResultJson: null,
+        errorMessage: null
+      });
+      return { id, status: "skipped" };
+    }
+
+    const [portfolio, trades, topMovers, snapshots] = await Promise.all([
       fetchArenaPortfolio(env),
       fetchArenaTrades(env),
       fetchArenaTopMovers(env),
       fetchArenaSnapshots(env)
     ]);
 
-    const beforeState = accountState(home, portfolio);
+    const allHoldings = portfolioHoldings(portfolio);
+    const beforeState = accountState(home, portfolio, allHoldings);
     const totalAssets = beforeState.totalAssets;
-    const holdings = (portfolio.holdings ?? []).filter((holding) => holding.market === "CN");
+    const holdings = allHoldings.filter((holding) => holding.market === "CN");
+    const recentTrades = tradeRecords(trades);
+    const topMoverRecords = topMoverList(topMovers);
+    const snapshotsRecords = snapshotRecords(snapshots);
+    const signals = generateTradingSignals({
+      now: (options.now ?? new Date()).toISOString(),
+      totalAssets,
+      cash: beforeState.cash,
+      holdings,
+      topMovers: topMoverRecords,
+      recentTrades
+    });
     const context: DecisionPromptContext = {
       now: (options.now ?? new Date()).toISOString(),
       account: {
@@ -142,8 +213,8 @@ export async function runSignalArenaTrader(
         positionRate: totalAssets > 0 ? (holding.market_value ?? 0) / totalAssets : 0,
         profitRate: holding.profit_rate ?? 0
       })),
-      signals: [],
-      recentTrades: (trades.trades ?? []).slice(0, 20).map((trade) => ({
+      signals,
+      recentTrades: recentTrades.slice(0, 20).map((trade) => ({
         symbol: trade.symbol,
         action: trade.action,
         shares: trade.shares,
@@ -151,13 +222,13 @@ export async function runSignalArenaTrader(
         reason: trade.reason ?? noteReason(trade.note),
         createdAt: trade.created_at ?? trade.submitted_at ?? trade.executed_at ?? null
       })),
-      topMovers: (topMovers.movers ?? topMovers.top_movers ?? []).slice(0, 20).map((mover) => ({
+      topMovers: topMoverRecords.slice(0, 20).map((mover) => ({
         symbol: mover.symbol,
         name: mover.name ?? mover.symbol,
         changeRate: firstNumber(mover.change_rate, mover.changeRate) ?? 0,
         price: firstNumber(mover.price) ?? null
       })),
-      snapshots: (snapshots.snapshots ?? []).slice(0, 20).map((snapshot) => ({
+      snapshots: snapshotsRecords.slice(0, 20).map((snapshot) => ({
         capturedAt: snapshot.created_at ?? snapshot.captured_at ?? null,
         totalAssets: firstNumber(snapshot.total_assets, snapshot.total_value) ?? 0,
         returnRate: firstNumber(snapshot.return_rate) ?? 0,
@@ -186,7 +257,7 @@ export async function runSignalArenaTrader(
           holding.symbol,
           {
             shares: holding.shares,
-            availableShares: holding.available_shares ?? 0,
+            availableShares: holding.available_shares ?? holding.shares,
             marketValue: holding.market_value ?? 0,
             positionRate: totalAssets > 0 ? (holding.market_value ?? 0) / totalAssets : 0
           }
@@ -199,7 +270,8 @@ export async function runSignalArenaTrader(
         ? await submitArenaTrade(env, risk.selectedAction)
         : null;
 
-    const status = risk.allowed ? (options.dryRun ? "held" : "executed") : "blocked";
+    const isObserveDecision = risk.selectedAction?.action === "hold" || (!risk.selectedAction && decision.final_action === null);
+    const status = isObserveDecision ? "held" : risk.allowed ? (options.dryRun ? "held" : "executed") : "blocked";
     const finishedAt = new Date().toISOString();
     const afterSnapshot = beforeState;
     const decisionTrace = {
@@ -210,7 +282,8 @@ export async function runSignalArenaTrader(
       rejectedActions: decision.rejected_actions,
       publicExplanation: decision.public_explanation,
       cashPlan: decision.cash_plan,
-      watchlist: decision.watchlist
+      watchlist: decision.watchlist,
+      signalContext: signals
     };
 
     await insertRun(env, {
@@ -252,6 +325,9 @@ export async function runSignalArenaTrader(
 
     return { id, status };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown runner error";
+    const publicError = publicRunnerErrorFor(errorMessage);
+
     await insertRun(env, {
       id,
       startedAt,
@@ -261,12 +337,12 @@ export async function runSignalArenaTrader(
       marketSession: "unknown",
       marketView: null,
       riskLevel: null,
-      summary: "Runner 执行失败。",
+      summary: publicError?.summary ?? "Runner 执行失败。",
       candidatesJson: "[]",
       selectedActionJson: null,
-      riskResultJson: JSON.stringify({ allowed: false, reasons: [] }),
+      riskResultJson: JSON.stringify({ allowed: false, reasons: publicError?.riskReasons ?? [] }),
       orderResultJson: null,
-      errorMessage: error instanceof Error ? error.message : "Unknown runner error"
+      errorMessage
     });
     return { id, status: "failed" };
   } finally {

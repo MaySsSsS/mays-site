@@ -16,7 +16,7 @@ function validateAction(action: AiCandidateAction, context: RiskContext): string
   }
 
   if (action.action === "hold") {
-    reasons.push("本轮建议为 hold，无需下单。");
+    return ["AI 最终选择 HOLD，观望/持有，不需要下单。"];
   }
 
   if (action.shares <= 0 || action.shares % 100 !== 0) {
@@ -45,8 +45,14 @@ function validateAction(action: AiCandidateAction, context: RiskContext): string
   }
 
   if (action.action === "sell") {
-    if (!holding || action.shares > holding.availableShares) {
-      reasons.push("卖出数量超过可卖数量或触发 T+1 限制。");
+    if (!holding) {
+      reasons.push("当前没有可卖持仓。");
+    } else {
+      if (holding.availableShares <= 0) {
+        reasons.push("当前持仓暂无可卖数量，可能触发 T+1 限制。");
+      } else if (action.shares > holding.availableShares) {
+        reasons.push(`卖出数量超过可卖数量，当前最多可卖 ${holding.availableShares} 股。`);
+      }
     }
   }
 
@@ -58,30 +64,28 @@ function validateAction(action: AiCandidateAction, context: RiskContext): string
 }
 
 export function selectExecutableAction(decision: AiDecision, context: RiskContext): RiskSelection {
-  const sorted = [...decision.candidates].sort((a, b) => a.priority - b.priority);
+  const action = decision.final_action;
 
-  for (const action of sorted) {
-    const reasons = validateAction(action, context);
-    if (reasons.length === 0) {
-      return {
-        allowed: true,
-        reasons: [],
-        selectedAction: action
-      };
-    }
+  if (!action) {
+    return {
+      allowed: false,
+      reasons: ["AI 最终选择观望，未提交交易动作。"],
+      selectedAction: null
+    };
+  }
 
-    if (action === sorted[0]) {
-      return {
-        allowed: false,
-        reasons,
-        selectedAction: action
-      };
-    }
+  const reasons = validateAction(action, context);
+  if (reasons.length === 0) {
+    return {
+      allowed: true,
+      reasons: [],
+      selectedAction: action
+    };
   }
 
   return {
     allowed: false,
-    reasons: ["AI 未给出候选动作。"],
-    selectedAction: null
+    reasons,
+    selectedAction: action
   };
 }

@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { buildDecisionPrompt, extractDecisionJson } from "./prompt";
+import type { DecisionPromptContext } from "./types";
 
-const context = {
+const context: DecisionPromptContext = {
   now: "2026-05-22T10:00:00+08:00",
   account: { totalAssets: 1000000, cash: 300000, returnRate: 0.02, rank: 12 },
   holdings: [
@@ -16,7 +17,19 @@ const context = {
       profitRate: 0.03
     }
   ],
-  signals: [{ symbol: "sz000858", name: "五粮液", changeRate: 0.04 }],
+  signals: [
+    {
+      symbol: "sz000858",
+      name: "五粮液",
+      signalType: "pullback_entry",
+      suggestedAction: "buy",
+      confidence: 0.62,
+      risk: "medium",
+      changeRate: 0.04,
+      price: 128,
+      reason: "温和走强，作为小仓位候选。"
+    }
+  ],
   recentTrades: [],
   topMovers: [],
   snapshots: [],
@@ -41,6 +54,20 @@ test("buildDecisionPrompt asks for auditable decision trace", () => {
   assert.match(prompt.user, /decision_route/);
   assert.match(prompt.user, /rejected_actions/);
   assert.match(prompt.user, /public_explanation/);
+});
+
+test("buildDecisionPrompt explains generated signals as evidence rather than commands", () => {
+  const prompt = buildDecisionPrompt(context);
+
+  assert.match(prompt.user, /signals 是前置信号/);
+  assert.match(prompt.user, /不是强制交易指令/);
+});
+
+test("buildDecisionPrompt tells the AI to respect sellable share limits", () => {
+  const prompt = buildDecisionPrompt(context);
+
+  assert.match(prompt.user, /availableShares/);
+  assert.match(prompt.user, /不要给 sell final_action/);
 });
 
 test("extractDecisionJson parses the decision payload from surrounding text", () => {

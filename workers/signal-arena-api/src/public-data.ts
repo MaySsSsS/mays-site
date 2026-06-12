@@ -4,17 +4,25 @@ import {
   fetchArenaPortfolio,
   fetchArenaTrades
 } from "./signal-api";
+import { arenaList } from "./arena-normalize";
+import { publicRunnerErrorFor } from "./run-error";
 import { getCachedPublicData, listRecentRuns, listRecentSnapshots, putCachedPublicData } from "./storage";
 import type { SignalArenaSnapshotRow } from "./storage";
 import type {
+  ArenaHolding,
   ArenaHomeData,
   ArenaLeaderboardData,
+  ArenaLeaderboardEntry,
   ArenaPortfolioData,
+  ArenaTrade,
   ArenaTradesData,
   Env
 } from "./types";
 
 const CACHE_TTL_SECONDS = 120;
+const LEGACY_COMBINED_SELL_LIMIT_REASON = "卖出数量超过可卖数量或触发 T+1 限制。";
+const LEGACY_COMBINED_SELL_LIMIT_PUBLIC_REASON =
+  "旧版 Runner 将“超出可卖数量”和“T+1”合并提示；新版本已拆分，后续会显示具体原因。";
 
 type PublicMetric = {
   label: string;
@@ -67,6 +75,7 @@ type PublicDecisionTrace = {
   decisionRoute: string[];
   marketAssessment: string[];
   portfolioAssessment: string[];
+  signalContext: PublicTradingSignal[];
   rejectedActions: Array<{
     symbol: string;
     action: "buy" | "sell" | "hold";
@@ -74,6 +83,18 @@ type PublicDecisionTrace = {
     reason: string;
   }>;
   publicExplanation: string;
+};
+
+type PublicTradingSignal = {
+  symbol: string;
+  name: string;
+  signalType: "pullback_entry" | "momentum_watch" | "take_profit_watch" | "stop_loss_watch" | "position_rebalance";
+  suggestedAction: "buy" | "sell" | "hold";
+  confidence: number;
+  risk: "low" | "medium" | "high";
+  changeRate: number | null;
+  price: number | null;
+  reason: string;
 };
 
 type PublicEquityPoint = {
@@ -259,6 +280,14 @@ function enumValue<T extends string>(value: unknown, options: Set<T>, fallback: 
 const MARKET_VALUES = new Set<PublicHolding["market"]>(["CN", "HK", "US"]);
 const RUN_STATUSES = new Set<PublicRunLog["status"]>(["executed", "held", "blocked", "skipped", "failed"]);
 const CANDIDATE_ACTIONS = new Set<"buy" | "sell" | "hold">(["buy", "sell", "hold"]);
+const SIGNAL_TYPES = new Set<PublicTradingSignal["signalType"]>([
+  "pullback_entry",
+  "momentum_watch",
+  "take_profit_watch",
+  "stop_loss_watch",
+  "position_rebalance"
+]);
+const SIGNAL_RISKS = new Set<PublicTradingSignal["risk"]>(["low", "medium", "high"]);
 const TRADE_ACTIONS = new Set<PublicTrade["action"]>(["buy", "sell"]);
 const SOURCE_STATUSES = new Set<PublicDashboard["sourceStatus"]>(["live", "stale", "fallback", "error"]);
 const RISK_LEVELS = new Set<PublicRunLog["riskLevel"]>(["low", "medium", "high", "unknown"]);
@@ -340,6 +369,22 @@ function sanitizePublicRejectedAction(value: unknown): PublicDecisionTrace["reje
   };
 }
 
+function sanitizePublicTradingSignal(value: unknown): PublicTradingSignal {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    symbol: stringValue(record.symbol),
+    name: stringValue(record.name),
+    signalType: enumValue(record.signalType, SIGNAL_TYPES, "momentum_watch"),
+    suggestedAction: enumValue(record.suggestedAction, CANDIDATE_ACTIONS, "hold"),
+    confidence: numberValue(record.confidence),
+    risk: enumValue(record.risk, SIGNAL_RISKS, "medium"),
+    changeRate: nullableNumber(record.changeRate),
+    price: nullableNumber(record.price),
+    reason: stringValue(record.reason)
+  };
+}
+
 function sanitizePublicDecisionTrace(value: unknown): PublicDecisionTrace | null {
   if (!isRecord(value)) {
     return null;
@@ -350,6 +395,7 @@ function sanitizePublicDecisionTrace(value: unknown): PublicDecisionTrace | null
     decisionRoute: stringArray(value.decisionRoute),
     marketAssessment: stringArray(value.marketAssessment),
     portfolioAssessment: stringArray(value.portfolioAssessment),
+    signalContext: arrayValue(value.signalContext).map(sanitizePublicTradingSignal),
     rejectedActions: arrayValue(value.rejectedActions).map(sanitizePublicRejectedAction),
     publicExplanation: stringValue(value.publicExplanation)
   };
@@ -650,8 +696,44 @@ function normalizeDecisionTrace(value: unknown): unknown {
     decisionRoute: value.decisionRoute ?? value.decision_route,
     marketAssessment: value.marketAssessment ?? value.market_assessment,
     portfolioAssessment: value.portfolioAssessment ?? value.portfolio_assessment,
+    signalContext: value.signalContext ?? value.signal_context,
     rejectedActions: value.rejectedActions ?? value.rejected_actions,
     publicExplanation: value.publicExplanation ?? value.public_explanation
+  };
+}
+
+function isHoldAction(value: unknown): boolean {
+  return isRecord(value) && value.action === "hold";
+}
+
+function isSellAction(value: unknown): boolean {
+  return isRecord(value) && value.action === "sell";
+}
+
+function normalizeRiskResultForHoldDecision(value: unknown): unknown {
+  const record = isRecord(value) ? value : {};
+  const reasons = arrayValue(record.reasons)
+    .map((reason) => stringValue(reason))
+    .filter((reason) => reason !== "A 股交易股数必须是 100 的整数倍。")
+    .map((reason) => (reason === "本轮建议为 hold，无需下单。" ? "AI 最终选择 HOLD，观望/持有，不需要下单。" : reason));
+
+  return {
+    ...record,
+    allowed: false,
+    reasons: reasons.length > 0 ? reasons : ["AI 最终选择 HOLD，观望/持有，不需要下单。"]
+  };
+}
+
+function normalizeRiskResultForSellDecision(value: unknown): unknown {
+  const record = isRecord(value) ? value : {};
+  const reasons = arrayValue(record.reasons).map((reason) => {
+    const text = stringValue(reason);
+    return text === LEGACY_COMBINED_SELL_LIMIT_REASON ? LEGACY_COMBINED_SELL_LIMIT_PUBLIC_REASON : text;
+  });
+
+  return {
+    ...record,
+    reasons
   };
 }
 
@@ -671,22 +753,35 @@ function mapRunRowToPublicRunLog(row: {
   before_state_json: string | null;
   decision_trace_json: string | null;
   after_snapshot_json: string | null;
+  error_message?: string | null;
 }): PublicRunLog {
   const decisionTrace = parseJson<unknown>(row.decision_trace_json, null);
   const decisionTraceRecord = isRecord(decisionTrace) ? decisionTrace : {};
+  const selectedAction = parseJson<unknown>(row.selected_action_json, null);
+  const holdDecision = isHoldAction(selectedAction);
+  const sellDecision = isSellAction(selectedAction);
+  const riskResult = parseJson<unknown>(row.risk_result_json, { allowed: false, reasons: [] });
+  const riskResultRecord = isRecord(riskResult) ? riskResult : {};
+  const publicError = row.status === "failed" ? publicRunnerErrorFor(row.error_message ?? null) : null;
 
   return sanitizePublicRunLog({
     id: row.id,
     startedAt: row.started_at,
     finishedAt: row.finished_at,
-    status: row.status,
+    status: row.status === "blocked" && holdDecision ? "held" : row.status,
     trigger: row.trigger,
     marketView: row.market_view ?? "unknown",
     riskLevel: row.risk_level ?? "unknown",
-    summary: row.summary ?? "无摘要",
+    summary: publicError?.summary ?? row.summary ?? "无摘要",
     candidates: parseJson<unknown[]>(row.candidates_json, []),
-    selectedAction: parseJson<unknown>(row.selected_action_json, null),
-    riskResult: parseJson<unknown>(row.risk_result_json, { allowed: false, reasons: [] }),
+    selectedAction,
+    riskResult: holdDecision
+      ? normalizeRiskResultForHoldDecision(riskResult)
+      : sellDecision
+        ? normalizeRiskResultForSellDecision(riskResult)
+        : publicError
+          ? { ...riskResultRecord, allowed: false, reasons: publicError.riskReasons }
+          : riskResult,
     orderResult: pickPublicOrderResult(parseJson<unknown>(row.order_result_json, null)),
     beforeState: parseJson<unknown>(row.before_state_json, null),
     decisionTrace: normalizeDecisionTrace(decisionTrace),
@@ -810,7 +905,19 @@ function mergePublicData(
   };
 }
 
-function toPublicHolding(holding: NonNullable<ArenaPortfolioData["holdings"]>[number], totalAssets: number): PublicHolding {
+function portfolioHoldings(portfolio: ArenaPortfolioData): ArenaHolding[] {
+  return arenaList<ArenaHolding>(portfolio, ["holdings", "positions", "items", "records", "data"]);
+}
+
+function leaderboardEntries(leaderboard: ArenaLeaderboardData): ArenaLeaderboardEntry[] {
+  return arenaList<ArenaLeaderboardEntry>(leaderboard, ["leaderboard", "leaders", "ranking", "items", "records", "data"]);
+}
+
+function tradeRecords(trades: ArenaTradesData): ArenaTrade[] {
+  return arenaList<ArenaTrade>(trades, ["trades", "orders", "records", "items", "data"]);
+}
+
+function toPublicHolding(holding: ArenaHolding, totalAssets: number): PublicHolding {
   const marketValue = holding.market_value ?? 0;
 
   return {
@@ -835,7 +942,8 @@ function toPublicSnapshot(
   leaderboard: ArenaLeaderboardData
 ): PublicSnapshot {
   const updatedAt = new Date().toISOString();
-  const holdings = portfolio.holdings ?? [];
+  const holdings = portfolioHoldings(portfolio);
+  const leaders = leaderboardEntries(leaderboard);
   const totalAssets =
     maybeNumber(home.total_assets, home.portfolio?.total_value, portfolio.portfolio?.total_value, home.initial_capital) ?? 0;
   const initialCapital = maybeNumber(home.initial_capital, portfolio.portfolio?.total_invested) ?? 1000000;
@@ -845,7 +953,7 @@ function toPublicSnapshot(
   const publicHoldings = holdings.map((holding) => toPublicHolding(holding, totalAssets));
   const currentAgentId = home.agent_id ?? home.agent?.id ?? null;
 
-  const leaderEntries = (leaderboard.leaderboard ?? []).slice(0, 10).map((entry) => ({
+  const leaderEntries = leaders.slice(0, 10).map((entry) => ({
     rank: entry.rank,
     nickname: entry.nickname ?? entry.agent?.nickname ?? entry.agent?.username ?? "unknown",
     totalAssets: entry.total_assets ?? entry.total_value ?? 0,
@@ -857,7 +965,7 @@ function toPublicSnapshot(
 
   const nearbyEntries = currentRank === null
     ? []
-    : (leaderboard.leaderboard ?? [])
+    : leaders
         .filter((entry) => Math.abs(entry.rank - currentRank) <= 3)
         .map((entry) => ({
           rank: entry.rank,
@@ -871,7 +979,7 @@ function toPublicSnapshot(
 
   const topLeader = leaderEntries[0] ?? null;
   const leaderGap = topLeader && currentRank !== null ? Math.max(topLeader.totalAssets - totalAssets, 0) : null;
-  const recentTrades = (trades.trades ?? []).slice(0, 20).map((trade) => ({
+  const recentTrades = tradeRecords(trades).slice(0, 20).map((trade) => ({
     symbol: trade.symbol,
     action: trade.action,
     shares: trade.shares,

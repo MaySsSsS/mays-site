@@ -50,6 +50,24 @@ export type ArenaHomeData = {
   frozen_cash?: number;
   return_rate?: number;
   rank?: number;
+  market_status?: string;
+};
+
+export type ArenaListShape<T> = T[] | Record<string, unknown>;
+
+export type ArenaHolding = {
+  symbol: string;
+  name: string;
+  market: "CN" | "HK" | "US";
+  shares: number;
+  available_shares?: number;
+  avg_cost?: number;
+  cost_price?: number;
+  current_price?: number;
+  market_value?: number;
+  profit_loss?: number;
+  profit?: number;
+  profit_rate?: number;
 };
 
 export type ArenaPortfolioData = {
@@ -62,91 +80,81 @@ export type ArenaPortfolioData = {
     total_fees?: number;
     joined_at?: string;
   };
-  holdings?: Array<{
-    symbol: string;
-    name: string;
-    market: "CN" | "HK" | "US";
-    shares: number;
-    available_shares?: number;
-    avg_cost?: number;
-    cost_price?: number;
-    current_price?: number;
-    market_value?: number;
-    profit_loss?: number;
-    profit?: number;
-    profit_rate?: number;
-  }>;
+  holdings?: ArenaListShape<ArenaHolding>;
+};
+
+export type ArenaLeaderboardEntry = {
+  rank: number;
+  agent?: {
+    id?: string;
+    username?: string;
+    nickname?: string;
+    avatar_url?: string;
+  };
+  nickname?: string;
+  total_assets?: number;
+  total_value?: number;
+  return_rate?: number;
+  agent_id?: string;
 };
 
 export type ArenaLeaderboardData = {
-  leaderboard?: Array<{
-    rank: number;
-    agent?: {
-      id?: string;
-      username?: string;
-      nickname?: string;
-      avatar_url?: string;
-    };
-    nickname?: string;
-    total_assets?: number;
-    total_value?: number;
-    return_rate?: number;
-    agent_id?: string;
-  }>;
+  leaderboard?: ArenaListShape<ArenaLeaderboardEntry>;
+};
+
+export type ArenaTrade = {
+  id?: string;
+  order_id?: string;
+  symbol: string;
+  name?: string;
+  market?: string;
+  action: "buy" | "sell";
+  shares: number;
+  price?: number;
+  total_amount?: number;
+  commission?: number;
+  stamp_tax?: number;
+  total_fees?: number;
+  status: string;
+  note?: unknown;
+  reason?: string;
+  created_at?: string;
+  submitted_at?: string;
+  executed_at?: string;
 };
 
 export type ArenaTradesData = {
-  trades?: Array<{
-    id?: string;
-    order_id?: string;
-    symbol: string;
-    name?: string;
-    market?: string;
-    action: "buy" | "sell";
-    shares: number;
-    price?: number;
-    total_amount?: number;
-    commission?: number;
-    stamp_tax?: number;
-    total_fees?: number;
-    status: string;
-    note?: unknown;
-    reason?: string;
-    created_at?: string;
-    submitted_at?: string;
-    executed_at?: string;
-  }>;
+  trades?: ArenaListShape<ArenaTrade>;
 };
 
+export type ArenaTopMover = {
+  symbol: string;
+  name?: string;
+  change_rate?: number;
+  changeRate?: number;
+  price?: number;
+  market?: string;
+};
+
+export type ArenaTopMoverGroups = Record<string, ArenaTopMover[]>;
+
 export type ArenaTopMoversData = {
-  movers?: Array<{
-    symbol: string;
-    name?: string;
-    change_rate?: number;
-    changeRate?: number;
-    price?: number;
-    market?: string;
-  }>;
-  top_movers?: Array<{
-    symbol: string;
-    name?: string;
-    change_rate?: number;
-    changeRate?: number;
-    price?: number;
-    market?: string;
-  }>;
+  movers?: ArenaListShape<ArenaTopMover>;
+  top_movers?: ArenaListShape<ArenaTopMover>;
+};
+
+export type ArenaSnapshot = {
+  created_at?: string;
+  captured_at?: string;
+  total_assets?: number;
+  total_value?: number;
+  return_rate?: number;
+  rank?: number;
+  current_rank?: number;
 };
 
 export type ArenaSnapshotsData = {
-  snapshots?: Array<{
-    created_at?: string;
-    captured_at?: string;
-    total_assets?: number;
-    total_value?: number;
-    return_rate?: number;
-    rank?: number;
-    current_rank?: number;
-  }>;
+  snapshots?: ArenaListShape<ArenaSnapshot>;
 };
 
 export type DecisionPromptContext = {
@@ -165,11 +173,7 @@ export type DecisionPromptContext = {
     positionRate: number;
     profitRate: number;
   }>;
-  signals: Array<{
-    symbol: string;
-    name: string;
-    changeRate: number;
-  }>;
+  signals: TradingSignal[];
   recentTrades: Array<{
     symbol: string;
     action: "buy" | "sell";
@@ -191,6 +195,18 @@ export type DecisionPromptContext = {
     rank: number | null;
   }>;
   constraints: string[];
+};
+
+export type TradingSignal = {
+  symbol: string;
+  name: string;
+  signalType: "pullback_entry" | "momentum_watch" | "take_profit_watch" | "stop_loss_watch" | "position_rebalance";
+  suggestedAction: "buy" | "sell" | "hold";
+  confidence: number;
+  risk: "low" | "medium" | "high";
+  changeRate: number | null;
+  price: number | null;
+  reason: string;
 };
 
 export type AiCandidateAction = {
