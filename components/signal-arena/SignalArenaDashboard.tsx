@@ -76,7 +76,7 @@ export function SignalArenaDashboard({ dashboard, logs, equityHistory, operation
     <section className={styles.dashboard}>
       <SignalArenaEquityChart
         history={chartHistory}
-        defaultRange="7D"
+        defaultRange="30P"
         onPointClick={setSelectedPoint}
       />
       <SignalArenaDecisionModal

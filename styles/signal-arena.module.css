@@ -28,6 +28,12 @@
   gap: 8px;
 }
 
+.headerMeta {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
 .eyebrow,
 .updated,
 .metricLabel,
@@ -47,6 +53,28 @@
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
+}
+
+.homeLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid #34465a;
+  border-radius: 4px;
+  color: #f0b90b;
+  background: #0a1118;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.homeLink:hover,
+.homeLink:focus-visible {
+  border-color: #f0b90b;
+  color: #070b10;
+  background: #f0b90b;
 }
 
 .title {
@@ -113,6 +141,75 @@
 
 .content {
   margin-top: 16px;
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) repeat(2, minmax(0, 0.7fr));
+  gap: 14px;
+}
+
+.loadingPanel,
+.loadingBlock {
+  border: 1px solid #253241;
+  border-radius: 6px;
+  background: #0d141c;
+}
+
+.loadingPanel {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  min-height: 180px;
+  padding: 18px;
+}
+
+.loadingEyebrow {
+  color: #f0b90b;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.loadingTitle,
+.loadingText {
+  margin: 0;
+}
+
+.loadingTitle {
+  color: #ffffff;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  line-height: 1.05;
+}
+
+.loadingText {
+  color: #93a4b7;
+}
+
+.loadingBlock {
+  display: grid;
+  gap: 12px;
+  min-height: 180px;
+  padding: 18px;
+}
+
+.loadingBlock span {
+  border-radius: 4px;
+  background: linear-gradient(90deg, #111c27, #253241, #111c27);
+  background-size: 220% 100%;
+  animation: loadingPulse 1200ms ease-in-out infinite;
+}
+
+.loadingBlock span:nth-child(1) {
+  width: 78%;
+}
+
+.loadingBlock span:nth-child(2) {
+  width: 100%;
+}
+
+.loadingBlock span:nth-child(3) {
+  width: 58%;
 }
 
 .dashboard,
@@ -245,6 +342,40 @@
   min-height: 340px;
 }
 
+.chartFallbackList {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.chartFallbackList button {
+  display: grid;
+  gap: 6px;
+  min-height: 74px;
+  padding: 10px;
+  border: 1px solid #253241;
+  border-radius: 4px;
+  color: #cbd6e2;
+  text-align: left;
+  background: #0a1118;
+  cursor: pointer;
+}
+
+.chartFallbackList span,
+.chartFallbackList em {
+  color: #718196;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.chartFallbackList strong {
+  color: #f6465d;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
 .table,
 .rankList {
   display: grid;
@@ -299,6 +430,21 @@
   border-radius: 4px;
   color: #070b10;
   background: #f0b90b;
+}
+
+.sourceBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  color: #cbd6e2;
+  background: #0a1118;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .toneBadge {
@@ -546,7 +692,9 @@
   .marketStrip,
   .operationsGrid,
   .traceGrid,
-  .modalGrid {
+  .chartFallbackList,
+  .modalGrid,
+  .loadingGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -561,11 +709,17 @@
     grid-template-columns: 1fr;
   }
 
+  .headerMeta {
+    justify-items: start;
+  }
+
   .metricGrid,
   .marketStrip,
   .operationsGrid,
   .traceGrid,
-  .modalGrid {
+  .chartFallbackList,
+  .modalGrid,
+  .loadingGrid {
     grid-template-columns: 1fr;
   }
 
@@ -579,5 +733,24 @@
 
   .chartCanvas {
     min-height: 280px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingBlock span {
+    animation: none;
+  }
+}
+
+@keyframes loadingPulse {
+  0%,
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.64;
+  }
+
+  50% {
+    background-position: 100% 50%;
+    opacity: 1;
   }
 }

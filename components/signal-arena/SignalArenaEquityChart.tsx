@@ -6,7 +6,12 @@ import * as echarts from "echarts";
 import type { SignalArenaEquityPoint } from "@/types/signal-arena";
 import styles from "@/styles/signal-arena.module.css";
 
-type RangeKey = "7D" | "30D" | "ALL";
+type RangeKey = "30P" | "90P" | "ALL";
+
+type RangeOption = {
+  id: RangeKey;
+  label: string;
+};
 
 type SignalArenaEquityChartProps = {
   history: SignalArenaEquityPoint[];
@@ -14,7 +19,11 @@ type SignalArenaEquityChartProps = {
   onPointClick: (point: SignalArenaEquityPoint) => void;
 };
 
-const RANGE_OPTIONS: RangeKey[] = ["7D", "30D", "ALL"];
+const RANGE_OPTIONS: RangeOption[] = [
+  { id: "30P", label: "近 30 点" },
+  { id: "90P", label: "近 90 点" },
+  { id: "ALL", label: "全部" }
+];
 const UP_COLOR = "#f6465d";
 const DOWN_COLOR = "#00c076";
 
@@ -36,14 +45,30 @@ function formatDateTime(value: string): string {
   });
 }
 
-function rangeStart(points: SignalArenaEquityPoint[], range: RangeKey): number {
-  if (range === "ALL" || points.length === 0) {
-    return Number.NEGATIVE_INFINITY;
-  }
+function compactDateTime(value: string): string {
+  return new Date(value).toLocaleString("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+}
 
-  const latest = Math.max(...points.map((point) => Date.parse(point.capturedAt)).filter(Number.isFinite));
-  const days = range === "7D" ? 7 : 30;
-  return latest - days * 24 * 60 * 60 * 1000;
+function pointLimit(range: RangeKey): number {
+  switch (range) {
+    case "30P":
+      return 30;
+    case "90P":
+      return 90;
+    case "ALL":
+      return Number.POSITIVE_INFINITY;
+  }
+}
+
+function limitPoints(points: SignalArenaEquityPoint[], range: RangeKey): SignalArenaEquityPoint[] {
+  const limit = pointLimit(range);
+  return Number.isFinite(limit) ? points.slice(-limit) : points;
 }
 
 function pointDelta(points: SignalArenaEquityPoint[], index: number): number {
@@ -71,6 +96,7 @@ function tooltipHtml(points: SignalArenaEquityPoint[], value: unknown): string {
 
   return [
     `<strong>${formatDateTime(point.capturedAt)}</strong>`,
+    `来源 ${point.sourceLabel ?? "实时 Runner"} / ${point.confidence ?? "high"}`,
     `总资产 ${formatMoney(point.totalAssets)}`,
     `收益率 ${formatPercent(point.returnRate)}`,
     `变动 ${deltaText}`,
@@ -98,6 +124,10 @@ function clickPoint(params: unknown, points: SignalArenaEquityPoint[]): SignalAr
   return points.find((point) => point.id === id) ?? null;
 }
 
+function pointCategory(index: number): string {
+  return String(index + 1);
+}
+
 export function SignalArenaEquityChart({
   history,
   defaultRange,
@@ -109,8 +139,7 @@ export function SignalArenaEquityChart({
 
   const points = useMemo(() => {
     const sorted = [...history].sort((left, right) => Date.parse(left.capturedAt) - Date.parse(right.capturedAt));
-    const start = rangeStart(sorted, range);
-    return sorted.filter((point) => Date.parse(point.capturedAt) >= start);
+    return limitPoints(sorted, range);
   }, [history, range]);
 
   useEffect(() => {
@@ -120,6 +149,7 @@ export function SignalArenaEquityChart({
 
     const chart = echarts.init(chartRef.current, undefined, { renderer: "canvas" });
     chartInstanceRef.current = chart;
+    const xAxisLabels = points.map((_, index) => pointCategory(index));
 
     const segmentSeries: echarts.SeriesOption[] = points.slice(1).map((point, index) => {
       const previous = points[index];
@@ -128,8 +158,8 @@ export function SignalArenaEquityChart({
       return {
         type: "line" as const,
         data: [
-          [Date.parse(previous.capturedAt), previous.returnRate * 100],
-          [Date.parse(point.capturedAt), point.returnRate * 100]
+          [pointCategory(index), previous.returnRate * 100],
+          [pointCategory(index + 1), point.returnRate * 100]
         ],
         showSymbol: false,
         smooth: true,
@@ -166,12 +196,18 @@ export function SignalArenaEquityChart({
         }
       },
       xAxis: {
-        type: "time",
+        type: "category",
+        data: xAxisLabels,
+        boundaryGap: false,
         axisLine: { lineStyle: { color: "#334155" } },
         axisTick: { show: false },
         axisLabel: {
           color: "#8fa3b8",
-          hideOverlap: true
+          hideOverlap: true,
+          formatter: (value: string) => {
+            const point = points[Number(value) - 1];
+            return point ? compactDateTime(point.capturedAt) : "";
+          }
         },
         splitLine: { show: false }
       },
@@ -189,7 +225,7 @@ export function SignalArenaEquityChart({
           type: "scatter" as const,
           data: points.map((point, index) => ({
             name: point.id,
-            value: [Date.parse(point.capturedAt), point.returnRate * 100, point.id],
+            value: [pointCategory(index), point.returnRate * 100, point.id],
             itemStyle: {
               color: index === 0 || point.totalAssets >= points[index - 1].totalAssets ? UP_COLOR : DOWN_COLOR,
               opacity: 0.92
@@ -227,17 +263,17 @@ export function SignalArenaEquityChart({
       <div className={styles.chartHeader}>
         <div>
           <h2 className={styles.sectionTitle}>收益曲线</h2>
-          <p className={styles.sectionNote}>默认展示最近 7 天，快照会随 Runner 累积；点位可打开对应 AI 决策。</p>
+          <p className={styles.sectionNote}>默认展示最近 30 个快照，点位等距排列；真实时间保留在悬浮详情里。</p>
         </div>
-        <div className={styles.rangeTabs} aria-label="收益曲线范围">
+        <div className={styles.rangeTabs} aria-label="收益曲线点位数量">
           {RANGE_OPTIONS.map((option) => (
             <button
-              key={option}
+              key={option.id}
               type="button"
-              className={option === range ? styles.rangeButtonActive : styles.rangeButton}
-              onClick={() => setRange(option)}
+              className={option.id === range ? styles.rangeButtonActive : styles.rangeButton}
+              onClick={() => setRange(option.id)}
             >
-              {option}
+              {option.label}
             </button>
           ))}
         </div>
@@ -246,12 +282,23 @@ export function SignalArenaEquityChart({
       {points.length === 0 ? (
         <p className={styles.empty}>收益曲线等待首个快照。</p>
       ) : (
-        <div
-          ref={chartRef}
-          className={styles.chartCanvas}
-          aria-label="Signal Arena equity curve"
-          onClick={points.length === 1 ? () => onPointClick(points[0]) : undefined}
-        />
+        <>
+          <div
+            ref={chartRef}
+            className={styles.chartCanvas}
+            aria-label="Signal Arena equity curve"
+            onClick={points.length === 1 ? () => onPointClick(points[0]) : undefined}
+          />
+          <div className={styles.chartFallbackList} aria-label="收益曲线点位摘要">
+            {points.slice(-6).map((point) => (
+              <button key={point.id} type="button" onClick={() => onPointClick(point)}>
+                <span>{compactDateTime(point.capturedAt)}</span>
+                <strong>{formatPercent(point.returnRate)}</strong>
+                <em>{point.sourceLabel ?? "实时 Runner"}</em>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </section>
   );

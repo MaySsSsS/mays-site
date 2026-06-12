@@ -12,6 +12,7 @@ const fallbackJson = await readFile(new URL("../public/data/signal-arena/fallbac
 const packageJson = await readFile(new URL("../package.json", import.meta.url), "utf8");
 const planFile = await readFile(new URL("../docs/superpowers/plans/2026-05-22-signal-arena.md", import.meta.url), "utf8");
 const dashboardPage = await readFile(new URL("../app/signal-arena/page.tsx", import.meta.url), "utf8").catch(() => "");
+const loadingPage = await readFile(new URL("../app/signal-arena/loading.tsx", import.meta.url), "utf8").catch(() => "");
 const logsPage = await readFile(new URL("../app/signal-arena/logs/page.tsx", import.meta.url), "utf8").catch(() => "");
 const rankPage = await readFile(new URL("../app/signal-arena/rank/page.tsx", import.meta.url), "utf8").catch(() => "");
 const dashboardComponent = await readFile(new URL("../components/signal-arena/SignalArenaDashboard.tsx", import.meta.url), "utf8").catch(() => "");
@@ -42,6 +43,8 @@ test("Signal Arena public types exist and do not expose secret fields", () => {
   assert.match(typeFile, /export type SignalArenaEquityPoint/);
   assert.match(typeFile, /export type SignalArenaDecisionTrace/);
   assert.match(typeFile, /export type SignalArenaOperations/);
+  assert.match(typeFile, /export type SignalArenaDataSource/);
+  assert.match(typeFile, /source\?: SignalArenaDataSource/);
   assert.match(typeFile, /equityHistory: SignalArenaEquityPoint\[\]/);
   assert.match(typeFile, /operations: SignalArenaOperations/);
   assert.doesNotMatch(typeFile, /apiKey|agent-auth-api-key|SIGNAL_ARENA_AI_API_KEY|SIGNAL_ARENA_ADMIN_TOKEN|orderId/);
@@ -61,6 +64,7 @@ test("Signal Arena sanitizer whitelist-copies public data", () => {
   assert.match(sanitizerFile, /export function toSignalArenaPublicData/);
   assert.match(sanitizerFile, /sanitizeDecisionTrace/);
   assert.match(sanitizerFile, /sanitizeEquityPoint/);
+  assert.match(sanitizerFile, /sanitizeSourceMeta/);
   assert.match(sanitizerFile, /sanitizeOperations/);
   assert.match(sanitizerFile, /equityHistory: arrayValue\(value\.equityHistory\)/);
   assert.match(sanitizerFile, /operations: sanitizeOperations/);
@@ -193,6 +197,7 @@ test("Signal Arena sanitizer removes private and unknown worker fields", async (
   });
   assert.deepEqual(result.logs[0].watchlist, ["sh600519"]);
   assert.equal(result.equityHistory[0].runId, "run-1");
+  assert.equal(result.equityHistory[0].source, undefined);
   assert.equal(result.operations.tone, "attention");
   assert.equal(result.operations.latestRunStatus, "failed");
   assert.equal("adminToken" in result.operations, false);
@@ -259,18 +264,44 @@ test("Signal Arena dashboard and shell expose empty and active states", () => {
   assert.match(shellComponent, /aria-current=\{item\.id === active \? "page" : undefined\}/);
 });
 
+test("Signal Arena shell provides a clear route back to the portal home", () => {
+  assert.match(shellComponent, /href="\/"/);
+  assert.match(shellComponent, /返回首页/);
+  assert.match(shellComponent, /styles\.homeLink/);
+});
+
+test("Signal Arena route has an instant loading state for slow server data", () => {
+  assert.match(loadingPage, /SignalArenaShell/);
+  assert.match(loadingPage, /active="dashboard"/);
+  assert.match(loadingPage, /正在同步/);
+  assert.match(loadingPage, /styles\.loadingGrid/);
+  assert.match(loadingPage, /styles\.loadingBlock/);
+});
+
 test("Signal Arena dashboard includes equity curve and decision modal contracts", () => {
   assert.match(dashboardComponent, /SignalArenaEquityChart/);
   assert.match(dashboardComponent, /SignalArenaDecisionModal/);
-  assert.match(dashboardComponent, /defaultRange="7D"/);
-  assert.match(equityChartComponent, /"7D"/);
-  assert.match(equityChartComponent, /"30D"/);
+  assert.match(dashboardComponent, /defaultRange="30P"/);
+  assert.match(equityChartComponent, /"30P"/);
+  assert.match(equityChartComponent, /"90P"/);
   assert.match(equityChartComponent, /"ALL"/);
+  assert.match(equityChartComponent, /近 30 点/);
+  assert.match(equityChartComponent, /近 90 点/);
+  assert.match(equityChartComponent, /点位数量/);
+  assert.match(equityChartComponent, /pointLimit/);
   assert.match(equityChartComponent, /echarts/);
   assert.match(equityChartComponent, /lineStyle/);
+  assert.match(equityChartComponent, /type: "category"/);
+  assert.match(equityChartComponent, /xAxisLabels/);
+  assert.doesNotMatch(equityChartComponent, /type: "time"/);
+  assert.match(equityChartComponent, /chartFallbackList/);
   assert.match(decisionModalComponent, /决策路线/);
   assert.match(decisionModalComponent, /操作前账户状态/);
   assert.match(decisionModalComponent, /执行结果/);
+  assert.match(decisionModalComponent, /候选判断/);
+  assert.match(decisionModalComponent, /AI 本轮选择观望/);
+  assert.match(decisionModalComponent, /前置信号/);
+  assert.match(typeFile, /signalContext: SignalArenaTradingSignal\[\]/);
 });
 
 test("Signal Arena operations UI and log filters are wired", () => {
@@ -280,4 +311,24 @@ test("Signal Arena operations UI and log filters are wired", () => {
   assert.match(operationsPanelComponent, /快照覆盖/);
   assert.match(logsComponent, /执行\/持有/);
   assert.match(logsComponent, /setActiveFilter/);
+  assert.match(logsComponent, /本轮没有生成可执行决策。/);
+  assert.match(logsComponent, /log\.riskResult\.reasons\.join/);
+  assert.doesNotMatch(logsComponent, /错误来自 AI provider 或上游执行流程/);
+  assert.match(logsComponent, /本轮没有候选买卖动作，AI 已给出观望判断。/);
+  const riskReasonExpression = 'log.riskResult.reasons.join(" / ") || "无风控拦截。"';
+  assert.equal(logsComponent.split(riskReasonExpression).length - 1, 1);
+});
+
+test("Signal Arena local history backfill is merged and labeled", () => {
+  assert.match(dataFile, /historyData/);
+  assert.match(dataFile, /withLocalHistory/);
+  assert.match(dataFile, /mergeEquityHistory/);
+  assert.match(dataFile, /mergeLogs/);
+  assert.match(equityChartComponent, /sourceLabel/);
+  assert.match(equityChartComponent, /confidence/);
+  assert.match(logsComponent, /SOURCE_FILTERS/);
+  assert.match(logsComponent, /来源筛选/);
+  assert.match(logsComponent, /sourceBadge/);
+  assert.match(decisionModalComponent, /HISTORICAL REPORT/);
+  assert.match(decisionModalComponent, /历史报告摘要/);
 });
