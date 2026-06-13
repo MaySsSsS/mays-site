@@ -390,7 +390,15 @@ test("Signal Arena dashboard includes equity curve and decision modal contracts"
   assert.match(decisionModalComponent, /候选排序/);
   assert.match(decisionModalComponent, /策略本轮选择观望/);
   assert.match(decisionModalComponent, /因子评分/);
+  assert.match(decisionModalComponent, /指标快照/);
+  assert.match(decisionModalComponent, /持仓状态/);
+  assert.match(decisionModalComponent, /最近快照/);
+  assert.match(decisionModalComponent, /trace\?\.finalAction/);
+  assert.match(decisionModalComponent, /trace\?\.riskReasons/);
+  assert.match(decisionModalComponent, /trace\?\.recentSnapshots/);
   assert.match(typeFile, /strategyTrace: SignalArenaStrategyTrace \| null/);
+  assert.match(typeFile, /indicators: Record<string, number \| null> \| null/);
+  assert.match(typeFile, /recentSnapshots: Array/);
 });
 
 test("Signal Arena operations UI and log filters are wired", () => {

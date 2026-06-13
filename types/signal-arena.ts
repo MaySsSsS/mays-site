@@ -125,11 +125,26 @@ export type SignalArenaStrategyTrace = {
     score: number;
     source: string[];
     factorScore: Record<string, number>;
+    indicators: Record<string, number | null> | null;
+    holding: {
+      shares: number;
+      availableShares: number;
+      profitRate: number;
+      positionRate: number;
+    } | null;
     rejectionReasons: string[];
     entryReasons: string[];
   }>;
   rejectedReasons: string[];
   finalRule: string;
+  finalAction: SignalArenaCandidateAction | null;
+  riskReasons: string[];
+  recentSnapshots: Array<{
+    capturedAt: string | null;
+    totalAssets: number;
+    returnRate: number;
+    rank: number | null;
+  }>;
   marketRegime: string;
 };
 

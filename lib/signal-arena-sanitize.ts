@@ -227,6 +227,18 @@ function numericRecord(value: unknown): Record<string, number> {
   );
 }
 
+function nullableNumericRecord(value: unknown): Record<string, number | null> | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, number | null] =>
+      entry[1] === null || (typeof entry[1] === "number" && Number.isFinite(entry[1]))
+    )
+  );
+}
+
 function sanitizeStrategyParameters(value: unknown): SignalArenaStrategyParameters {
   const record = numericRecord(value);
 
@@ -246,6 +258,38 @@ function sanitizeStrategyParameters(value: unknown): SignalArenaStrategyParamete
   };
 }
 
+function sanitizeStrategyHolding(value: unknown): SignalArenaStrategyTrace["candidateRanking"][number]["holding"] {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    shares: numberValue(value.shares),
+    availableShares: numberValue(value.availableShares),
+    profitRate: numberValue(value.profitRate),
+    positionRate: numberValue(value.positionRate)
+  };
+}
+
+function sanitizeStrategyAction(value: unknown): SignalArenaStrategyTrace["finalAction"] {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return sanitizeCandidateAction(value);
+}
+
+function sanitizeStrategySnapshot(value: unknown): SignalArenaStrategyTrace["recentSnapshots"][number] {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    capturedAt: nullableString(record.capturedAt ?? record.created_at),
+    totalAssets: numberValue(record.totalAssets ?? record.total_assets ?? record.total_value),
+    returnRate: numberValue(record.returnRate ?? record.return_rate),
+    rank: nullableNumber(record.rank ?? record.current_rank)
+  };
+}
+
 function sanitizeStrategyCandidate(value: unknown): SignalArenaStrategyTrace["candidateRanking"][number] {
   const record = isRecord(value) ? value : {};
   const factorScore = numericRecord(record.factorScore);
@@ -257,6 +301,8 @@ function sanitizeStrategyCandidate(value: unknown): SignalArenaStrategyTrace["ca
     score: numberValue(record.score),
     source: stringArray(record.source),
     factorScore: Object.fromEntries(Object.entries(factorScore).filter(([key]) => allowedFactors.has(key))),
+    indicators: nullableNumericRecord(record.indicators),
+    holding: sanitizeStrategyHolding(record.holding),
     rejectionReasons: stringArray(record.rejectionReasons),
     entryReasons: stringArray(record.entryReasons)
   };
@@ -284,6 +330,9 @@ function sanitizeStrategyTrace(value: unknown): SignalArenaStrategyTrace | null 
     candidateRanking: arrayValue(value.candidateRanking).map(sanitizeStrategyCandidate),
     rejectedReasons: stringArray(value.rejectedReasons),
     finalRule: stringValue(value.finalRule),
+    finalAction: sanitizeStrategyAction(value.finalAction),
+    riskReasons: stringArray(value.riskReasons),
+    recentSnapshots: arrayValue(value.recentSnapshots).map(sanitizeStrategySnapshot),
     marketRegime: stringValue(value.marketRegime, "unknown")
   };
 }

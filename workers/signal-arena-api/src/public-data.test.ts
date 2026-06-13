@@ -396,12 +396,17 @@ test("public data only exposes quant-v1 scoped runs with strategy traces", async
             score: 72,
             source: ["top-movers"],
             factorScore: { trend: 30, momentum: 20, private: 999 },
+            indicators: { close: 48, ma20: 42, ma60: 36, secretAlpha: "hidden" },
+            holding: { shares: 1000, availableShares: 500, profitRate: 0.08, positionRate: 0.12, privateCost: "hidden" },
             rejectionReasons: [],
             entryReasons: ["趋势结构向上"]
           }
         ],
         rejectedReasons: ["今日已达到新增买入上限 1 个。"],
         finalRule: "本轮观望",
+        finalAction: { symbol: "sh600519", action: "hold", shares: 0, priority: 9, confidence: 0.5, reason: "观察" },
+        riskReasons: ["策略最终选择观望，未提交交易动作。"],
+        recentSnapshots: [{ captured_at: updatedAt, total_assets: 1000000, return_rate: 0.01, current_rank: 8, private: "hidden" }],
         marketRegime: "mixed",
         privateThought: "hidden"
       }),
@@ -459,9 +464,16 @@ test("public data only exposes quant-v1 scoped runs with strategy traces", async
   assert.equal(result.logs[0]?.id, "run-quant");
   assert.equal(result.logs[0]?.strategyTrace?.candidateRanking[0]?.score, 72);
   assert.equal(result.logs[0]?.strategyTrace?.candidateRanking[0]?.factorScore.trend, 30);
+  assert.equal(result.logs[0]?.strategyTrace?.candidateRanking[0]?.indicators?.close, 48);
+  assert.equal(result.logs[0]?.strategyTrace?.candidateRanking[0]?.holding?.availableShares, 500);
+  assert.equal(result.logs[0]?.strategyTrace?.finalAction?.action, "hold");
+  assert.equal(result.logs[0]?.strategyTrace?.riskReasons[0], "策略最终选择观望，未提交交易动作。");
+  assert.equal(result.logs[0]?.strategyTrace?.recentSnapshots[0]?.rank, 8);
   assert.equal(bodyText.includes("run-legacy"), false);
   assert.equal(bodyText.includes("run-unscoped-old"), false);
   assert.equal(bodyText.includes("privateThought"), false);
+  assert.equal(bodyText.includes("secretAlpha"), false);
+  assert.equal(bodyText.includes("privateCost"), false);
 });
 
 test("public data presents legacy hold-only blocked runs as held decisions", async () => {
@@ -935,7 +947,6 @@ test("upstream refresh tolerates wrapped list payloads", async () => {
               {
                 symbol: "sh600519",
                 name: "贵州茅台",
-                market: "CN",
                 shares: 100,
                 avg_cost: 1200,
                 current_price: 1300,
@@ -1001,6 +1012,8 @@ test("upstream refresh tolerates wrapped list payloads", async () => {
 
   assert.equal(result.dashboard.sourceStatus, "live");
   assert.equal(result.dashboard.cnHoldings[0]?.symbol, "sh600519");
+  assert.equal(result.dashboard.cnHoldings[0]?.market, "CN");
+  assert.equal(result.dashboard.marketSummaries.find((market) => market.market === "CN")?.holdingsCount, 1);
   assert.equal(result.rank.leaders[0]?.nickname, "Alpha");
   assert.equal(result.rank.leaders.find((entry) => entry.rank === 2)?.isCurrentAgent, true);
   assert.equal(result.recentTrades[0]?.reason, "包装交易记录");

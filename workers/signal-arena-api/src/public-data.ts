@@ -106,11 +106,33 @@ type PublicStrategyTrace = {
     score: number;
     source: string[];
     factorScore: Record<string, number>;
+    indicators: Record<string, number | null> | null;
+    holding: {
+      shares: number;
+      availableShares: number;
+      profitRate: number;
+      positionRate: number;
+    } | null;
     rejectionReasons: string[];
     entryReasons: string[];
   }>;
   rejectedReasons: string[];
   finalRule: string;
+  finalAction: {
+    symbol: string;
+    action: "buy" | "sell" | "hold";
+    shares: number;
+    priority: number;
+    confidence: number;
+    reason: string;
+  } | null;
+  riskReasons: string[];
+  recentSnapshots: Array<{
+    capturedAt: string | null;
+    totalAssets: number;
+    returnRate: number;
+    rank: number | null;
+  }>;
   marketRegime: string;
 };
 
@@ -471,6 +493,57 @@ function sanitizeStrategyParameters(value: unknown): Record<string, number> {
   return Object.fromEntries(Object.entries(record).filter(([key]) => allowed.has(key)));
 }
 
+function nullableNumericRecord(value: unknown): Record<string, number | null> | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, number | null] =>
+      entry[1] === null || (typeof entry[1] === "number" && Number.isFinite(entry[1]))
+    )
+  );
+}
+
+function sanitizePublicStrategyHolding(value: unknown): PublicStrategyTrace["candidateRanking"][number]["holding"] {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    shares: numberValue(value.shares),
+    availableShares: numberValue(value.availableShares),
+    profitRate: numberValue(value.profitRate),
+    positionRate: numberValue(value.positionRate)
+  };
+}
+
+function sanitizePublicStrategyAction(value: unknown): PublicStrategyTrace["finalAction"] {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    symbol: stringValue(value.symbol),
+    action: enumValue(value.action, CANDIDATE_ACTIONS, "hold"),
+    shares: numberValue(value.shares),
+    priority: numberValue(value.priority),
+    confidence: numberValue(value.confidence),
+    reason: stringValue(value.reason)
+  };
+}
+
+function sanitizePublicStrategySnapshot(value: unknown): PublicStrategyTrace["recentSnapshots"][number] {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    capturedAt: nullableString(record.capturedAt ?? record.created_at),
+    totalAssets: numberValue(record.totalAssets ?? record.total_assets ?? record.total_value),
+    returnRate: numberValue(record.returnRate ?? record.return_rate),
+    rank: nullableNumber(record.rank ?? record.current_rank)
+  };
+}
+
 function sanitizePublicStrategyCandidate(value: unknown): PublicStrategyTrace["candidateRanking"][number] {
   const record = isRecord(value) ? value : {};
   const factorScore = numericRecord(record.factorScore);
@@ -482,6 +555,8 @@ function sanitizePublicStrategyCandidate(value: unknown): PublicStrategyTrace["c
     score: numberValue(record.score),
     source: stringArray(record.source),
     factorScore: Object.fromEntries(Object.entries(factorScore).filter(([key]) => allowedFactors.has(key))),
+    indicators: nullableNumericRecord(record.indicators),
+    holding: sanitizePublicStrategyHolding(record.holding),
     rejectionReasons: stringArray(record.rejectionReasons),
     entryReasons: stringArray(record.entryReasons)
   };
@@ -510,6 +585,9 @@ function sanitizePublicStrategyTrace(value: unknown): PublicStrategyTrace | null
     candidateRanking: arrayValue(value.candidateRanking).map(sanitizePublicStrategyCandidate),
     rejectedReasons: stringArray(value.rejectedReasons),
     finalRule: stringValue(value.finalRule),
+    finalAction: sanitizePublicStrategyAction(value.finalAction),
+    riskReasons: stringArray(value.riskReasons),
+    recentSnapshots: arrayValue(value.recentSnapshots).map(sanitizePublicStrategySnapshot),
     marketRegime: stringValue(value.marketRegime, "unknown")
   };
 }
@@ -1065,6 +1143,14 @@ function portfolioHoldings(portfolio: ArenaPortfolioData): ArenaHolding[] {
   return arenaList<ArenaHolding>(portfolio, ["holdings", "positions", "items", "records", "data"]);
 }
 
+function isAshareSymbol(symbol: string): boolean {
+  return /^(sh|sz)\d{6}$/.test(symbol);
+}
+
+function holdingMarket(holding: ArenaHolding): "CN" | "HK" | "US" {
+  return holding.market ?? (isAshareSymbol(holding.symbol) ? "CN" : "US");
+}
+
 function leaderboardEntries(leaderboard: ArenaLeaderboardData): ArenaLeaderboardEntry[] {
   return arenaList<ArenaLeaderboardEntry>(leaderboard, ["leaderboard", "leaders", "ranking", "items", "records", "data"]);
 }
@@ -1079,7 +1165,7 @@ function toPublicHolding(holding: ArenaHolding, totalAssets: number): PublicHold
   return {
     symbol: holding.symbol,
     name: holding.name,
-    market: holding.market,
+    market: holdingMarket(holding),
     shares: holding.shares,
     availableShares: holding.available_shares ?? holding.shares,
     costPrice: holding.cost_price ?? holding.avg_cost ?? 0,
