@@ -4,6 +4,7 @@ import path from "node:path";
 import process from "node:process";
 
 import {
+  buildRecentMissingDates,
   buildSourceUrl,
   entryForAiFailure,
   extractJsonObject,
@@ -20,9 +21,34 @@ const DEFAULT_ZHIPU_MODEL = "GLM-5.1";
 const ROOT_DIR = process.cwd();
 const ARCHIVE_PATH = path.join(ROOT_DIR, "public/data/ai-daily/index.json");
 const ENTRIES_DIR = path.join(ROOT_DIR, "public/data/ai-daily/entries");
+const DEFAULT_LOOKBACK_DAYS = 21;
 
 async function main() {
-  const date = readDateArgument(process.argv.slice(2)) ?? getShanghaiDate();
+  const args = process.argv.slice(2);
+  const explicitDate = readDateArgument(args);
+  const archive = await readArchive(ARCHIVE_PATH);
+
+  if (explicitDate) {
+    await updateDate(explicitDate, archive);
+    return;
+  }
+
+  const today = getShanghaiDate();
+  const lookbackDays = readLookbackArgument(args) ?? DEFAULT_LOOKBACK_DAYS;
+  const dates = buildRecentMissingDates(archive, today, lookbackDays);
+
+  if (dates.length === 0) {
+    console.log(`[ai-daily] no missing entries in the last ${lookbackDays} days`);
+    return;
+  }
+
+  let currentArchive = archive;
+  for (const date of dates) {
+    currentArchive = await updateDate(date, currentArchive);
+  }
+}
+
+async function updateDate(date, archive) {
   const sourceUrl = buildSourceUrl(date);
 
   console.log(`[ai-daily] checking ${date} at ${sourceUrl}`);
@@ -35,13 +61,12 @@ async function main() {
 
   if (!response.ok) {
     console.log(`[ai-daily] source unavailable: ${response.status}`);
-    return;
+    return archive;
   }
 
   const html = await response.text();
   const parsed = parseSourceHtml(html, date);
   const updatedAt = new Date().toISOString();
-  const archive = await readArchive(ARCHIVE_PATH);
   const existingEntry = await readEntry(ENTRIES_DIR, date);
   const entry = await createEntry(parsed, date, updatedAt, existingEntry);
 
@@ -53,6 +78,7 @@ async function main() {
   });
 
   console.log(`[ai-daily] wrote ${date} in ${entry.mode} mode`);
+  return await readArchive(ARCHIVE_PATH);
 }
 
 async function createEntry(parsed, date, updatedAt, existingEntry) {
@@ -143,6 +169,22 @@ function readDateArgument(args) {
   }
 
   return date;
+}
+
+function readLookbackArgument(args) {
+  const lookbackFlagIndex = args.indexOf("--lookback-days");
+
+  if (lookbackFlagIndex === -1) {
+    return null;
+  }
+
+  const value = Number(args[lookbackFlagIndex + 1]);
+
+  if (!Number.isInteger(value) || value < 1 || value > 60) {
+    throw new Error("--lookback-days must be an integer between 1 and 60");
+  }
+
+  return value;
 }
 
 function getShanghaiDate() {
