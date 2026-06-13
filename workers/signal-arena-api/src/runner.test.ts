@@ -294,6 +294,55 @@ test("runSignalArenaTrader sells stop-loss holdings when dryRun is false", async
   }
 });
 
+test("runSignalArenaTrader treats sh/sz holdings without market as CN holdings", async () => {
+  const originalFetch = globalThis.fetch;
+  const statements: Array<{ sql: string; values: unknown[] }> = [];
+  const env = makeEnv(makeDb(statements));
+  const tradeBodies: unknown[] = [];
+
+  globalThis.fetch = async (input, init) => {
+    const url = typeof input === "string" || input instanceof URL ? new URL(input.toString()) : new URL(input.url);
+    if (url.pathname === "/api/v1/arena/trade") {
+      tradeBodies.push(JSON.parse(String(init?.body ?? "{}")));
+    }
+    return baseFetch({
+      holdings: [
+        {
+          symbol: "sh600703",
+          name: "三安光电",
+          shares: 1000,
+          available_shares: 1000,
+          current_price: 20,
+          market_value: 20000,
+          profit_rate: -0.09
+        }
+      ],
+      stockUniverse: [{ symbol: "sh600519", name: "贵州茅台", market: "CN" }],
+      histories: { sh600703: fallingBars(), sh600519: trendBars() }
+    })(input);
+  };
+
+  try {
+    const result = await runSignalArenaTrader(env, {
+      trigger: "manual",
+      dryRun: false,
+      now: new Date("2026-06-12T02:00:00.000Z")
+    });
+    const runInsert = statements.find((statement) => statement.sql.includes("signal_arena_runs"));
+
+    assert.equal(result.status, "executed");
+    assert.deepEqual(tradeBodies[0], {
+      symbol: "sh600703",
+      action: "sell",
+      shares: 1000,
+      reason: "止损触发：持仓收益率 -9.00% <= -8%。"
+    });
+    assert.ok(runInsert?.values.some((value) => typeof value === "string" && value.includes("holding")));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("runSignalArenaTrader uses candidate history prices for buy-side risk checks", async () => {
   const originalFetch = globalThis.fetch;
   const statements: Array<{ sql: string; values: unknown[] }> = [];

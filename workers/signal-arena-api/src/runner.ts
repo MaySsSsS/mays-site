@@ -81,6 +81,14 @@ function topMoverList(topMovers: unknown): ArenaTopMover[] {
   return arenaList<ArenaTopMover>(topMovers, ["movers", "top_movers", "items", "records", "data"]);
 }
 
+function isCnSymbol(symbol: string): boolean {
+  return /^(sh|sz)\d{6}$/.test(symbol);
+}
+
+function isCnHolding(holding: ArenaHolding): boolean {
+  return holding.market === "CN" || (holding.market === undefined && isCnSymbol(holding.symbol));
+}
+
 function snapshotRecords(snapshots: unknown): ArenaSnapshot[] {
   return arenaList<ArenaSnapshot>(snapshots, ["snapshots", "records", "items", "data"]);
 }
@@ -229,7 +237,7 @@ export async function runSignalArenaTrader(
     ]);
 
     const allHoldings = portfolioHoldings(portfolio);
-    const holdings = allHoldings.filter((holding) => holding.market === "CN");
+    const holdings = allHoldings.filter(isCnHolding);
     const beforeState = accountState(home, portfolio, allHoldings);
     const recentTrades = tradeRecords(tradesPayload);
     const topMovers = topMoverList(topMoversPayload).filter((mover) => mover.market === undefined || mover.market === "CN");
