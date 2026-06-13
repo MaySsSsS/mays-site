@@ -31,6 +31,10 @@ async function requestArena<T>(env: Env, path: string, init?: RequestInit): Prom
     throw new Error(`Signal Arena request failed: ${response.status}`);
   }
 
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(`Signal Arena auth failed: ${response.status}`);
+  }
+
   if (!response.ok || !body || body.success === false || !body.data) {
     throw new Error(`Signal Arena request failed: ${response.status}`);
   }
