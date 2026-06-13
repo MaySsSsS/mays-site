@@ -349,6 +349,29 @@ button.panel {
   background: var(--comic-green);
 }
 
+.universePanel {
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 215, 0, 0.95), transparent 0 20%),
+    radial-gradient(circle at 78% 25%, rgba(30, 144, 255, 0.88), transparent 0 18%),
+    radial-gradient(circle at 55% 78%, rgba(226, 54, 54, 0.82), transparent 0 22%),
+    linear-gradient(145deg, rgba(255, 254, 240, 0.94), rgba(49, 197, 91, 0.78));
+  clip-path: polygon(2% 5%, 96% 0, 100% 92%, 7% 100%);
+  transform: rotate(0.7deg);
+}
+
+.universePanel .panelTitle {
+  max-width: 9ch;
+  color: var(--comic-paper);
+  text-shadow:
+    3px 3px 0 var(--comic-blue),
+    6px 6px 0 var(--comic-red),
+    9px 9px 0 var(--comic-black);
+}
+
+.universePanel .panelAction {
+  background: var(--comic-green);
+}
+
 .sealedPanel {
   background:
     linear-gradient(135deg, rgba(255, 254, 240, 0.92), rgba(255, 215, 0, 0.82)),

@@ -16,21 +16,20 @@ test("mobile portal panels keep comic borders and actions inside the viewport", 
   assert.match(portalCss, /@media \(max-width: 640px\)[\s\S]*\.panelAction[\s\S]*align-self: flex-start/);
 });
 
-test("portal keeps a visible sealed panel for future sub-sites", () => {
-  assert.match(portalPage, /const sealedPanels = \[/);
-  assert.match(portalPage, /CLASSIFIED/);
-  assert.match(portalPage, /未完待续/);
-  assert.match(portalPage, /styles\.sealedPanel/);
+test("portal exposes Universe Observatory as a main-site subpage", () => {
+  assert.match(portalPage, /OBSERVATORY/);
+  assert.match(portalPage, /href:\s*"\/universe"/);
+  assert.match(portalPage, /maysssss\.cn\/universe/);
+  assert.match(portalPage, /styles\.universePanel/);
 });
 
-test("portal exposes Quant Lab while preserving sealed panel", () => {
+test("portal exposes Quant Lab and Universe Observatory", () => {
   assert.match(portalPage, /QUANT LAB/);
   assert.match(portalPage, /href:\s*"\/signal-arena"/);
   assert.match(portalPage, /prefetch:\s*true/);
   assert.match(portalPage, /maysssss\.cn\/signal-arena/);
-  assert.match(portalPage, /CLASSIFIED/);
-  assert.match(portalPage, /未完待续/);
-  assert.match(portalPage, /sealedPanels/);
+  assert.match(portalPage, /OBSERVATORY/);
+  assert.match(portalPage, /href:\s*"\/universe"/);
 });
 
 test("Quant Lab keeps the same clickable card layout as other portal entries", () => {

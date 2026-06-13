@@ -47,14 +47,14 @@ const portalItems: PortalItem[] = [
     href: "/ai-daily",
     domain: "maysssss.cn/ai-daily",
     className: styles.aiPanel
-  }
-];
-
-const sealedPanels = [
+  },
   {
-    title: "CLASSIFIED",
-    label: "未完待续",
-    className: styles.sealedPanelBlue
+    eyebrow: "UNIVERSE",
+    title: "OBSERVATORY",
+    href: "/universe",
+    domain: "maysssss.cn/universe",
+    className: styles.universePanel,
+    prefetch: true
   }
 ];
 
@@ -93,21 +93,6 @@ export default function PortalPage() {
             </Link>
           ))}
 
-          {sealedPanels.map((item) => (
-            <button
-              key={item.title}
-              type="button"
-              className={`${styles.panel} ${styles.sealedPanel} ${item.className}`}
-              aria-label={`${item.label} portal is sealed`}
-            >
-              <span className={styles.panelEyebrow}>{item.label}</span>
-              <span className={styles.panelTitle}>{item.title}</span>
-              <span className={styles.sealTape} aria-hidden="true">
-                LOCKED
-              </span>
-              <span className={styles.panelAction}>STAND BY</span>
-            </button>
-          ))}
         </div>
       </section>
     </main>

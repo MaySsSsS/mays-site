@@ -23,6 +23,7 @@
     "test:idea-lab": "node --test scripts/idea-lab.test.mjs",
     "test:portal": "node --test scripts/portal-layout.test.mjs",
     "test:signal-arena": "node --test scripts/signal-arena-layout.test.mjs",
+    "test:universe": "node --test scripts/universe-layout.test.mjs",
     "update:ai-daily": "node scripts/update-ai-daily.mjs"
   },
   "dependencies": {
