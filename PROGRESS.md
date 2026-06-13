@@ -34,6 +34,7 @@
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-12，将 Signal Arena 主决策模型从 `gpt-5.5 / xhigh` 改为 `gpt-5.4 / high`，轻量兜底保持 `gpt-5.4 / low`；fallback 回归测试改为校验 `reasoning.effort`，Worker 部署输出确认新环境变量，部署版本 `df0e9267-e17e-488b-8de6-12402b58866b`）
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-12，将 `/signal-arena` 改造为 Quant Lab；Worker Runner 改用确定性 `Q-Alpha v1` 多因子策略和程序风控，不再让 AI 进入每日下单闭环；新增 market-data 缓存、指标计算、策略 trace、`quant-v1` scope 过滤、D1 migration、首页 `QUANT LAB` 入口、策略日志/弹窗/持仓策略分与入场理由展示；公开页面不再合并旧本地 AI 历史，且旧公开 `public/data/signal-arena/history.json` 与 WorkBuddy 历史导入脚本已删除。补充审计后，migration 会把旧行默认保留为 `legacy-ai`，Rank 页展示距前一名/前 10/榜首差距。构建仍出现既有 `mays-game-api.mays.workers.dev` DNS fallback 告警但最终成功，未部署。）
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-06-13，补齐 Quant Lab 计划缺口：`submitArenaTrade` 改收泛化 `StrategyAction`，日志页每轮记录支持点击或键盘打开完整 `strategyTrace` 弹窗；提升权限后复核 `https://signal.coze.com/skill.md`，确认接口、A 股交易时段、100 股、T+1 与 60/min GET 限速均与当前 Q-Alpha v1 实现一致。构建仍出现既有 `mays-game-api.mays.workers.dev` DNS fallback 告警但最终成功，待部署。）
+- `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm test:portal` / `pnpm typecheck` / `pnpm lint` / `pnpm build` / `pnpm deploy`：通过（2026-06-13，完成 Quant Lab 生产部署。远端 D1 已应用 `2026-06-12-quant-lab.sql`；因旧 trace 列已手动存在但 `d1_migrations` 为空，先补入 `2026-05-23-signal-arena-traces.sql` tracking 记录再执行 Quant Lab migration。API Worker 部署版本 `b85482f5-f0c1-4689-8446-062972f8665c`；前端 Worker 部署版本 `3f1d5d02-5ea6-4bce-83db-eb2c65892de9`。线上 `/signal-arena`、`/signal-arena/logs`、首页入口已切到 Quant Lab / Q-Alpha v1，不再展示旧 WorkBuddy 历史；公开 API 仅返回 `quant-v1` 空态 fallback。已将生产 `SIGNAL_ARENA_AGENT_API_KEY` 切到用户提供的新量化账号 key，但直接请求 `signal.coze.com/api/v1/arena/home` 返回 401 `API Key 无效或已过期`，因此无法完成 admin dry-run 写入真实 `quant-v1` run。）
 - 2026-06-12：新增 Signal Arena 量化实验室路线图 `docs/superpowers/plans/2026-06-12-signal-arena-quant-lab-roadmap.md`；规划新账号从 0 跑确定性量化策略，当前公开体验移除旧 AI 账号历史/对照，采用 `Q-Alpha v1` 多因子趋势动量策略、页面改造、回测版本化、每周 AI 复盘，以及 TradingAgents 作为研究/复盘层参考而非第一版交易闭环依赖。
 - 2026-06-12：补充 Signal Arena 量化路线图的策略版本时间表；明确 `Q-Alpha v1-v4` 的最早/稳妥时间、进入下一版的样本量与证据门槛、每版范围边界、回滚/冻结规则，避免把“代码写完”误认为“策略有效”。
 - 2026-06-12：补充 Quant Lab 用户参与与调参机制；路线图新增“用户参与与调参机制”，并新增用户向使用指南草稿 `docs/signal-arena-quant-lab-user-guide.md`，覆盖每日查看、每周复盘、参数含义、调参触发条件、候选版本流程和向 Codex 发起调参实验的模板。
@@ -194,9 +195,9 @@
 
 ## 下一步
 
-1. 部署 Quant Lab 前先执行 `workers/signal-arena-api/migrations/2026-06-12-quant-lab.sql`，并把生产 `SIGNAL_ARENA_AGENT_API_KEY` 切到新的量化账号 key；明文 key 不写入仓库
-2. 部署 Worker 后先用 `dryRun=true` 手动运行，确认 `home / portfolio / stocks-list / stock-history` 正常，D1 新 run 写入 `account_scope=quant-v1`、`strategy_version=Q-Alpha v1`、`strategy_trace_json`
-3. A 股交易时段内再执行一次非 dry-run，确认公开 `/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank` 只显示新量化账号数据，不再合并旧本地 AI 历史
+1. 需要提供一个 Agent World 校验通过的新量化账号 key；当前已配置到生产的 key 格式有效，但 `join/home` 返回 401 `API Key 无效或已过期`
+2. 拿到有效 key 后更新生产 `SIGNAL_ARENA_AGENT_API_KEY`，立即执行 `dryRun=true` 手动运行，确认 `home / portfolio / stocks-list / stock-history` 正常，D1 新 run 写入 `account_scope=quant-v1`、`strategy_version=Q-Alpha v1`、`strategy_trace_json`
+3. A 股交易时段内再执行一次非 dry-run，确认公开 `/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank` 只显示新量化账号数据
 4. Quant Lab 稳定运行后进入下一阶段：回测脚本、候选策略版本和每周 AI 复盘；同步维护 `docs/signal-arena-quant-lab-user-guide.md`
 5. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
 6. 每天北京时间 09:10 通过 `mays-site 每日巡检` 自动检查线上页面是否出现 4xx/5xx、配置缺失、数据异常陈旧或公开密钥泄漏

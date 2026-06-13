@@ -718,7 +718,7 @@ test("stale cache is returned when upstream fails", async () => {
   assert.equal(result.dashboard.updatedAt, cached.dashboard.updatedAt);
 });
 
-test("public endpoint returns generic 502 when no cache and upstream fails", async () => {
+test("public endpoint returns quant fallback when no cache and upstream fails", async () => {
   const env = makeEnv(makeKv());
 
   globalThis.fetch = async () => {
@@ -726,14 +726,14 @@ test("public endpoint returns generic 502 when no cache and upstream fails", asy
   };
 
   const response = await worker.fetch(new Request("https://maysssss.cn/api/public/all"), env);
-  const body = (await response.json()) as { success: false; error: string; message: string };
+  const body = (await response.json()) as WorkerSnapshot;
 
-  assert.equal(response.status, 502);
-  assert.deepEqual(body, {
-    success: false,
-    error: "upstream_unavailable",
-    message: "Signal Arena upstream unavailable."
-  });
+  assert.equal(response.status, 200);
+  assert.equal(body.dashboard.sourceStatus, "fallback");
+  assert.equal(body.account.scope, "quant-v1");
+  assert.equal(body.strategy.version, "Q-Alpha v1");
+  assert.equal(body.operations.tone, "attention");
+  assert.equal(body.operations.latestRunSummary, "Signal Arena 上游暂不可用，等待 Quant Lab 首次同步。");
 });
 
 test("upstream refresh stays public and keeps private fields out", async () => {
