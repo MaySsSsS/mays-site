@@ -7,14 +7,6 @@ export interface Env {
   SIGNAL_ARENA_ACCOUNT_SCOPE?: string;
   SIGNAL_ARENA_STRATEGY_VERSION?: string;
   SIGNAL_ARENA_ADMIN_TOKEN: string;
-  SIGNAL_ARENA_AI_PROVIDER: string;
-  SIGNAL_ARENA_AI_BASE_URL: string;
-  SIGNAL_ARENA_AI_API_KEY: string;
-  SIGNAL_ARENA_AI_STRICT_MODEL: string;
-  SIGNAL_ARENA_AI_STRICT_REASONING_EFFORT: string;
-  SIGNAL_ARENA_AI_LIGHT_MODEL: string;
-  SIGNAL_ARENA_AI_LIGHT_REASONING_EFFORT: string;
-  SIGNAL_ARENA_AI_DISABLE_RESPONSE_STORAGE: string;
 }
 
 export type RunnerTrigger = "cron" | "manual";
@@ -210,88 +202,13 @@ export type ArenaStockHistoryData = {
   snapshots?: ArenaListShape<ArenaHistoryBar>;
 };
 
-export type DecisionPromptContext = {
-  now: string;
-  account: {
-    totalAssets: number;
-    cash: number;
-    returnRate: number;
-    rank: number | null;
-  };
-  holdings: Array<{
-    symbol: string;
-    name: string;
-    shares: number;
-    availableShares: number;
-    positionRate: number;
-    profitRate: number;
-  }>;
-  signals: TradingSignal[];
-  recentTrades: Array<{
-    symbol: string;
-    action: "buy" | "sell";
-    shares: number;
-    status: string;
-    reason: string | null;
-    createdAt: string | null;
-  }>;
-  topMovers: Array<{
-    symbol: string;
-    name: string;
-    changeRate: number;
-    price: number | null;
-  }>;
-  snapshots: Array<{
-    capturedAt: string | null;
-    totalAssets: number;
-    returnRate: number;
-    rank: number | null;
-  }>;
-  constraints: string[];
-};
-
-export type TradingSignal = {
-  symbol: string;
-  name: string;
-  signalType: "pullback_entry" | "momentum_watch" | "take_profit_watch" | "stop_loss_watch" | "position_rebalance";
-  suggestedAction: "buy" | "sell" | "hold";
-  confidence: number;
-  risk: "low" | "medium" | "high";
-  changeRate: number | null;
-  price: number | null;
-  reason: string;
-};
-
-export type AiCandidateAction = {
+export type StrategyAction = {
   symbol: string;
   action: "buy" | "sell" | "hold";
   shares: number;
   priority: number;
   confidence: number;
   reason: string;
-};
-
-export type StrategyAction = AiCandidateAction;
-
-export type AiDecision = {
-  market_view: "cautious" | "neutral" | "aggressive";
-  risk_level: "low" | "medium" | "high";
-  summary: string;
-  before_state_summary: string;
-  decision_route: string[];
-  market_assessment: string[];
-  portfolio_assessment: string[];
-  candidates: AiCandidateAction[];
-  rejected_actions: Array<{
-    symbol: string;
-    action: "buy" | "sell" | "hold";
-    shares: number;
-    reason: string;
-  }>;
-  final_action: AiCandidateAction | null;
-  cash_plan: string;
-  watchlist: string[];
-  public_explanation: string;
 };
 
 export type RiskContext = {
