@@ -572,6 +572,12 @@
   display: grid;
   gap: 12px;
   padding: 16px;
+  cursor: pointer;
+}
+
+.logItem:focus-visible {
+  outline: 2px solid #f0b90b;
+  outline-offset: 3px;
 }
 
 .logSummary,

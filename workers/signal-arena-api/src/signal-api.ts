@@ -1,5 +1,4 @@
 import type {
-  AiCandidateAction,
   ArenaApiResponse,
   ArenaHomeData,
   ArenaStockHistoryData,
@@ -10,7 +9,8 @@ import type {
   ArenaSnapshotsData,
   ArenaTopMoversData,
   ArenaTradesData,
-  Env
+  Env,
+  StrategyAction
 } from "./types";
 
 async function requestArena<T>(env: Env, path: string, init?: RequestInit): Promise<T> {
@@ -76,7 +76,7 @@ export async function fetchArenaStockHistory(env: Env, symbol: string): Promise<
   return await requestArena<ArenaStockHistoryData>(env, `/api/v1/arena/stock-history?${params.toString()}`);
 }
 
-export async function submitArenaTrade(env: Env, action: AiCandidateAction): Promise<unknown> {
+export async function submitArenaTrade(env: Env, action: StrategyAction): Promise<unknown> {
   return await requestArena<unknown>(env, "/api/v1/arena/trade", {
     method: "POST",
     body: JSON.stringify({

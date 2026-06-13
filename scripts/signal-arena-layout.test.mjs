@@ -401,6 +401,11 @@ test("Signal Arena operations UI and log filters are wired", () => {
   assert.match(logsComponent, /风控拦截/);
   assert.match(logsComponent, /数据不足/);
   assert.match(logsComponent, /setActiveFilter/);
+  assert.match(logsComponent, /SignalArenaDecisionModal/);
+  assert.match(logsComponent, /setSelectedLog/);
+  assert.match(logsComponent, /role="button"/);
+  assert.match(logsComponent, /aria-label=\{`查看/);
+  assert.match(logsComponent, /onKeyDown/);
   assert.match(logsComponent, /Quant Lab 策略日志/);
   assert.match(logsComponent, /log\.riskResult\.reasons\.join/);
   assert.doesNotMatch(logsComponent, /错误来自 AI provider 或上游执行流程/);

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { SignalArenaDecisionModal } from "@/components/signal-arena/SignalArenaDecisionModal";
 import type { SignalArenaRunLog, SignalArenaStrategyTrace } from "@/types/signal-arena";
 import styles from "@/styles/signal-arena.module.css";
 
@@ -72,6 +73,7 @@ function factorLine(candidate: SignalArenaStrategyTrace["candidateRanking"][numb
 
 export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
   const [activeFilter, setActiveFilter] = useState<LogFilter>("all");
+  const [selectedLog, setSelectedLog] = useState<SignalArenaRunLog | null>(null);
   const summary = useMemo(() => ({
     all: logs.length,
     buy: logs.filter((log) => log.selectedAction?.action === "buy").length,
@@ -85,9 +87,30 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
     () => logs.filter((log) => matchesFilter(log, activeFilter)),
     [activeFilter, logs]
   );
+  const selectedPoint = selectedLog
+    ? {
+        id: `log-${selectedLog.id}`,
+        runId: selectedLog.id,
+        capturedAt: selectedLog.finishedAt ?? selectedLog.startedAt,
+        totalAssets: selectedLog.afterSnapshot?.totalAssets ?? selectedLog.beforeState?.totalAssets ?? 0,
+        returnRate: selectedLog.afterSnapshot?.returnRate ?? selectedLog.beforeState?.returnRate ?? 0,
+        currentRank: selectedLog.afterSnapshot?.currentRank ?? selectedLog.beforeState?.currentRank ?? null,
+        status: selectedLog.status,
+        actionSummary: selectedLog.summary,
+        accountScope: selectedLog.accountScope,
+        strategyVersion: selectedLog.strategyVersion
+      }
+    : null;
 
   return (
     <section className={styles.timeline}>
+      <SignalArenaDecisionModal
+        point={selectedPoint}
+        run={selectedLog}
+        title={selectedLog ? `策略日志 ${formatDateTime(selectedLog.startedAt)}` : undefined}
+        onClose={() => setSelectedLog(null)}
+      />
+
       <div className={styles.logSummary}>
         <span className={styles.logSummaryItem}>全部 {summary.all}</span>
         <span className={styles.logSummaryItem}>买入 {summary.buy}</span>
@@ -117,7 +140,20 @@ export function SignalArenaLogs({ logs }: SignalArenaLogsProps) {
       ) : null}
 
       {filteredLogs.map((log, logIndex) => (
-        <article key={`${log.id}-${logIndex}`} className={styles.logItem}>
+        <article
+          key={`${log.id}-${logIndex}`}
+          className={styles.logItem}
+          role="button"
+          tabIndex={0}
+          aria-label={`查看 ${formatDateTime(log.startedAt)} 的完整策略 trace`}
+          onClick={() => setSelectedLog(log)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              setSelectedLog(log);
+            }
+          }}
+        >
           <div className={styles.logTopline}>
             <time className={styles.logTime}>{formatDateTime(log.startedAt)}</time>
             <span className={styles.status}>{log.status}</span>
