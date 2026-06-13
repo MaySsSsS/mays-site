@@ -24,6 +24,13 @@ const liveTools = [
     href: "/tools/word-to-markdown",
     summary: "Convert .docx files into Markdown in the browser, with image assets kept in a ZIP export.",
     status: "Browser Local"
+  },
+  {
+    eyebrow: "Project Brief",
+    title: "Idea Lab",
+    href: "/tools/idea-lab",
+    summary: "Turn a rough idea into a scoped brief, validation checklist, and Codex-ready prompt.",
+    status: "Local Draft"
   }
 ];
 
@@ -39,7 +46,7 @@ const futureBays = [
 
 export const metadata: Metadata = {
   title: "Signal Lab",
-  description: "一个带有未来感视觉的工具箱入口，包含二维码生成器、UI 风格提示词索引和 Word 转 Markdown 工具。"
+  description: "一个带有未来感视觉的工具箱入口，包含二维码生成器、UI 风格提示词索引、Word 转 Markdown 和 Idea Lab。"
 };
 
 export default function ToolsHubPage() {
