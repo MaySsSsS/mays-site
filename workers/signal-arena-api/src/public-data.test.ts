@@ -46,15 +46,7 @@ function makeEnv(kv = makeKv()): Env {
     CORS_ORIGIN: "https://maysssss.cn",
     SIGNAL_ARENA_BASE_URL: "https://signal.example",
     SIGNAL_ARENA_AGENT_API_KEY: "agent-secret",
-    SIGNAL_ARENA_ADMIN_TOKEN: "admin-secret",
-    SIGNAL_ARENA_AI_PROVIDER: "custom-responses",
-    SIGNAL_ARENA_AI_BASE_URL: "https://ai.example",
-    SIGNAL_ARENA_AI_API_KEY: "ai-secret",
-    SIGNAL_ARENA_AI_STRICT_MODEL: "gpt-5.4",
-    SIGNAL_ARENA_AI_STRICT_REASONING_EFFORT: "high",
-    SIGNAL_ARENA_AI_LIGHT_MODEL: "gpt-5.4",
-    SIGNAL_ARENA_AI_LIGHT_REASONING_EFFORT: "low",
-    SIGNAL_ARENA_AI_DISABLE_RESPONSE_STORAGE: "true"
+    SIGNAL_ARENA_ADMIN_TOKEN: "admin-secret"
   };
 }
 

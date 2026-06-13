@@ -22,6 +22,8 @@ const shellComponent = await readFile(new URL("../components/signal-arena/Signal
 const equityChartComponent = await readFile(new URL("../components/signal-arena/SignalArenaEquityChart.tsx", import.meta.url), "utf8").catch(() => "");
 const decisionModalComponent = await readFile(new URL("../components/signal-arena/SignalArenaDecisionModal.tsx", import.meta.url), "utf8").catch(() => "");
 const operationsPanelComponent = await readFile(new URL("../components/signal-arena/SignalArenaOperationsPanel.tsx", import.meta.url), "utf8").catch(() => "");
+const workerTypes = await readFile(new URL("../workers/signal-arena-api/src/types.ts", import.meta.url), "utf8").catch(() => "");
+const workerConfig = await readFile(new URL("../workers/signal-arena-api/wrangler.toml", import.meta.url), "utf8").catch(() => "");
 const quantMigrationFile = await readFile(
   new URL("../workers/signal-arena-api/migrations/2026-06-12-quant-lab.sql", import.meta.url),
   "utf8"
@@ -57,6 +59,11 @@ test("Signal Arena public types exist and do not expose secret fields", () => {
   assert.match(typeFile, /strategy: SignalArenaStrategy/);
   assert.match(typeFile, /account: SignalArenaAccount/);
   assert.doesNotMatch(typeFile, /apiKey|agent-auth-api-key|SIGNAL_ARENA_AI_API_KEY|SIGNAL_ARENA_ADMIN_TOKEN|orderId/);
+});
+
+test("Quant Lab worker no longer configures AI decision provider for daily trading", () => {
+  assert.doesNotMatch(workerTypes, /SIGNAL_ARENA_AI_/);
+  assert.doesNotMatch(workerConfig, /SIGNAL_ARENA_AI_/);
 });
 
 test("Signal Arena frontend data client uses server-only worker access", () => {
