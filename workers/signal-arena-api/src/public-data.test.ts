@@ -736,6 +736,27 @@ test("public endpoint returns quant fallback when no cache and upstream fails", 
   assert.equal(body.operations.latestRunSummary, "Signal Arena 上游暂不可用，等待 Quant Lab 首次同步。");
 });
 
+test("public endpoint explains invalid Agent World key without leaking secrets", async () => {
+  const env = makeEnv(makeKv());
+
+  globalThis.fetch = async () => jsonResponse({
+    success: false,
+    error: "unauthorized",
+    message: "缺少或无效的 Agent Auth 凭证",
+    hint: "API Key 无效或已过期。"
+  }, 401);
+
+  const response = await worker.fetch(new Request("https://maysssss.cn/api/public/all"), env);
+  const body = (await response.json()) as WorkerSnapshot;
+  const serialized = JSON.stringify(body);
+
+  assert.equal(response.status, 200);
+  assert.equal(body.dashboard.sourceStatus, "fallback");
+  assert.equal(body.operations.latestRunSummary, "Signal Arena Agent World key 无效或已过期，等待更新有效量化账号 key 后同步。");
+  assert.equal(serialized.includes(env.SIGNAL_ARENA_AGENT_API_KEY), false);
+  assert.equal(serialized.includes("agent-world-"), false);
+});
+
 test("upstream refresh stays public and keeps private fields out", async () => {
   const env = makeEnv(makeKv());
   const currentDate = new Date().toISOString();

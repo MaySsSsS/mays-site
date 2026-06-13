@@ -1232,7 +1232,17 @@ function toPublicSnapshot(
   };
 }
 
-function fallbackQuantSnapshot(runs: PublicRunLog[], snapshots: SignalArenaSnapshotRow[]): PublicSnapshot {
+function publicUpstreamFallbackSummary(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (/Signal Arena auth failed: (401|403)/.test(message)) {
+    return "Signal Arena Agent World key 无效或已过期，等待更新有效量化账号 key 后同步。";
+  }
+
+  return "Signal Arena 上游暂不可用，等待 Quant Lab 首次同步。";
+}
+
+function fallbackQuantSnapshot(runs: PublicRunLog[], snapshots: SignalArenaSnapshotRow[], summary: string): PublicSnapshot {
   const now = new Date().toISOString();
   const snapshot = mergePublicData({
     dashboard: {
@@ -1276,7 +1286,7 @@ function fallbackQuantSnapshot(runs: PublicRunLog[], snapshots: SignalArenaSnaps
       dataAgeSeconds: null,
       latestRunStatus: null,
       latestRunFinishedAt: null,
-      latestRunSummary: "Signal Arena 上游暂不可用，等待 Quant Lab 首次同步。",
+      latestRunSummary: summary,
       equityPointCount: 0,
       equityCoverageDays: 0,
       logCount: 0
@@ -1302,7 +1312,7 @@ function fallbackQuantSnapshot(runs: PublicRunLog[], snapshots: SignalArenaSnaps
       ...snapshot.operations,
       tone: "attention",
       label: "注意",
-      latestRunSummary: "Signal Arena 上游暂不可用，等待 Quant Lab 首次同步。"
+      latestRunSummary: summary
     }
   };
 }
@@ -1337,11 +1347,11 @@ export async function getPublicData(env: Env): Promise<PublicSnapshot> {
     const snapshotWithLogs = mergePublicData(publicData, runs, snapshots);
     await putCachedPublicData(env, snapshotWithLogs, scope);
     return snapshotWithLogs;
-  } catch {
+  } catch (error) {
     if (cached) {
       return mergePublicData(withSourceStatus(cached, "stale"), runs, snapshots);
     }
 
-    return fallbackQuantSnapshot(runs, snapshots);
+    return fallbackQuantSnapshot(runs, snapshots, publicUpstreamFallbackSummary(error));
   }
 }
