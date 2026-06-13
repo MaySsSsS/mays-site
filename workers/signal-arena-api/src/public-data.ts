@@ -1232,6 +1232,81 @@ function toPublicSnapshot(
   };
 }
 
+function fallbackQuantSnapshot(runs: PublicRunLog[], snapshots: SignalArenaSnapshotRow[]): PublicSnapshot {
+  const now = new Date().toISOString();
+  const snapshot = mergePublicData({
+    dashboard: {
+      updatedAt: now,
+      sourceStatus: "fallback",
+      totalAssets: 1000000,
+      initialCapital: 1000000,
+      cash: 1000000,
+      frozenCash: 0,
+      returnRate: 0,
+      currentRank: null,
+      metrics: [
+        { label: "总资产", value: money(1000000), tone: "neutral" },
+        { label: "收益率", value: percent(0), tone: "neutral" },
+        { label: "当前排名", value: "未同步", tone: "warning" },
+        { label: "可用现金", value: money(1000000), tone: "neutral" }
+      ],
+      cnHoldings: [],
+      marketSummaries: [
+        { market: "CN", label: "A 股", totalValue: 0, profit: 0, profitRate: 0, holdingsCount: 0 },
+        { market: "HK", label: "港股", totalValue: 0, profit: 0, profitRate: 0, holdingsCount: 0 },
+        { market: "US", label: "美股", totalValue: 0, profit: 0, profitRate: 0, holdingsCount: 0 }
+      ],
+      latestRun: null
+    },
+    logs: [],
+    rank: {
+      currentRank: null,
+      returnRate: 0,
+      leaderGap: null,
+      previousGap: null,
+      topTenGap: null,
+      leaders: [],
+      nearby: [],
+      updatedAt: now
+    },
+    equityHistory: [],
+    operations: {
+      tone: "attention",
+      label: "注意",
+      dataAgeSeconds: null,
+      latestRunStatus: null,
+      latestRunFinishedAt: null,
+      latestRunSummary: "Signal Arena 上游暂不可用，等待 Quant Lab 首次同步。",
+      equityPointCount: 0,
+      equityCoverageDays: 0,
+      logCount: 0
+    },
+    recentTrades: [],
+    strategy: {
+      name: "Q-Alpha",
+      version: DEFAULT_STRATEGY_VERSION,
+      accountScope: DEFAULT_ACCOUNT_SCOPE,
+      runMode: "live",
+      parameters: Q_ALPHA_DEFAULT_PARAMETERS
+    },
+    account: {
+      scope: DEFAULT_ACCOUNT_SCOPE,
+      strategyVersion: DEFAULT_STRATEGY_VERSION,
+      displayName: "Quant Lab"
+    }
+  }, runs, snapshots);
+
+  return {
+    ...snapshot,
+    operations: {
+      ...snapshot.operations,
+      tone: "attention",
+      label: "注意",
+      latestRunSummary: "Signal Arena 上游暂不可用，等待 Quant Lab 首次同步。"
+    }
+  };
+}
+
 export async function getPublicData(env: Env): Promise<PublicSnapshot> {
   let cached: PublicSnapshot | null = null;
   const scope = env.SIGNAL_ARENA_ACCOUNT_SCOPE || DEFAULT_ACCOUNT_SCOPE;
@@ -1267,6 +1342,6 @@ export async function getPublicData(env: Env): Promise<PublicSnapshot> {
       return mergePublicData(withSourceStatus(cached, "stale"), runs, snapshots);
     }
 
-    throw new Error("Signal Arena upstream unavailable.");
+    return fallbackQuantSnapshot(runs, snapshots);
   }
 }
