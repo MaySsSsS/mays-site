@@ -6,6 +6,7 @@ import styles from "@/styles/signal-arena.module.css";
 type SignalArenaDecisionModalProps = {
   point: SignalArenaEquityPoint | null;
   run: SignalArenaRunLog | null;
+  title?: string;
   onClose: () => void;
 };
 
@@ -69,7 +70,7 @@ function DetailList({ items, empty }: { items: string[]; empty: string }) {
   );
 }
 
-export function SignalArenaDecisionModal({ point, run, onClose }: SignalArenaDecisionModalProps) {
+export function SignalArenaDecisionModal({ point, run, title, onClose }: SignalArenaDecisionModalProps) {
   if (!point) {
     return null;
   }
@@ -89,7 +90,7 @@ export function SignalArenaDecisionModal({ point, run, onClose }: SignalArenaDec
           <div>
             <p className={styles.eyebrow}>STRATEGY TRACE</p>
             <h2 id="signal-arena-decision-title" className={styles.modalTitle}>
-              {formatDateTime(point.capturedAt)}
+              {title ?? formatDateTime(point.capturedAt)}
             </h2>
             <p className={styles.modalText}>
               {point.strategyVersion ?? run?.strategyVersion ?? "Q-Alpha v1"} / {point.accountScope}
