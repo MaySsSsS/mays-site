@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   buildArchiveEntry,
+  buildRecentMissingDates,
   buildSourceUrl,
   entryForAiFailure,
   extractJsonObject,
@@ -40,8 +41,24 @@ const sourceHtml = `
 test("buildSourceUrl derives the Hex daily URL from a date", () => {
   assert.equal(
     buildSourceUrl("2026-05-10"),
-    "https://hex2077.dev/zh-cn/docs/2026-05/2026-05-10/"
+    "https://hex2077.dev/zh-CN/docs/2026-05/2026-05-10/"
   );
+});
+
+test("buildRecentMissingDates backfills recent gaps without touching existing entries", () => {
+  const dates = buildRecentMissingDates(
+    {
+      latestDate: "2026-06-12",
+      entries: [
+        { date: "2026-06-10" },
+        { date: "2026-06-12" }
+      ]
+    },
+    "2026-06-13",
+    4
+  );
+
+  assert.deepEqual(dates, ["2026-06-11", "2026-06-13"]);
 });
 
 test("AI Daily workflow pulls data at 12:00 Asia/Shanghai", () => {

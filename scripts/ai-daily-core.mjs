@@ -1,13 +1,18 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const SOURCE_BASE_URL = "https://hex2077.dev/zh-cn/docs";
+const SOURCE_BASE_URL = "https://hex2077.dev/zh-CN/docs";
 
 const SECTION_HEADING_PATTERN = /<h3\b[^>]*id="([^"]+)"[^>]*>[\s\S]*?<\/h3>/gi;
 
 export function buildSourceUrl(date) {
   const month = date.slice(0, 7);
   return `${SOURCE_BASE_URL}/${month}/${date}/`;
+}
+
+export function buildRecentMissingDates(archive, today, lookbackDays) {
+  const existingDates = new Set((archive.entries ?? []).map((entry) => entry.date));
+  return buildRecentDateRange(today, lookbackDays).filter((date) => !existingDates.has(date));
 }
 
 export function parseSourceHtml(html, date) {
@@ -328,6 +333,24 @@ function decodeHtml(value) {
 
 function readFirstMatch(source, pattern) {
   return source.match(pattern)?.[1] ?? "";
+}
+
+function buildRecentDateRange(today, lookbackDays) {
+  const safeDays = Math.max(1, Number.isFinite(lookbackDays) ? Math.floor(lookbackDays) : 1);
+  const dates = [];
+  const start = addDays(today, -(safeDays - 1));
+
+  for (let date = start; date <= today; date = addDays(date, 1)) {
+    dates.push(date);
+  }
+
+  return dates;
+}
+
+function addDays(date, offset) {
+  const parsed = new Date(`${date}T00:00:00.000Z`);
+  parsed.setUTCDate(parsed.getUTCDate() + offset);
+  return parsed.toISOString().slice(0, 10);
 }
 
 async function writeJson(filePath, value) {
