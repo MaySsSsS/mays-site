@@ -4,6 +4,28 @@
 
 ## 当前状态
 
+- 2026-06-25：整理主站发布流程并补齐标签栏图标。新增 `app/icon.svg` 作为站点 favicon；补充 `DEPLOYMENT.md`，明确当前 Cloudflare 发布会直接读取本地工作区，因此后续统一采用“先提交，再发布”的流程，避免线上状态与 Git 历史脱节。同步收口此前已上线但未整理的首页 `STOCK LAB` 入口与 `/tools` Hyrule UI 改造相关工作区改动，准备统一提交并重新部署。验证通过：`pnpm build`。
+
+- 2026-06-24：执行 `mays-site 线上可用性监控`。公开页面 `/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200，可访问。`/api/public/all` 返回 200，公开 payload 仍为 `strategy.version=Q-Alpha v1`、`account.scope=quant-v1`，`equityHistory` 仅见 `quant-v1` 点位。最新公开 Quant Lab 日志为 `failed`，`summary=Quant Lab Runner 执行失败。`，`candidates=[]`，`strategyTrace` / `decisionTrace` 均为空，未见旧 AI / WorkBuddy / legacy-ai 历史对照。`/ai-daily` 索引最新日期仍停在 `2026-06-13`，属于明显陈旧。公开响应未发现真实 secret-like 串。未做代码修改、验证或部署。
+
+- 2026-06-21：执行 `mays-site 线上可用性监控`。公开页面 `/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200；`/signal-arena/rank` 响应偏重但可访问。`/api/public/all` 返回 200，`strategy.version=Q-Alpha v1`、`account.scope=quant-v1`，`equityHistory` 未出现非 `quant-v1` 点位；最新公开日志含 `strategyTrace`，`candidates=[]`，最新一轮为交易时段外跳过态，summary 为“当前不是 A 股交易时段，Q-Alpha v1 本轮跳过。”；公开日志仍能看到历史失败记录，但未见旧 AI 账号历史、WorkBuddy 历史或 `legacy-ai` 对照。`/ai-daily` 仍为门禁页，提示“频道尚未校准，需要配置 `NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH` 后才能打开日报。”，属于公开可见配置缺失提示。公开响应未发现真实 secret 串，仅见产品名和预期状态文本。未做代码修改或部署。
+- 2026-06-21 Agent World 注册入口复查：`POST https://world.coze.site/api/agents/register` 使用唯一用户名 `mays-quant-lab-<timestamp>` 和 contact `mays` 后仍返回 `403`，响应体为维护页 HTML，标题为 `agent world 正在装修中`，未返回 `api_key` 或等价字段；上游仍不可用，未做代码/配置改动。
+- 2026-06-20：执行 `mays-site 线上可用性监控`。公开页面 `/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200。`/api/public/all` 返回 200，`strategy.version=Q-Alpha v1`、`account.scope=quant-v1`，`equityHistory` 未混入非 `quant-v1` 点位；最新公开日志停在 2026-06-18 06:50 UTC 的 `failed` 记录，最近运行 `strategyTrace=null`、`candidates=[]`，公开摘要仍指向 `Signal Arena Agent World key 无效或已过期，等待更新有效量化账号 key 后同步。`。`/ai-daily` 仍为门禁页，公开可见配置缺失提示。公开响应未发现真实 secret 串。未做代码修改或部署。
+- 2026-06-20 Agent World 注册入口复查：`POST https://world.coze.site/api/agents/register` 使用唯一用户名 `mays-quant-lab-<timestamp>` 和 contact `mays` 后仍返回 `403`，响应体为维护页 HTML，标题为 `agent world 正在装修中`，未返回 `api_key` 或等价字段；上游仍不可用，未做代码/配置改动。
+- 2026-06-19：执行 `mays-site 线上可用性监控`。公开页面 `/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200。`/api/public/all` 返回 200，`strategy.version=Q-Alpha v1`、`account.scope=quant-v1`，`equityHistory` 未混入非 `quant-v1` 点位；最新日志仍为 2026-06-18 06:50 UTC 的 `failed` 记录，`candidates=[]`、`strategyTrace=null`，公开摘要显示 `Signal Arena Agent World key 无效或已过期，等待更新有效量化账号 key 后同步。`。`/ai-daily` 仍展示“频道尚未校准，需要配置 `NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH` 后才能打开日报”，公开索引最新日期停在 `2026-06-13`。公开响应未发现真实 secret 串，只有产品名/状态提示文本。未做代码修改或部署。
+- 2026-06-18：执行 `mays-site 线上可用性监控`。公开页面 `/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200。`/api/public/all` 返回 200，`strategy.version=Q-Alpha v1`、`account.scope=quant-v1`，`equityHistory` 未混入非 `quant-v1` 点位；公开日志最近 30 条全部为 `failed`，最新 3 条运行于 2026-06-18 05:50-06:50 UTC，均无 `strategyTrace`，`candidates=[]`，`summary=Quant Lab Runner 执行失败。`。`/ai-daily` 仍展示“频道尚未校准，需要配置 `NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH` 后才能打开日报”，公开索引最新日期停在 `2026-06-13`，较当前明显陈旧。公开响应未见真实 secret 串，仅命中预期产品名/提示文本。未做代码修改或部署。
+- 2026-06-18 Agent World 注册入口复查：`POST https://world.coze.site/api/agents/register` 使用唯一用户名 `mays-quant-lab-<timestamp>` 和 contact `mays` 后仍返回 `403`，响应体为维护页 HTML，标题为 `agent world 正在装修中`，未返回 `api_key` 或等价字段；上游仍不可用，未做代码/配置改动。
+- 2026-06-17 Agent World 注册入口复查：`POST https://world.coze.site/api/agents/register` 使用唯一用户名 `mays-quant-lab-<timestamp>` 和 contact `mays` 后仍返回 `403`，响应体为维护页 HTML，标题为 `agent world 正在装修中`，未返回 `api_key` 或等价字段；上游仍不可用，未做代码/配置改动。
+- 2026-06-17：执行 `mays-site 线上可用性监控`。公开页面 `/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200；`/api/public/all` 返回 200，`strategy.version=Q-Alpha v1`、`account.scope=quant-v1`、`equityHistory` 未混入非 `quant-v1` 点位，公开响应未发现 `sk-`、JWT 形式、`agent-world-`、`zhipu` 等真实 secret 串。Quant Lab 最近 30 条公开日志均为 `failed` 空态，最近 3 条运行于 2026-06-16 06:20-06:50 UTC，`strategyTrace` 仍为空，`candidates=[]`，`summary=Quant Lab Runner 执行失败。`，无法从公开数据区分成因，需继续观察上游/凭据/运行时。`/ai-daily` 仍显示配置缺失提示，并且页面公开可见日期停在 `2026-04-12`，属于明显陈旧态。未做代码修改或部署。
+- 2026-06-16 Agent World 注册入口复查：`POST https://world.coze.site/api/agents/register` 使用唯一用户名 `mays-quant-lab-<timestamp>` 和 contact `mays` 请求后仍返回 `403` 维护页 HTML，标题为 `agent world 正在装修中`，未返回 `api_key` 或等价字段；上游仍不可用，未做代码/配置改动。
+- 2026-06-16：执行 `mays-site 线上可用性监控`，确认 `/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200；`/api/public/all` 公开 payload 仍为 `strategy.version=Q-Alpha v1`、`account.scope=quant-v1`、`equityHistory` 无非 `quant-v1` 点位。最新公开日志共 30 条，但当前无任何 `strategyTrace`；`/ai-daily` 页面仍显示“频道尚未校准，需要配置 `NEXT_PUBLIC_AI_DAILY_PASSWORD_HASH` 后才能打开日报”，公开序列最新日期为 `2026-06-13`。公开响应未发现真实 secret 值，只有 `Signal Arena Agent World key` 的状态提示文本。未做代码修改。
+- 2026-06-15：完成 `/tools` 页面 UI 使用 `zelda-hyrule-ui@0.4.0` 重构；新增依赖并在根 layout 引入库样式，Tools Hub 改为 Sheikah/Hyrule 风格背景、扫描线、HUD 指标、Quest 卡片与工具入口。因库中部分图片装饰组件在当前 Next 打包下会生成 `[object Object]` 资源路径，已避免使用会破图的 `SheikahTextTitle` / `Illustration`，保留可正常渲染的背景、Card、Quest、HUD、分隔与装饰组件。验证通过：`pnpm typecheck`、`pnpm lint`、`pnpm build`；本地浏览器检查 `/tools` 桌面 1280x720 与移动 390x844 均无横向溢出、无破图、无 console error，四个工具入口 href 正常。
+- 2026-06-15：根据浏览器标注反馈移除 `/tools` hero 右侧语义不清的 HUD 圆盘装饰，保留清晰标题与工具卡片入口；复查当前 in-app browser `/tools`，原 `heroHud` 节点不存在、无横向溢出、无破图、无 console error。验证通过：`pnpm typecheck`、`pnpm lint`、`pnpm build`。
+- 2026-06-15：根据第二处浏览器标注继续清理 `/tools` 中语义不明的宝石计数器；移除顶部 “4 active tools” 风格的 RupeeCounter，并把工具卡片 footer 的装饰数值改回明确状态文本。复查当前 in-app browser `/tools`：无 RupeeCounter class、无 `Return to Universe 4` 计数、无 heroHud、无横向溢出、无破图、无 console error。验证通过：`pnpm typecheck`、`pnpm lint`、`pnpm build`。
+- 2026-06-15：根据第三处浏览器标注移除 `/tools` 的 `TitleOrnament` 钥匙形装饰，避免工具目录标题区出现无语义图案。新 in-app browser 标签复查 `/tools`：无 ornament class、无横向溢出、无破图、无 console error。验证通过：`pnpm typecheck`、`pnpm lint`、`pnpm build`。
+- 2026-06-15：根据第四处浏览器标注继续清理 `/tools` 工具卡片内部无语义游戏图标；移除 `QuestListItem`，卡片改为普通标题、描述、状态文本和按钮，文案从 `Rune / Quest` 收敛为 `Tool / Directory`，并修正卡片标题与编号挤压问题。复查 `/tools`：无 QuestListItem / RupeeCounter / TitleOrnament class、无横向溢出、无破图、无 console error。验证通过：`pnpm typecheck`、`pnpm lint`、`pnpm build`。
+- 2026-06-15 Agent World 注册入口巡检：`POST https://world.coze.site/api/agents/register` 返回 `403 Forbidden`，响应体为 `agent world 正在装修中` 维护页 HTML，未返回 `api_key` 或等价字段，上游仍不可用；未进行任何代码/配置改动
+- 2026-06-15 每日可用性巡检：`/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200；`/api/public/all` 返回 200，公开 payload 仍为 `strategy.version=Q-Alpha v1`、`account.scope=quant-v1`，`equityHistory` 仅含 `quant-v1` 点位；公开 operations 明示 `Signal Arena Agent World key 无效或已过期`，`latestRunStatus=null`、`logCount=0`，未发现公开响应中有 `agent-world`、`智谱`、`zhipu`、`WorkBuddy`、`legacy-ai`、`sk-` 等 secret-like 串；AI Daily 公开索引最新日期为 `2026-06-13`，较巡检日落后一日，但未见“配置缺失/尚未校准”提示。
 - 分支：codex/deploy-signal-arena
 - 最新 commit：见 `git log -1 --oneline`
 - 当前里程碑：v1.3 `Word to Markdown`（已完成实现、审计与归档，待开启下一里程碑）
@@ -161,6 +183,7 @@
 - [x] 2026-06-01：补齐 Signal Arena failed 用语与 AI 兜底；`AI provider returned 502`、`Signal Arena request failed: 504`、`Responses API returned no text output` 会分别展示为 AI 服务暂不可用、上游响应超时、AI 未返回有效决策内容；严格模型遇到这些短暂异常时会先尝试轻量模型，减少直接 failed。
 - [x] 2026-06-12：调整 Signal Arena AI 决策模型；主决策改用 `gpt-5.4` + `high` reasoning，兜底仍为 `gpt-5.4` + `low` reasoning，并重新部署 Worker。
 - [x] 2026-06-04：执行 Signal Arena 信号层巡检；生产域名/API/D1 读取仍被当前环境 DNS 与 Wrangler auth fetch 阻塞，未取得线上最新 run 的 live JSON 证据。已复核 Worker Runner、public-data sanitizer、前端 sanitizer 与弹窗展示链路，并完成 Worker 测试、Worker typecheck、Signal Arena 前端回归、根目录 typecheck、lint、build；未发现需要修复的本地链路问题，未部署。
+- [x] 2026-06-16：完成 `/tools` 的 `zelda-hyrule-ui` 视觉重构并部署生产；按浏览器反馈移除无语义的 HUD 圆盘、宝石计数、钥匙装饰和游戏化列表图案，保留更直白的 Tools Hub / Directory / Tool 文案。部署前 `make check` 通过，`pnpm deploy` 成功发布 Cloudflare Worker `mays-site-web` 版本 `95a858af-70f9-4712-9852-9eccb95e682d`；线上 `https://maysssss.cn/tools` 返回 200，已命中新版 `/tools` 文案与资源。
 
 ## 进行中
 
@@ -203,7 +226,9 @@
 
 ## 下一步
 
-1. 需要提供一个 Agent World 校验通过的新量化账号 key；当前已配置到生产的 key 格式有效，但 `join/home` 返回 401 `API Key 无效或已过期`
+- 继续等待 Agent World 注册入口恢复后再做 Quant Lab 后续接入；当前无需代码、提交或部署。
+
+1. 等待 Agent World 注册入口恢复，或由用户提供可用的 `SIGNAL_ARENA_AGENT_API_KEY`；当前 `POST https://world.coze.site/api/agents/register` 仍返回 `403` 维护页 HTML，未拿到可用 key
 2. 拿到有效 key 后更新生产 `SIGNAL_ARENA_AGENT_API_KEY`，立即执行 `dryRun=true` 手动运行，确认 `home / portfolio / stocks-list / stock-history` 正常，D1 新 run 写入 `account_scope=quant-v1`、`strategy_version=Q-Alpha v1`、`strategy_trace_json`
 3. A 股交易时段内再执行一次非 dry-run，确认公开 `/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank` 只显示新量化账号数据
 4. Quant Lab 稳定运行后进入下一阶段：回测脚本、候选策略版本和每周 AI 复盘；同步维护 `docs/signal-arena-quant-lab-user-guide.md`

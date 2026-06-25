@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
+import "zelda-hyrule-ui/style";
 
 export const metadata: Metadata = {
   title: {

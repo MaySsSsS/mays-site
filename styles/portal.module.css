@@ -314,6 +314,25 @@ button.panel {
   background: #f7fffd;
 }
 
+.stockPanel {
+  background:
+    linear-gradient(135deg, rgba(255, 244, 158, 0.94), rgba(255, 132, 92, 0.9)),
+    linear-gradient(45deg, rgba(8, 14, 24, 0.92), rgba(49, 197, 91, 0.82));
+  clip-path: polygon(2% 1%, 98% 0, 100% 96%, 4% 100%);
+  transform: rotate(0.4deg);
+}
+
+.stockPanel .panelTitle {
+  color: var(--comic-paper);
+  text-shadow:
+    3px 3px 0 rgba(49, 197, 91, 0.92),
+    6px 6px 0 var(--comic-black);
+}
+
+.stockPanel .panelAction {
+  background: #fff6c4;
+}
+
 .aiPanel {
   background:
     linear-gradient(140deg, rgba(255, 214, 77, 0.92), rgba(137, 247, 255, 0.82)),

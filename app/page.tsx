@@ -42,6 +42,13 @@ const portalItems: PortalItem[] = [
     className: styles.toolsPanel
   },
   {
+    eyebrow: "A-SHARE",
+    title: "STOCK LAB",
+    href: "http://159.75.54.50",
+    domain: "159.75.54.50",
+    className: styles.stockPanel
+  },
+  {
     eyebrow: "AI",
     title: "AI DAILY",
     href: "/ai-daily",

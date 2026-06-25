@@ -198,3 +198,113 @@ legacy `game.maysssss.cn` / `photo.maysssss.cn` 如果仍然绑定到前端 Work
   [https://developers.cloudflare.com/workers/ci-cd/builds/](https://developers.cloudflare.com/workers/ci-cd/builds/)
 - Cloudflare Worker custom domains:
   [https://developers.cloudflare.com/workers/configuration/routing/custom-domains/](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/)
+
+## 9. 推荐的日常发布流程
+
+以后这个站推荐使用一条固定流程：
+
+**先提交，再发布。**
+
+原因很简单：
+
+- `pnpm deploy` 会直接读取你本地当前目录的代码并发布到 Cloudflare
+- 这意味着即使你还没有 `git commit`，线上也可能已经变了
+- 如果长期这样用，后面会很容易搞不清楚“哪些改动已经上线、哪些只是本地改了”
+
+所以后面建议统一按下面这条线走。
+
+### 9.1 日常修改流程
+
+1. 本地改代码
+2. 本地验证
+3. 查看本次到底改了哪些文件
+4. 提交到 Git
+5. 再执行部署
+6. 上线后打开正式站点确认
+
+### 9.2 建议使用的命令顺序
+
+先看当前改动：
+
+```bash
+git status
+git diff --stat
+```
+
+本地检查：
+
+```bash
+pnpm typecheck
+pnpm build
+```
+
+确认没问题后提交：
+
+```bash
+git add <你这次要提交的文件>
+git commit -m "feat: 描述这次改动"
+```
+
+然后再发布：
+
+```bash
+pnpm deploy
+```
+
+发布后建议再做一次线上确认：
+
+```bash
+git rev-parse --short HEAD
+```
+
+然后手动打开正式站点，确认页面内容和你这次提交一致。
+
+### 9.3 如果只是一个很小的改动
+
+例如：
+
+- 改 favicon
+- 改首页一个入口文案
+- 改某个按钮链接
+
+也建议照样走：
+
+1. 本地改
+2. `pnpm build`
+3. `git add`
+4. `git commit`
+5. `pnpm deploy`
+
+不要因为改动小就跳过提交；小改动反而最容易忘。
+
+### 9.4 这个流程和 GitHub 自动部署的区别
+
+这里要分清两件事：
+
+- **Git 提交**：只是把代码历史记下来
+- **Cloudflare 部署**：才是把内容发到线上
+
+在当前这个仓库里，手动执行 `pnpm deploy` 时，Cloudflare 发布的是**你本机当前代码**，不是“只认已提交代码”。
+
+所以：
+
+- `git commit` 了，但没 `pnpm deploy`，线上不会变
+- `pnpm deploy` 了，但没 `git commit`，线上也会变
+
+这正是为什么推荐你以后固定使用“先提交，再发布”。
+
+### 9.5 最稳的习惯
+
+以后如果我要帮你发这个站，默认按下面的习惯执行：
+
+1. 先确认本次改动范围
+2. 本地构建验证
+3. 提交改动
+4. 再部署到 Cloudflare
+5. 部署后复查线上
+
+这样以后你再回头看 Git 历史，基本就能知道：
+
+- 哪次提交对应哪次上线
+- 某个页面是什么时候改的
+- 出问题时该回滚到哪一版
