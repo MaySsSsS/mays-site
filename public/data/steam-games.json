@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-18T04:40:21.791Z",
+  "lastUpdated": "2026-07-19T05:13:50.626Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,12 +10,14 @@
     "avatarmedium": "https://avatars.steamstatic.com/752eb38c3b0bc6f74708ec2c3d44d00bda41edde_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/752eb38c3b0bc6f74708ec2c3d44d00bda41edde_full.jpg",
     "avatarhash": "752eb38c3b0bc6f74708ec2c3d44d00bda41edde",
-    "lastlogoff": 1784340102,
-    "personastate": 0,
+    "lastlogoff": 1784425596,
+    "personastate": 1,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
     "timecreated": 1491720729,
     "personastateflags": 0,
+    "gameextrainfo": "Counter-Strike 2",
+    "gameid": "730",
     "loccountrycode": "CN",
     "locstatecode": "32",
     "loccityid": 10460
@@ -201,15 +203,15 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 3489,
-      "playtime_forever": 70376,
+      "playtime_2weeks": 3751,
+      "playtime_forever": 70637,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 67230,
+      "playtime_windows_forever": 67492,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1784335496,
+      "rtime_last_played": 1784437762,
       "content_descriptorids": [
         2,
         5
