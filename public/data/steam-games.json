@@ -1,23 +1,21 @@
 {
-  "lastUpdated": "2026-07-26T05:23:33.415Z",
+  "lastUpdated": "2026-07-27T05:41:04.975Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
     "profilestate": 1,
     "personaname": "Mays",
     "profileurl": "https://steamcommunity.com/profiles/76561198378879040/",
-    "avatar": "https://avatars.steamstatic.com/752eb38c3b0bc6f74708ec2c3d44d00bda41edde.jpg",
-    "avatarmedium": "https://avatars.steamstatic.com/752eb38c3b0bc6f74708ec2c3d44d00bda41edde_medium.jpg",
-    "avatarfull": "https://avatars.steamstatic.com/752eb38c3b0bc6f74708ec2c3d44d00bda41edde_full.jpg",
-    "avatarhash": "752eb38c3b0bc6f74708ec2c3d44d00bda41edde",
-    "lastlogoff": 1785035316,
-    "personastate": 1,
+    "avatar": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040.jpg",
+    "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
+    "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
+    "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
+    "lastlogoff": 1785116419,
+    "personastate": 0,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
     "timecreated": 1491720729,
     "personastateflags": 0,
-    "gameextrainfo": "Counter-Strike 2",
-    "gameid": "730",
     "loccountrycode": "CN",
     "locstatecode": "32",
     "loccityid": 10460
@@ -203,20 +201,20 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 3232,
-      "playtime_forever": 72415,
+      "playtime_2weeks": 3237,
+      "playtime_forever": 72592,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 69269,
+      "playtime_windows_forever": 69446,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1785042757,
+      "rtime_last_played": 1785059406,
       "content_descriptorids": [
         2,
         5
       ],
-      "playtime_disconnected": 14
+      "playtime_disconnected": 19
     },
     {
       "appid": 7940,
