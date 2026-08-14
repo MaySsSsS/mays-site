@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-08-13T04:01:14.778Z",
+  "lastUpdated": "2026-08-14T03:56:46.902Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1786586329,
+    "lastlogoff": 1786633616,
     "personastate": 0,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -201,15 +201,15 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 1284,
-      "playtime_forever": 74120,
+      "playtime_2weeks": 1215,
+      "playtime_forever": 74172,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 70974,
+      "playtime_windows_forever": 71027,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1786540226,
+      "rtime_last_played": 1786626428,
       "content_descriptorids": [
         2,
         5
@@ -369,7 +369,7 @@
       "appid": 218620,
       "name": "PAYDAY 2",
       "playtime_forever": 0,
-      "img_icon_url": "d7fc63389c7ddcbdd3d5de432eb2fd21a564ba6d",
+      "img_icon_url": "8fce45cbb0dee03e87cd30b96ac5e5c3d4b2c494",
       "has_community_visible_stats": true,
       "playtime_windows_forever": 0,
       "playtime_mac_forever": 0,
