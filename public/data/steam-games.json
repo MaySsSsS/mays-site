@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-10T06:50:50.469Z",
+  "lastUpdated": "2026-09-11T06:50:51.109Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1788969200,
+    "lastlogoff": 1789092206,
     "personastate": 0,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -171,7 +171,7 @@
       "appid": 570,
       "name": "Dota 2",
       "playtime_forever": 248,
-      "img_icon_url": "0bbb630d63262dd66d2fdd0f7d37e8661a410075",
+      "img_icon_url": "48eb825bb93787945065b460bdc109e395384ebf",
       "playtime_windows_forever": 75,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
@@ -201,7 +201,7 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 571,
+      "playtime_2weeks": 508,
       "playtime_forever": 75890,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
