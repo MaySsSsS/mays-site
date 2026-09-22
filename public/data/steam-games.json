@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-21T07:26:29.992Z",
+  "lastUpdated": "2026-09-22T07:04:26.110Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1789967344,
+    "lastlogoff": 1790057874,
     "personastate": 0,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -1958,6 +1958,23 @@
       "rtime_last_played": 1648291151,
       "playtime_disconnected": 0,
       "playtime_2weeks": 0
+    },
+    {
+      "appid": 1867240,
+      "name": "WARDOGS",
+      "playtime_2weeks": 289,
+      "playtime_forever": 289,
+      "img_icon_url": "3478031915eb3bbb2e8835a209aeafe066cb0d92",
+      "has_community_visible_stats": true,
+      "playtime_windows_forever": 289,
+      "playtime_mac_forever": 0,
+      "playtime_linux_forever": 0,
+      "playtime_deck_forever": 0,
+      "rtime_last_played": 1790054168,
+      "content_descriptorids": [
+        5
+      ],
+      "playtime_disconnected": 0
     },
     {
       "appid": 1868140,
