@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-22T07:04:26.110Z",
+  "lastUpdated": "2026-09-23T07:01:08.072Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1790057874,
+    "lastlogoff": 1790128810,
     "personastate": 0,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -201,15 +201,15 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 695,
-      "playtime_forever": 76537,
+      "playtime_2weeks": 668,
+      "playtime_forever": 76559,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 73391,
+      "playtime_windows_forever": 73413,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1789961171,
+      "rtime_last_played": 1790125167,
       "content_descriptorids": [
         2,
         5
@@ -1858,7 +1858,6 @@
     {
       "appid": 1623730,
       "name": "Palworld",
-      "playtime_2weeks": 10,
       "playtime_forever": 3244,
       "img_icon_url": "f5523077a8f4c923c2e8d8c17794b3319035fa73",
       "has_community_visible_stats": true,
@@ -1867,7 +1866,8 @@
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
       "rtime_last_played": 1788875813,
-      "playtime_disconnected": 0
+      "playtime_disconnected": 0,
+      "playtime_2weeks": 0
     },
     {
       "appid": 1627720,
@@ -1962,15 +1962,15 @@
     {
       "appid": 1867240,
       "name": "WARDOGS",
-      "playtime_2weeks": 289,
-      "playtime_forever": 289,
+      "playtime_2weeks": 438,
+      "playtime_forever": 438,
       "img_icon_url": "3478031915eb3bbb2e8835a209aeafe066cb0d92",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 289,
+      "playtime_windows_forever": 438,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1790054168,
+      "rtime_last_played": 1790089116,
       "content_descriptorids": [
         5
       ],
