@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-28T08:00:13.296Z",
+  "lastUpdated": "2026-09-29T07:41:39.057Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1790528699,
+    "lastlogoff": 1790661820,
     "personastate": 4,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -202,14 +202,14 @@
       "appid": 730,
       "name": "Counter-Strike 2",
       "playtime_2weeks": 734,
-      "playtime_forever": 76805,
+      "playtime_forever": 76832,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 73659,
+      "playtime_windows_forever": 73686,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1790556814,
+      "rtime_last_played": 1790596072,
       "content_descriptorids": [
         2,
         5
@@ -1962,15 +1962,15 @@
     {
       "appid": 1867240,
       "name": "WARDOGS",
-      "playtime_2weeks": 438,
-      "playtime_forever": 438,
+      "playtime_2weeks": 529,
+      "playtime_forever": 529,
       "img_icon_url": "3478031915eb3bbb2e8835a209aeafe066cb0d92",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 438,
+      "playtime_windows_forever": 529,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1790089116,
+      "rtime_last_played": 1790601544,
       "content_descriptorids": [
         5
       ],
@@ -2008,7 +2008,7 @@
       "appid": 1903340,
       "name": "Clair Obscur: Expedition 33",
       "playtime_forever": 2746,
-      "img_icon_url": "d48fb3ed033a08bad9bf0a2e1ceb145e58ffe0aa",
+      "img_icon_url": "d569d17097e2a2991cc5097939948ea075bdd653",
       "has_community_visible_stats": true,
       "playtime_windows_forever": 2746,
       "playtime_mac_forever": 0,
