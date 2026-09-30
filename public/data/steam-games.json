@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-29T07:41:39.057Z",
+  "lastUpdated": "2026-09-30T07:44:19.193Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1790661820,
+    "lastlogoff": 1790697955,
     "personastate": 4,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -201,15 +201,15 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 734,
-      "playtime_forever": 76832,
+      "playtime_2weeks": 764,
+      "playtime_forever": 76862,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 73686,
+      "playtime_windows_forever": 73716,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1790596072,
+      "rtime_last_played": 1790682646,
       "content_descriptorids": [
         2,
         5
@@ -543,7 +543,7 @@
     },
     {
       "appid": 292030,
-      "name": "The Witcher 3: Wild Hunt - Complete Edition",
+      "name": "The Witcher 3: Wild Hunt — Remastered",
       "playtime_forever": 2267,
       "img_icon_url": "7b52d11edee478d652ef4e7103e00644bed2c74c",
       "has_community_visible_stats": true,
