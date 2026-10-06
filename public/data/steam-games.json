@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-05T07:58:27.655Z",
+  "lastUpdated": "2026-10-06T08:20:26.659Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1791023262,
+    "lastlogoff": 1791272830,
     "personastate": 0,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -201,15 +201,15 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 529,
-      "playtime_forever": 77066,
+      "playtime_2weeks": 576,
+      "playtime_forever": 77113,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 73921,
+      "playtime_windows_forever": 73967,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1790997574,
+      "rtime_last_played": 1791267329,
       "content_descriptorids": [
         2,
         5
@@ -1962,7 +1962,7 @@
     {
       "appid": 1867240,
       "name": "WARDOGS",
-      "playtime_2weeks": 529,
+      "playtime_2weeks": 240,
       "playtime_forever": 529,
       "img_icon_url": "3478031915eb3bbb2e8835a209aeafe066cb0d92",
       "has_community_visible_stats": true,
