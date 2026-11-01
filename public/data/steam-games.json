@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-31T07:46:17.058Z",
+  "lastUpdated": "2026-11-01T08:27:02.216Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1793405559,
+    "lastlogoff": 1793520960,
     "personastate": 1,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -203,7 +203,7 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 267,
+      "playtime_2weeks": 143,
       "playtime_forever": 77840,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
@@ -1557,7 +1557,6 @@
     {
       "appid": 1145350,
       "name": "Hades II",
-      "playtime_2weeks": 29,
       "playtime_forever": 759,
       "img_icon_url": "621d9f1cfa204c0bae07a981f41007d2cf03a56c",
       "has_community_visible_stats": true,
@@ -1566,7 +1565,8 @@
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
       "rtime_last_played": 1792224945,
-      "playtime_disconnected": 0
+      "playtime_disconnected": 0,
+      "playtime_2weeks": 0
     },
     {
       "appid": 1147560,
@@ -2267,15 +2267,15 @@
     {
       "appid": 4115450,
       "name": "Phantom Blade Zero",
-      "playtime_2weeks": 1565,
-      "playtime_forever": 1565,
+      "playtime_2weeks": 2374,
+      "playtime_forever": 2370,
       "img_icon_url": "ce420dc458dd3d7af276f48fbaa44a05876760dc",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 1565,
+      "playtime_windows_forever": 2370,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1793431350,
+      "rtime_last_played": 1793520677,
       "playtime_disconnected": 0
     }
   ]
