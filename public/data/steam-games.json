@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-02T08:39:09.784Z",
+  "lastUpdated": "2026-11-03T08:50:47.778Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1793603370,
+    "lastlogoff": 1793695257,
     "personastate": 4,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -201,15 +201,15 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 76,
-      "playtime_forever": 77842,
+      "playtime_2weeks": 80,
+      "playtime_forever": 77846,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 74696,
+      "playtime_windows_forever": 74700,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1793542298,
+      "rtime_last_played": 1793628955,
       "content_descriptorids": [
         2,
         5
@@ -2265,15 +2265,15 @@
     {
       "appid": 4115450,
       "name": "Phantom Blade Zero",
-      "playtime_2weeks": 2631,
-      "playtime_forever": 2631,
+      "playtime_2weeks": 2704,
+      "playtime_forever": 2704,
       "img_icon_url": "ce420dc458dd3d7af276f48fbaa44a05876760dc",
       "has_community_visible_stats": true,
-      "playtime_windows_forever": 2631,
+      "playtime_windows_forever": 2704,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
       "playtime_deck_forever": 0,
-      "rtime_last_played": 1793536353,
+      "rtime_last_played": 1793623864,
       "playtime_disconnected": 0
     }
   ]
