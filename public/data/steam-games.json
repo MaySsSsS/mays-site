@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-09T08:53:02.043Z",
+  "lastUpdated": "2026-11-10T08:59:08.906Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -10,7 +10,7 @@
     "avatarmedium": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_medium.jpg",
     "avatarfull": "https://avatars.steamstatic.com/ecb2e67480731dc02885cbad568c815cdf4e8040_full.jpg",
     "avatarhash": "ecb2e67480731dc02885cbad568c815cdf4e8040",
-    "lastlogoff": 1794205419,
+    "lastlogoff": 1794267118,
     "personastate": 4,
     "realname": "GTC",
     "primaryclanid": "103582791429521408",
@@ -2201,9 +2201,9 @@
     },
     {
       "appid": 3065170,
-      "name": "Monster Hunter Wilds Beta test",
+      "name": "Monster Hunter Wilds: Ascendance Beta test",
       "playtime_forever": 192,
-      "img_icon_url": "cb8345c0f9742dad3764d058c9da49c8860d15f9",
+      "img_icon_url": "bae6bcf632448a61309a518f85fb174a7313630e",
       "playtime_windows_forever": 192,
       "playtime_mac_forever": 0,
       "playtime_linux_forever": 0,
