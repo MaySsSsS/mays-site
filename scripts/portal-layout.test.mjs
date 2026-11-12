@@ -16,33 +16,15 @@ test("mobile portal panels keep comic borders and actions inside the viewport", 
   assert.match(portalCss, /@media \(max-width: 640px\)[\s\S]*\.panelAction[\s\S]*align-self: flex-start/);
 });
 
-test("portal exposes Universe Observatory as a main-site subpage", () => {
-  assert.match(portalPage, /OBSERVATORY/);
-  assert.match(portalPage, /href:\s*"\/universe"/);
-  assert.match(portalPage, /maysssss\.cn\/universe/);
-  assert.match(portalPage, /styles\.universePanel/);
-});
-
-test("portal exposes Quant Lab and Universe Observatory", () => {
-  assert.match(portalPage, /QUANT LAB/);
-  assert.match(portalPage, /href:\s*"\/signal-arena"/);
-  assert.match(portalPage, /prefetch:\s*true/);
-  assert.match(portalPage, /maysssss\.cn\/signal-arena/);
-  assert.match(portalPage, /OBSERVATORY/);
-  assert.match(portalPage, /href:\s*"\/universe"/);
-});
-
-test("Quant Lab keeps the same clickable card layout as other portal entries", () => {
-  assert.ok(portalPage.indexOf("QUANT LAB") < portalPage.indexOf("PLAYER ONE"));
+test("portal exposes the remaining game, photos and tools entries", () => {
+  assert.match(portalPage, /href:\s*"\/game"/);
+  assert.match(portalPage, /href:\s*"\/photos"/);
+  assert.match(portalPage, /href:\s*"\/tools"/);
+  assert.doesNotMatch(portalPage, /signal-arena|ai-daily|universe/);
   assert.match(
     portalPage,
     /<Link[\s\S]*href=\{item\.href\}[\s\S]*prefetch=\{item\.prefetch\}[\s\S]*className=\{`\$\{styles\.panel\} \$\{styles\.panelLink\} \$\{item\.className\}`\}/
   );
-
-  const signalArenaPanel = portalCss.match(/\.signalArenaPanel\s*\{(?<body>[\s\S]*?)\n\}/);
-
-  assert.ok(signalArenaPanel?.groups?.body);
-  assert.doesNotMatch(signalArenaPanel.groups.body, /grid-column\s*:/);
 });
 
 test("portal cover fills the first viewport before the directory panels", () => {

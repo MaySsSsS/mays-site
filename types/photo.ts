@@ -22,8 +22,8 @@ export interface PhotoGroup {
 export interface CityCoordinate {
   lat: number;
   lng: number;
-  top: string;
-  left: string;
+  top?: string;
+  left?: string;
 }
 
 export interface UploadPhotoInput {

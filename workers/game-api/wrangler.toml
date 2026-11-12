@@ -8,4 +8,4 @@ binding = "GAME_BUCKET"
 bucket_name = "my-games"
 
 [vars]
-CORS_ORIGIN = "https://game.maysssss.cn"
+CORS_ORIGIN = "https://linkmays.com"

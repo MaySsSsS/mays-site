@@ -27,8 +27,7 @@ export default {
     // 允许的来源
     const allowedOrigins = [
       env.CORS_ORIGIN,
-      "https://game.maysssss.cn",
-      "https://maysssss.cn",
+      "https://linkmays.com",
       "http://localhost:5173",
       "http://localhost:3000",
     ];

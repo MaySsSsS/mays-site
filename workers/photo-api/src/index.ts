@@ -127,8 +127,7 @@ export default {
     // 允许的来源（开发环境和生产环境）
     const allowedOrigins = [
       env.CORS_ORIGIN,
-      "https://photo.maysssss.cn",
-      "https://maysssss.cn",
+      "https://linkmays.com",
       "http://localhost:5173",
       "http://localhost:3000",
     ];

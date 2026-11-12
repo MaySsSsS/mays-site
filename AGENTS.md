@@ -2,7 +2,7 @@
 
 # mays-site
 
-主域名路由个人站点：maysssss.cn（门户）、`/game`（Steam 游戏库）、`/photos`（照片足迹）。历史 `game.maysssss.cn` / `photo.maysssss.cn` 子域名已停用。
+主域名路由个人站点：linkmays.com（门户）、`/game`（Steam 游戏库）、`/photos`（照片足迹）。历史 `game.maysssss.cn` / `photo.maysssss.cn` 子域名已停用。
 
 > **会话入口**：先读 `PROGRESS.md` 了解当前状态和下一步，再开始工作。
 
@@ -52,9 +52,9 @@ Next.js 15 + React 19 + TypeScript strict + Zustand + CSS Modules。单体应用
 
 ```
 主域名路由（legacy 子域名由 middleware 拦截停用）：
-  maysssss.cn        → app/page.tsx          （门户首页）
-  maysssss.cn/game   → app/(game)/game/      （游戏仪表盘，server component + ISR 1h）
-  maysssss.cn/photos → app/(photo)/photos/   （照片地图，client component）
+  linkmays.com        → app/page.tsx          （门户首页）
+  linkmays.com/game   → app/(game)/game/      （游戏仪表盘，server component + ISR 1h）
+  linkmays.com/photos → app/(photo)/photos/   （照片地图，client component）
 ```
 
 ### Project Layout

@@ -1,41 +1,37 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import {
-  Card,
-  Divider,
-  SheikahBackground,
-  SheikahScanlines
-} from "zelda-hyrule-ui";
-
-import styles from "@/styles/tools/hub.module.css";
+import ToolsHubClient from "@/components/tools/ToolsHubClient";
 
 const liveTools = [
   {
     eyebrow: "Tool 01",
     title: "QR Studio",
+    displayTitle: "QR STUDIO",
     href: "/tools/qr",
-    summary: "Generate polished QR codes for links, notes, and quick share flows.",
+    summary: "生成适合链接、便签和快速分享场景的精致二维码。",
     status: "Public"
   },
   {
     eyebrow: "Tool 02",
     title: "Style Prompt Index",
+    displayTitle: "STYLE PROMPT INDEX",
     href: "/tools/style-prompt",
-    summary: "Browse UI-Prompt style data, filter design families, and copy bilingual prompts.",
+    summary: "浏览 UI-Prompt 风格数据，筛选设计流派，并复制中英双语提示词。",
     status: "Data Mirror"
   },
   {
     eyebrow: "Tool 03",
     title: "Word to Markdown",
+    displayTitle: "WORD TO MARKDOWN",
     href: "/tools/word-to-markdown",
-    summary: "Convert .docx files into Markdown in the browser, with image assets kept in a ZIP export.",
+    summary: "在浏览器中将 .docx 转成 Markdown，并把图片资源一并打包导出。",
     status: "Browser Local"
   },
   {
     eyebrow: "Tool 04",
     title: "Idea Lab",
+    displayTitle: "IDEA LAB",
     href: "/tools/idea-lab",
-    summary: "Turn a rough idea into a scoped brief, validation checklist, and Codex-ready prompt.",
+    summary: "把模糊想法整理成范围清晰的 brief、验证清单和可直接交给 Codex 的提示词。",
     status: "Local Draft"
   }
 ] as const;
@@ -44,8 +40,9 @@ const futureBays = [
   {
     eyebrow: "Next Slot",
     title: "More Tools Pending",
+    displayTitle: "MORE TOOLS PENDING",
     summary:
-      "Future utilities will slot into the same lab grid once they are ready to ship.",
+      "后续工具准备完成后，会继续按同一套目录结构接入这里。",
     status: "Calibrating"
   }
 ] as const;
@@ -56,70 +53,5 @@ export const metadata: Metadata = {
 };
 
 export default function ToolsHubPage() {
-  return (
-    <SheikahBackground color="darkBlue" className={styles.page}>
-      <SheikahScanlines animated opacity={0.08} />
-      <main className={styles.shell}>
-        <nav className={styles.topbar} aria-label="Tools navigation">
-          <Link href="/" className={styles.backLink}>
-            Return to Universe
-          </Link>
-        </nav>
-
-        <section className={styles.hero} aria-labelledby="tools-title">
-          <div className={styles.heroCopy}>
-            <p className={styles.kicker}>Tools Hub</p>
-            <h1 id="tools-title" className={styles.title}>
-              Tools
-            </h1>
-            <div className={styles.subtitleBlock}>
-              <p className={styles.subtitle}>Mays Tools Directory</p>
-              <p className={styles.description}>QR, prompt archive, converter, and idea brief modules.</p>
-            </div>
-          </div>
-        </section>
-
-        <Divider variant="sheikah" />
-
-        <section className={styles.board} aria-labelledby="tool-grid-title">
-          <div className={styles.sectionHeading}>
-            <div>
-              <p className={styles.sectionLabel}>Directory</p>
-              <h2 id="tool-grid-title" className={styles.sectionTitle}>
-                Tool access
-              </h2>
-            </div>
-          </div>
-
-          <div className={styles.grid}>
-            {liveTools.map((tool) => (
-              <Link key={tool.title} href={tool.href} className={styles.toolLink}>
-                <Card variant="sheikah" className={styles.toolCard}>
-                  <span className={styles.cardEyebrow}>{tool.eyebrow}</span>
-                  <span className={styles.cardTitle}>{tool.title}</span>
-                  <p className={styles.cardSummary}>{tool.summary}</p>
-                  <span className={styles.cardFooter}>
-                    <span className={styles.cardStatus}>{tool.status}</span>
-                    <span className={styles.cardAction}>Open Module</span>
-                  </span>
-                </Card>
-              </Link>
-            ))}
-
-            {futureBays.map((bay) => (
-              <Card key={bay.title} variant="golden" className={styles.futureCard}>
-                <span className={styles.cardEyebrow}>{bay.eyebrow}</span>
-                <span className={styles.cardTitle}>{bay.title}</span>
-                <p className={styles.cardSummary}>{bay.summary}</p>
-                <span className={styles.cardFooter}>
-                  <span className={styles.cardStatus}>{bay.status}</span>
-                  <span className={styles.cardActionMuted}>Awaiting Deployment</span>
-                </span>
-              </Card>
-            ))}
-          </div>
-        </section>
-      </main>
-    </SheikahBackground>
-  );
+  return <ToolsHubClient liveTools={liveTools} futureBays={futureBays} />;
 }

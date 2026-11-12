@@ -6,7 +6,7 @@ import QRCode from "qrcode";
 
 import styles from "@/styles/tools/qr.module.css";
 
-const DEFAULT_CONTENT = "https://maysssss.cn/tools";
+const DEFAULT_CONTENT = "https://linkmays.com/tools";
 const DEFAULT_FOREGROUND = "#10111a";
 const DEFAULT_BACKGROUND = "#f7f7fb";
 

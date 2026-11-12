@@ -13,55 +13,25 @@ type PortalItem = {
 
 const portalItems: PortalItem[] = [
   {
-    eyebrow: "QUANT",
-    title: "QUANT LAB",
-    href: "/signal-arena",
-    domain: "maysssss.cn/signal-arena",
-    className: styles.signalArenaPanel,
-    prefetch: true
-  },
-  {
     eyebrow: "GAME",
     title: "PLAYER ONE",
     href: "/game",
-    domain: "maysssss.cn/game",
+    domain: "linkmays.com/game",
     className: styles.gamePanel
   },
   {
     eyebrow: "PHOTOS",
     title: "CITY FILES",
     href: "/photos",
-    domain: "maysssss.cn/photos",
+    domain: "linkmays.com/photos",
     className: styles.photoPanel
   },
   {
     eyebrow: "TOOLS",
     title: "SIGNAL LAB",
     href: "/tools",
-    domain: "maysssss.cn/tools",
+    domain: "linkmays.com/tools",
     className: styles.toolsPanel
-  },
-  {
-    eyebrow: "A-SHARE",
-    title: "STOCK LAB",
-    href: "http://159.75.54.50",
-    domain: "159.75.54.50",
-    className: styles.stockPanel
-  },
-  {
-    eyebrow: "AI",
-    title: "AI DAILY",
-    href: "/ai-daily",
-    domain: "maysssss.cn/ai-daily",
-    className: styles.aiPanel
-  },
-  {
-    eyebrow: "UNIVERSE",
-    title: "OBSERVATORY",
-    href: "/universe",
-    domain: "maysssss.cn/universe",
-    className: styles.universePanel,
-    prefetch: true
   }
 ];
 

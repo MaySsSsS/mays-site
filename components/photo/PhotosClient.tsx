@@ -66,14 +66,12 @@ export function PhotosClient() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      if (groups.length === 0) {
-        initSampleData();
-      }
+      initSampleData();
       return;
     }
 
     void fetchFromApi();
-  }, [fetchFromApi, groups.length, initSampleData, isAuthenticated]);
+  }, [fetchFromApi, initSampleData, isAuthenticated]);
 
   useEffect(() => {
     if (groups.length === 0) {

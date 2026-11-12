@@ -9,22 +9,14 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "dev:signal-arena-api": "pnpm --dir workers/signal-arena-api dev",
-    "test:signal-arena-worker": "pnpm --dir workers/signal-arena-api test",
-    "typecheck:signal-arena-worker": "pnpm --dir workers/signal-arena-api typecheck",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "dev:game-api": "pnpm --dir workers/game-api dev",
     "dev:photo-api": "pnpm --dir workers/photo-api dev",
-    "test:ai-daily": "node --test scripts/ai-daily-core.test.mjs",
-    "test:ai-daily-visual": "node --test scripts/ai-daily-visual.test.mjs",
     "test:idea-lab": "node --test scripts/idea-lab.test.mjs",
-    "test:portal": "node --test scripts/portal-layout.test.mjs",
-    "test:signal-arena": "node --test scripts/signal-arena-layout.test.mjs",
-    "test:universe": "node --test scripts/universe-layout.test.mjs",
-    "update:ai-daily": "node scripts/update-ai-daily.mjs"
+    "test:portal": "node --test scripts/portal-layout.test.mjs"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",

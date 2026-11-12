@@ -17,7 +17,7 @@ export default function NotFoundPage() {
         <Link href="/" className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Portal</span>
-            <span className={styles.cardDomain}>maysssss.cn</span>
+            <span className={styles.cardDomain}>linkmays.com</span>
           </div>
           <p className={styles.cardDescription}>返回主站入口页。</p>
           <span className={styles.cardAction}>Back</span>
@@ -26,7 +26,7 @@ export default function NotFoundPage() {
         <Link href="/game" className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Game</span>
-            <span className={styles.cardDomain}>maysssss.cn/game</span>
+            <span className={styles.cardDomain}>linkmays.com/game</span>
           </div>
           <p className={styles.cardDescription}>前往 Steam 仪表盘路由页。</p>
           <span className={styles.cardAction}>Open</span>

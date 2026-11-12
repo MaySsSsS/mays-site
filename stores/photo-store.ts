@@ -49,10 +49,37 @@ export const usePhotoStore = create<PhotoStoreState>((set, get) => ({
 
     try {
       const response = await fetchGroups();
-      const nextGroups = response.groups ?? [];
-      persistGroups(nextGroups);
+      const remoteGroups = response.groups ?? [];
+
+      if (remoteGroups.length > 0) {
+        persistGroups(remoteGroups);
+        set({
+          groups: remoteGroups,
+          error: null
+        });
+        return;
+      }
+
+      const localGroups = loadGroupsFromStorage();
+      if (localGroups.length > 0) {
+        persistGroups(localGroups);
+        set({
+          groups: localGroups,
+          error: null
+        });
+
+        try {
+          await saveGroups(localGroups);
+        } catch {
+          // Keep local data when the remote copy cannot be initialized yet.
+        }
+        return;
+      }
+
+      const sampleGroups = createSampleGroups();
+      persistGroups(sampleGroups);
       set({
-        groups: nextGroups,
+        groups: sampleGroups,
         error: null
       });
     } catch (error) {

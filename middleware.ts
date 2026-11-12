@@ -2,8 +2,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 const RETIRED_SUBDOMAINS = {
-  "game.": "https://maysssss.cn/game",
-  "photo.": "https://maysssss.cn/photos"
+  "game.": "https://linkmays.com/game",
+  "photo.": "https://linkmays.com/photos"
 } as const;
 
 export function middleware(request: NextRequest) {
