@@ -4,6 +4,12 @@
 
 ## 当前状态
 
+- 2026-11-12：整理部署配置、发布流程与版本基线。删除与现状冲突的 `docs/DEPLOYMENT.md`（GitHub Pages + 子域名旧方案），把根 `DEPLOYMENT.md` 重写为唯一权威文档（架构 / 域名 / 发布流程 / 版本基线 / 数据新鲜度）。发布流程：新增 `scripts/predeploy-check.mjs`（工作区不干净时阻止部署，`ALLOW_DIRTY_DEPLOY=1` 可强制；非 main 分支告警），脚本拆分为 `build:cf` / `deploy` / `deploy:only` / `upload`，Makefile 去掉重复构建；`deploy-frontend.yml` 升级 Node 22 并缓存 `.next/cache`。版本同步：两个 Worker 统一到 wrangler `^4.81.1`、TypeScript `^5.9.3`、`@cloudflare/workers-types` `4.20260702.1`、`compatibility_date` `2026-04-12`；Worker 脚本固定 `wrangler dev/deploy -c wrangler.toml`（wrangler 4 autoconfig 会误读根 `wrangler.jsonc`）；`photo-api` 上传处适配新 workers-types 的 `FormData.get()` 类型。`README.md` / `AGENTS.md` / `CLAUDE.md` 同步。验证：`pnpm typecheck` / `pnpm lint` / `pnpm build` 与两个 Worker 的 `npm run typecheck` 全部通过；`predeploy-check` 的阻止与放行路径均实测符合预期；未部署。
+- 2026-11-10：修复相册数据加载后消失的问题：`photo-api` 返回空分组时会覆盖并清空本地缓存，现改为远端为空时保留本地数据并回传初始化远端；`PhotosClient` 的同步 effect 去掉 `groups.length` 依赖，避免每次数据变化重复拉取。城市坐标表从 34 个扩展到 181 个（含九寨沟、稻城、敦煌、婺源等目的地），`CityCoordinate` 的 `top`/`left` 改为可选。`/tools` 的 `TOOLS` 标题改用 `Hylia Serif`，覆盖 `SheikahTextTitle` 内部的 Roboto 斜体。验证：`pnpm typecheck` / `pnpm lint` / `pnpm build` / `pnpm test:portal` 通过；已部署 `mays-site-web` 版本 `abef28f6-5b06-45e9-af70-741c863935c4`，线上 CSS 已包含 Hylia Serif 规则，照片页 JS 已包含新增城市数据。
+- 2026-11-10：下线 `signal-arena`、`ai-daily`、`universe` 三个模块。删除对应页面、组件、lib/types/styles、静态数据、脚本与测试、`.github/workflows/ai-daily.yml` 和 `workers/signal-arena-api`；门户首页只保留 Game / Photos / Tools 三个入口，`portal.module.css` 中对应面板样式一并移除。修复 `photo-api` / `game-api` 的 CORS：`CORS_ORIGIN` 改为 `https://linkmays.com`。验证：`pnpm typecheck` / `pnpm lint` / `pnpm build`（13 个静态页）/ `pnpm test:portal` 通过；`pnpm test:idea-lab` 因工作区既有 `/tools` 重构断言未同步而失败，与本次删除无关。已部署前端 `mays-site-web`（最终版本 `8db1c1ea-faaa-4dfc-9be6-59cf0b4219ba`）、`mays-photo-api` 版本 `c569331c-fec9-4bb5-a13c-fef2beebe76e`、`mays-game-api` 版本 `f2ad03da-2a69-4e80-a0c1-8bb155ea510a`；线上 `/signal-arena`、`/ai-daily`、`/universe` 返回 404，`/`、`/game`、`/photos`、`/tools` 返回 200，photo-api 预检返回 `access-control-allow-origin: https://linkmays.com`。Cloudflare 上的 `mays-signal-arena-api` Worker 已删除。
+- 2026-11-10：将主站域名从 `maysssss.cn` 切换为 `linkmays.com`。更新范围：`middleware.ts` legacy 子域名重定向目标、首页/404 页展示域名、`QrStudio` 默认内容、`wrangler.jsonc` 的 `SIGNAL_ARENA_API_URL`、三个 Worker 的 CORS 白名单与 `wrangler.toml`（含 signal-arena-api 自定义域名 pattern）、`scripts/portal-layout.test.mjs` 断言，以及 AGENTS.md / CLAUDE.md / DEPLOYMENT.md 同步文档。PROGRESS.md 历史巡检记录与决策记录中的 `maysssss.cn` 保留为历史证据。`pnpm typecheck` / `pnpm lint` / `pnpm build` / `pnpm test:portal` / `pnpm test:signal-arena` / `pnpm --dir workers/signal-arena-api test` / worker typecheck 全部通过。Cloudflare 自定义域名绑定待 NS 生效后在控制台完成。
+- 2026-07-19：执行 `Agent World 注册恢复监控`。`POST https://world.coze.site/api/agents/register` 仍返回 `403 Forbidden`，响应体为维护页 HTML，标题与文案仍指向 `agent world 正在装修中`；未返回 `api_key` 或等价 key 字段。按自动化规则判定为上游仍不可用，未继续执行 key 注入、admin dryRun、D1 检查或部署。未做代码修改。
+- 2026-07-17：执行 `Agent World 注册恢复监控`。`POST https://world.coze.site/api/agents/register` 仍返回 `403 Forbidden`，响应体为维护页 HTML，标题与文案仍指向 `agent world 正在装修中`；未返回 `api_key` 或等价 key 字段。按自动化规则判定为上游仍不可用，未继续执行 key 注入、admin dryRun、D1 检查或部署。未做代码修改。
 - 2026-06-25：整理主站发布流程并补齐标签栏图标。新增 `app/icon.svg` 作为站点 favicon；补充 `DEPLOYMENT.md`，明确当前 Cloudflare 发布会直接读取本地工作区，因此后续统一采用“先提交，再发布”的流程，避免线上状态与 Git 历史脱节。同步收口此前已上线但未整理的首页 `STOCK LAB` 入口与 `/tools` Hyrule UI 改造相关工作区改动，准备统一提交并重新部署。验证通过：`pnpm build`。
 
 - 2026-06-24：执行 `mays-site 线上可用性监控`。公开页面 `/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200，可访问。`/api/public/all` 返回 200，公开 payload 仍为 `strategy.version=Q-Alpha v1`、`account.scope=quant-v1`，`equityHistory` 仅见 `quant-v1` 点位。最新公开 Quant Lab 日志为 `failed`，`summary=Quant Lab Runner 执行失败。`，`candidates=[]`，`strategyTrace` / `decisionTrace` 均为空，未见旧 AI / WorkBuddy / legacy-ai 历史对照。`/ai-daily` 索引最新日期仍停在 `2026-06-13`，属于明显陈旧。公开响应未发现真实 secret-like 串。未做代码修改、验证或部署。
@@ -45,7 +51,7 @@
 - `pnpm test:portal` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build` / `pnpm deploy`：通过（2026-05-26，优化首页点击 `SIGNAL ARENA` 后的响应感；入口启用 Next prefetch，`/signal-arena/loading.tsx` 新增即时同步态，前端版本 `13f2e145-a24b-4eb6-9765-afd8f51023e5`，部署资产包含 `app/signal-arena/loading-c021b527fc0abf07.js`）
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-26，纠正 AI 主动 HOLD/观望被公开展示为 `blocked` 和错误提示 100 股限制的问题；旧 D1 HOLD 记录读取时兼容归一为 `held`）
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm test:portal` / `pnpm test:ai-daily` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-27，新增 Signal Arena 前置信号生成层；Worker Runner 将 `top-movers` / 持仓 / 近期交易加工为 `decisionTrace.signalContext` 并交给 AI prompt，前端决策弹窗展示“前置信号”；旧日志没有该字段会显示为空数组）
-- 部署状态：Signal Arena D1 trace/snapshot migration 已执行，`mays-signal-arena-api` 当前版本 `00ab383b-09ae-4e46-aad4-5a667e649cf5`，公开 API 域名为 `https://signal-arena-api.maysssss.cn`；2026-05-27 前端已部署到版本 `9864fb5a-4ee1-46bb-8ec3-965ebd9c4449`
+- 部署状态：Signal Arena D1 trace/snapshot migration 已执行，`mays-signal-arena-api` 当前版本 `00ab383b-09ae-4e46-aad4-5a667e649cf5`，公开 API 域名已切换为 `https://signal-arena-api.linkmays.com`；2026-05-27 前端已部署到版本 `9864fb5a-4ee1-46bb-8ec3-965ebd9c4449`，当前域名切换到 `linkmays.com`
 - 2026-05-27 每日生产巡检：`/`、`/signal-arena`、`/signal-arena/logs`、`/game`、`/photos`、`/tools/style-prompt` 均返回 200；`/ai-daily` 页面可访问，但公开索引最新日期仍为 `2026-05-26`，较当天落后一日，需要继续观察当日 GitHub Actions 同步是否补上；未发现公开页面泄漏真实密钥，`/signal-arena/logs` 也未出现 4xx/5xx，只是 HTML 中包含渲染时的 `404` 片段和 loading skeleton 文案
 - `pnpm --dir workers/signal-arena-api test` / `pnpm --dir workers/signal-arena-api typecheck` / `pnpm test:signal-arena` / `pnpm typecheck` / `pnpm lint` / `pnpm build`：通过（2026-05-27，修复 Signal Arena 卖出可卖数量 / T+1 风控误导；Runner 风控侧 `availableShares` 与 prompt 侧 fallback 对齐，卖出风控原因拆分，prompt 明确 `sell <= availableShares`，日志页去重风控展示，并将旧版合并文案兼容为新版说明；Worker 版本 `54e86075-b62d-427e-bcb5-8016f0e8e9b6`，前端版本 `fe38af8e-edcc-45fd-9a62-04ebe13d601c`，线上 API 抽查旧合并文案 `0` 条、兼容说明 `4` 条）
 - 2026-05-28 每日生产巡检：本地 Node/browser 环境无法解析 `maysssss.cn` / `signal-arena-api.maysssss.cn`（`TypeError: fetch failed`，`curl: Could not resolve host`，in-app browser 无活动窗格），因此线上 `/`、`/ai-daily`、`/signal-arena`、`/signal-arena/logs`、`/game`、`/photos`、`/tools/style-prompt` 的实时 200/文案/泄漏检查未完成；本地补充检查显示 `public/data/ai-daily/index.json` 仍为 `latestDate=2026-05-26`（当前 2026-05-28 19:59 CST，工作区快照明显陈旧），源码扫描仅命中预期 env var 名称、脚本日志与测试假密钥，未发现真实密钥字面量。
@@ -224,15 +230,18 @@
 | 2026-05-06 | 将 fallback iframe 的第三方静态资源请求记为 accepted risk，而非继续扩展实现关闭它 | 当前主路径已经是本地 PNG 预览；fallback 只在预览图失效时触发，且 sandbox/CSP/`no-referrer` 已把能力压到很低，继续为此引入更重的代理或重写逻辑不划算 | 为 fallback 追加代理层、彻底禁用 demo fallback、引入 R2/后端中转 |
 | 2026-05-06 | 里程碑审计先按 `gaps_found` 记录，而不是直接放行归档 | 当前功能链路虽通过，但 git 工作区仍包含未提交的 `Style Prompt Index` 实现文件，且 Phase 4/5 缺少验证文档；此时打 tag 会让版本标签与实际 shipped 代码不一致 | 忽略仓库状态直接 complete milestone、把证据缺口当成已通过 |
 
+| 2026-11-10 | 下线 Signal Arena、AI Daily、Universe 三个模块及对应 Worker | 站点收敛为主站门户 + Game / Photos / Tools，减少持续维护与运维成本 | 保留三个模块继续维护、仅隐藏入口不删代码 |
+| 2026-11-10 | 主域名从 `maysssss.cn` 切换到 `linkmays.com` | 用户更换了域名托管与站点域名 | 继续使用旧域名、双域名长期并存 |
+| 2026-11-12 | 保留 `--dangerouslyUseUnsupportedNextVersion` | Next 15 的官方支持期已于 2026-10-21 结束，OpenNext 会直接拒绝构建；该 flag 只跳过日期检查，1.19.1 的 peer 范围仍包含 next 15.5.15，升级 Next 16 属于独立任务 | 立即升级 Next 16、删 flag 后构建失败 |
+| 2026-11-12 | 发布前强制工作区干净（`scripts/predeploy-check.mjs`） | 发布读取的是本地工作区，脏工作区会让线上内容无法对应到任何提交；CI 在干净 checkout 上不受影响 | 继续允许任意脏工作区直接发布 |
+| 2026-11-12 | 不在 `wrangler.jsonc` 声明 `routes`，域名继续控制台手工绑定 | 自动绑定要求 zone 与 Worker 同账号且配置正确，写错会让发布失败；当前域名已手工可用 | 把 `custom_domain` 直接写进配置 |
+
 ## 下一步
 
-- 继续等待 Agent World 注册入口恢复后再做 Quant Lab 后续接入；当前无需代码、提交或部署。
-
-1. 等待 Agent World 注册入口恢复，或由用户提供可用的 `SIGNAL_ARENA_AGENT_API_KEY`；当前 `POST https://world.coze.site/api/agents/register` 仍返回 `403` 维护页 HTML，未拿到可用 key
-2. 拿到有效 key 后更新生产 `SIGNAL_ARENA_AGENT_API_KEY`，立即执行 `dryRun=true` 手动运行，确认 `home / portfolio / stocks-list / stock-history` 正常，D1 新 run 写入 `account_scope=quant-v1`、`strategy_version=Q-Alpha v1`、`strategy_trace_json`
-3. A 股交易时段内再执行一次非 dry-run，确认公开 `/signal-arena`、`/signal-arena/logs`、`/signal-arena/rank` 只显示新量化账号数据
-4. Quant Lab 稳定运行后进入下一阶段：回测脚本、候选策略版本和每周 AI 复盘；同步维护 `docs/signal-arena-quant-lab-user-guide.md`
-5. 观察 AI Daily 每天北京时间 12:00 的 GitHub Actions 自动同步是否稳定产出 `ai_summary`
-6. 每天北京时间 09:10 通过 `mays-site 每日巡检` 自动检查线上页面是否出现 4xx/5xx、配置缺失、数据异常陈旧或公开密钥泄漏
-7. 观察 legacy `game.maysssss.cn` / `photo.maysssss.cn` 的 DNS/证书传播结果，确认最终对外状态
-8. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
+1. 在 Cloudflare 控制台为 `mays-site-web` 绑定自定义域名 `linkmays.com`，并确认两个 API Worker 无遗留自定义域名
+2. 观察新域名下 `/`、`/game`、`/photos`、`/tools` 的线上访问与 photo-api 登录流程
+3. 旧域名 `maysssss.cn` 如不再续费，可移除 Squarespace 的 DNS 与 Cloudflare 旧绑定
+4. 处理 `scripts/idea-lab.test.mjs` 与当前 `/tools` 新 UI 文案不一致的既有断言
+5. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
+6. 若要让 `/game` 不重新部署也显示最新 Steam 数据，二选一：客户端始终从 game-api 取数，或配置 R2 增量缓存并去掉 CI 的 `STEAM_DATA_SOURCE=static`
+7. 待当前工作区（含 2026-11-10 下线与换域名改动）提交后，本地 `pnpm deploy` 才能通过 `predeploy-check`；也可临时用 `ALLOW_DIRTY_DEPLOY=1`

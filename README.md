@@ -40,6 +40,8 @@ pnpm build
 # Cloudflare Workers 本地预览 / 部署
 pnpm preview
 pnpm deploy
+# 复用已有构建直接发布（快速重发）
+pnpm deploy:only
 ```
 
 ## 路由
@@ -51,8 +53,8 @@ pnpm deploy
 
 ## 技术栈
 
-- Next.js 14
-- React 18
+- Next.js 15.5
+- React 19
 - TypeScript
 - Zustand
 - ECharts
@@ -63,5 +65,5 @@ pnpm deploy
 - `public/data/steam-games.json` 和中国地图 GeoJSON 来自原项目快照。
 - 照片和游戏接口仍然复用当前 Workers，不影响线上 API。
 - `middleware.ts` 会拦截已退役的 `game.*` 和 `photo.*` 子域名，并提示改用主域名路由。
-- GitHub 与 Cloudflare 的联动说明见 [DEPLOYMENT.md](/Volumes/KIOXIA+MAIWO/projects/mays-site/DEPLOYMENT.md)。
-- 前端 Cloudflare 配置见 [wrangler.jsonc](/Volumes/KIOXIA+MAIWO/projects/mays-site/wrangler.jsonc) 和 [open-next.config.ts](/Volumes/KIOXIA+MAIWO/projects/mays-site/open-next.config.ts)。
+- 部署流程、域名与版本基线见 [DEPLOYMENT.md](./DEPLOYMENT.md)。
+- 前端 Cloudflare 配置见 [wrangler.jsonc](./wrangler.jsonc) 和 [open-next.config.ts](./open-next.config.ts)。

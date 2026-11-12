@@ -186,11 +186,12 @@ export default {
       // === 上传照片 ===
       if (path === "/api/upload" && method === "POST") {
         const formData = await request.formData();
-        const file = formData.get("file") as File;
-        const groupId = formData.get("groupId") as string;
-        const photoId = formData.get("photoId") as string;
+        // workers-types 把 FormData.get() 统一标成 string | null，multipart 上传时实际返回 File。
+        const file = formData.get("file") as unknown as File | null;
+        const groupId = formData.get("groupId");
+        const photoId = formData.get("photoId");
 
-        if (!file || !groupId || !photoId) {
+        if (!file || typeof groupId !== "string" || typeof photoId !== "string") {
           return jsonResponse({ error: "缺少必要参数" }, 400, origin);
         }
 

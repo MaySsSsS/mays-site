@@ -1,310 +1,91 @@
 # Deployment
 
-## 1. 当前 GitHub 和 Cloudflare 的联动方式
-
-仓库里现在有三条相关链路：
-
-### 1.1 Steam 数据自动更新
-
-- GitHub Actions workflow: [`.github/workflows/deploy.yml`](/Volumes/KIOXIA+MAIWO/projects/mays-site/.github/workflows/deploy.yml)
-- 触发方式：
-  - 每天 UTC `02:00`
-  - `workflow_dispatch` 手动触发
-- 依赖的 GitHub Secrets：
-  - `STEAM_API_KEY`
-  - `STEAM_ID`
-  - `GAME_UPLOAD_SECRET`
-
-执行流程：
-
-1. GitHub Actions 运行 [`scripts/fetch-steam-data.js`](/Volumes/KIOXIA+MAIWO/projects/mays-site/scripts/fetch-steam-data.js)
-2. 脚本从 Steam Web API 拉取玩家和游戏库数据
-3. 脚本把数据上传到 `mays-game-api` Worker 的 `/api/upload`
-4. 脚本把快照写回 [`public/data/steam-games.json`](/Volumes/KIOXIA+MAIWO/projects/mays-site/public/data/steam-games.json)
-5. Workflow 将更新后的 JSON 提交回 GitHub
-
-### 1.2 Cloudflare Worker API
-
-现有两个 Worker 仍然独立部署：
-
-- [`workers/game-api`](/Volumes/KIOXIA+MAIWO/projects/mays-site/workers/game-api)
-  - Worker 名称：`mays-game-api`
-  - R2 bucket：`my-games`
-  - 主要接口：`GET /api/steam-games`、`POST /api/upload`
-- [`workers/photo-api`](/Volumes/KIOXIA+MAIWO/projects/mays-site/workers/photo-api)
-  - Worker 名称：`mays-photo-api`
-  - R2 bucket：`my-photos`
-  - 主要接口：`POST /api/auth`、`GET/POST /api/groups`、`POST /api/upload`
-
-前端默认直接请求：
-
-- `https://mays-game-api.mays.workers.dev`
-- `https://mays-photo-api.mays.workers.dev`
-
-### 1.3 前端 Cloudflare Workers 部署配置
-
-仓库现在已经包含前端部署所需的基础文件：
-
-- [wrangler.jsonc](/Volumes/KIOXIA+MAIWO/projects/mays-site/wrangler.jsonc)
-- [open-next.config.ts](/Volumes/KIOXIA+MAIWO/projects/mays-site/open-next.config.ts)
-- [public/_headers](/Volumes/KIOXIA+MAIWO/projects/mays-site/public/_headers)
-- [`.github/workflows/deploy-frontend.yml`](/Volumes/KIOXIA+MAIWO/projects/mays-site/.github/workflows/deploy-frontend.yml)
-
-对应脚本：
-
-- `pnpm preview`
-- `pnpm deploy`
-- `pnpm upload`
-
-## 2. 前端部署建议
-
-当前前端统一通过主域名路由访问，并使用 [`middleware.ts`](/Volumes/KIOXIA+MAIWO/projects/mays-site/middleware.ts) 拦截已退役的 legacy 子域名：
-
-- `game.*` -> 返回停用响应，并提示改用 `/game`
-- `photo.*` -> 返回停用响应，并提示改用 `/photos`
-
-这意味着前端不只是“静态导出页面”，仍然依赖 middleware 行为。
-
-基于 Cloudflare 当前官方文档，推荐这样部署：
-
-- 前端主站：使用 **Cloudflare Workers + OpenNext adapter**
-- API：继续保留现有两个独立 Worker
-- 域名：
-  - `maysssss.cn`
-
-## 3. 推荐的 Cloudflare 配置
-
-### 3.1 前端
-
-推荐创建一个新的前端 Worker 项目，例如：
-
-- `mays-site-web`
-
-然后把当前 GitHub 仓库连接到这个 Worker 的 **Workers Builds**。
-
-推荐理由：
-
-- Cloudflare 当前对 Next.js 的官方推荐是 **Workers**，不是 Pages 静态导出
-- App Router、SSG、SSR、Middleware 都在 Workers 文档里标明受支持
-- 你当前项目仍然依赖 middleware 做 legacy 子域名停用，Workers 更契合
-
-当前状态说明：
-
-- 仓库已经补上了 `wrangler` / OpenNext 配置
-- GitHub Actions 也已经补了前端部署 workflow
-- 你还需要在 GitHub 和 Cloudflare 控制台里补 secrets、account、域名绑定
-
-### 3.2 API
-
-继续保留：
-
-- `mays-game-api`
-- `mays-photo-api`
-
-它们已经各自绑定了 R2 bucket 和 CORS 域名，不需要因为前端重构而合并。
-
-### 3.3 自定义域名
-
-建议把域名分配成：
-
-- `maysssss.cn` -> 前端 Worker
-- `mays-game-api.mays.workers.dev` 或自定义 API 域名 -> `mays-game-api`
-- `mays-photo-api.mays.workers.dev` 或自定义 API 域名 -> `mays-photo-api`
-
-legacy `game.maysssss.cn` / `photo.maysssss.cn` 如果仍然绑定到前端 Worker，会收到应用层停用响应；如果你想彻底移除它们，也可以直接在 Cloudflare 控制台删除对应 custom domain 绑定。
-
-## 4. 控制台里的实际操作顺序
-
-### 4.1 连接 GitHub 到 Cloudflare
-
-1. 在 Cloudflare Dashboard 打开 `Workers & Pages`
-2. 创建或选择前端 Worker 项目
-3. 进入 `Settings` -> `Builds`
-4. 连接这个 GitHub 仓库
-5. 确保 Cloudflare 有这个仓库的访问权限
-
-### 4.2 绑定前端域名
-
-1. 在前端 Worker 项目中打开 `Settings` -> `Domains & Routes`
-2. 添加：
-   - `maysssss.cn`
-3. 等待证书和 DNS 生效
-
-### 4.3 保持 API Worker 独立
-
-如果你已经在 Cloudflare 上部署过下面两个 Worker，则保持不变：
-
-- `mays-game-api`
-- `mays-photo-api`
-
-只需要确认它们的 secrets 和 R2 绑定仍然存在。
-
-## 5. 必要的 Secrets / Variables
-
-### GitHub Secrets
-
-- `STEAM_API_KEY`
-- `STEAM_ID`
-- `GAME_UPLOAD_SECRET`
-
-### game-api Worker Secrets / Vars
-
-- `UPLOAD_SECRET`
-- `GAME_BUCKET`
-- `CORS_ORIGIN`
-
-### photo-api Worker Secrets / Vars
-
-- `AUTH_PASSWORD`
-- `JWT_SECRET`（可选，但建议显式设置）
-- `PHOTO_BUCKET`
-- `CORS_ORIGIN`
-
-## 6. 当前仓库的一个重要结论
-
-如果你继续沿用“Cloudflare Pages + GitHub 自动构建”的旧前端思路，需要非常谨慎。
-
-我根据 Cloudflare 当前官方文档做出的判断是：
-
-- **静态导出的 Next.js** 可以放在 Pages
-- **包含 middleware 的 Next.js 应用** 更适合走 Workers + OpenNext
-
-这个结论是从官方文档推出来的，不是仓库里显式写死的规则。
-
-## 7. 下一步落地
-
-如果你要把这套 Next 前端真正部署到 Cloudflare，下一步应当做的是：
-
-1. 在 Cloudflare 上创建一个新的前端 Worker 项目，名称与 `wrangler.jsonc` 中的 `name` 保持一致
-2. 为 GitHub 仓库设置 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`
-3. 选择：
-   - 用仓库里的 GitHub Actions workflow 直接部署
-   - 或在 Cloudflare 上启用 Workers Builds 连接这个仓库
-4. 绑定 `maysssss.cn`，并移除 legacy `game.maysssss.cn` / `photo.maysssss.cn` custom domain（如仍存在）
-
-## 8. 官方文档
-
-- Cloudflare Pages Git integration:
-  [https://developers.cloudflare.com/pages/configuration/git-integration/](https://developers.cloudflare.com/pages/configuration/git-integration/)
-- Cloudflare Pages custom domains:
-  [https://developers.cloudflare.com/pages/configuration/custom-domains/](https://developers.cloudflare.com/pages/configuration/custom-domains/)
-- Cloudflare Next.js on Pages:
-  [https://developers.cloudflare.com/pages/framework-guides/nextjs/](https://developers.cloudflare.com/pages/framework-guides/nextjs/)
-- Cloudflare static Next.js on Pages:
-  [https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-static-nextjs-site/](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-static-nextjs-site/)
-- Cloudflare Next.js on Workers:
-  [https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/](https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/)
-- Cloudflare Workers Builds:
-  [https://developers.cloudflare.com/workers/ci-cd/builds/](https://developers.cloudflare.com/workers/ci-cd/builds/)
-- Cloudflare Worker custom domains:
-  [https://developers.cloudflare.com/workers/configuration/routing/custom-domains/](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/)
-
-## 9. 推荐的日常发布流程
-
-以后这个站推荐使用一条固定流程：
-
-**先提交，再发布。**
-
-原因很简单：
-
-- `pnpm deploy` 会直接读取你本地当前目录的代码并发布到 Cloudflare
-- 这意味着即使你还没有 `git commit`，线上也可能已经变了
-- 如果长期这样用，后面会很容易搞不清楚“哪些改动已经上线、哪些只是本地改了”
-
-所以后面建议统一按下面这条线走。
-
-### 9.1 日常修改流程
-
-1. 本地改代码
-2. 本地验证
-3. 查看本次到底改了哪些文件
-4. 提交到 Git
-5. 再执行部署
-6. 上线后打开正式站点确认
-
-### 9.2 建议使用的命令顺序
-
-先看当前改动：
+> 本文件是部署相关的唯一权威文档。旧的 `docs/DEPLOYMENT.md`（GitHub Pages + 子域名方案）已废弃并删除。
+
+## 1. 线上架构
+
+| 组件 | 平台 | 名称 | 入口 | 配置 |
+| --- | --- | --- | --- | --- |
+| 前端 | Cloudflare Workers | `mays-site-web` | `https://linkmays.com` | `wrangler.jsonc` + `open-next.config.ts` |
+| 游戏 API | Cloudflare Workers | `mays-game-api` | `https://mays-game-api.mays.workers.dev` | `workers/game-api/wrangler.toml` |
+| 照片 API | Cloudflare Workers | `mays-photo-api` | `https://mays-photo-api.mays.workers.dev` | `workers/photo-api/wrangler.toml` |
+
+- 前端是单个 Next.js 应用，经 OpenNext 适配器跑在 Worker 上；`middleware.ts` 负责把已退役的 `game.*` / `photo.*` 子域名返回 410。
+- 路由：`/` 门户、`/game` 游戏仪表盘、`/games` 游戏库、`/photos` 照片地图、`/tools` 工具集。
+- 存储：game-api → R2 `my-games`；photo-api → R2 `my-photos`。没有 D1 / KV。
+- `wrangler.jsonc` 里没有 `routes` / `custom_domain`，`linkmays.com` 目前是控制台手工绑定的。若要让部署自动维护域名，可在 `wrangler.jsonc` 增加（要求 zone 与 Worker 在同一账号）：
+  ```jsonc
+  "routes": [{ "pattern": "linkmays.com", "custom_domain": true }]
+  ```
+
+## 2. 前端发布
 
 ```bash
-git status
-git diff --stat
+pnpm preview      # 本地 OpenNext 预览（会先构建）
+pnpm deploy       # 部署前检查 → 构建 → 发布到 mays-site-web
+pnpm deploy:only  # 复用已有 .open-next 产物，直接发布（快速重发 / 回滚同一构建）
+pnpm upload       # 只上传新版本，不切流量
 ```
 
-本地检查：
+- 自动化：push 到 `main` 触发 `.github/workflows/deploy-frontend.yml`（Node 22 + pnpm 10，带 Next 构建缓存）。
+- 手动发布默认走「先提交，再发布」：`scripts/predeploy-check.mjs` 会打印分支/提交/版本，并在工作区有未提交改动时**阻止部署**。确实要发布当前工作区时用 `ALLOW_DIRTY_DEPLOY=1 pnpm deploy`。
+- 部署读取的是本地工作区，不是 Git 远端。`deploy` 前请确认 `git status` 干净，否则线上内容无法对应到某个提交。
+- `STEAM_DATA_SOURCE=static` 只由 CI 设置：CI 构建时直接使用仓库里的 `public/data/steam-games.json`，避免构建期请求 API；本地发布默认走 API + 快照回退。
+
+## 3. Workers 发布
 
 ```bash
-pnpm typecheck
-pnpm build
+cd workers/game-api  && npm run deploy   # wrangler deploy -c wrangler.toml
+cd workers/photo-api && npm run deploy
+npm run typecheck                        # 两个 Worker 各自独立 tsconfig
 ```
 
-确认没问题后提交：
+注意：wrangler 4 默认开启 autoconfig，在 Worker 子目录里裸跑 `npx wrangler deploy` 可能向上找到根目录的 `wrangler.jsonc` 而误发 `mays-site-web`。所以脚本里始终显式带 `-c wrangler.toml`，不要省略。
 
-```bash
-git add <你这次要提交的文件>
-git commit -m "feat: 描述这次改动"
-```
+Secrets（`wrangler secret put` 设置，不进仓库）：
 
-然后再发布：
+| Worker | Secret / Var | 说明 |
+| --- | --- | --- |
+| game-api | `UPLOAD_SECRET` | `/api/upload` 的 Bearer 密钥 |
+| game-api | `CORS_ORIGIN`（var） | `https://linkmays.com` |
+| photo-api | `AUTH_PASSWORD` | 照片页登录密码 |
+| photo-api | `JWT_SECRET` | 可选，签发 7 天 JWT |
+| photo-api | `CORS_ORIGIN`（var） | `https://linkmays.com` |
 
-```bash
-pnpm deploy
-```
+GitHub Secrets：`STEAM_API_KEY`、`STEAM_ID`、`GAME_UPLOAD_SECRET`、`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`；GitHub Variables：`NEXT_PUBLIC_GAME_API_URL`、`NEXT_PUBLIC_PHOTO_API_URL`。
 
-发布后建议再做一次线上确认：
+## 4. 版本基线
 
-```bash
-git rev-parse --short HEAD
-```
+| 项 | 版本 | 备注 |
+| --- | --- | --- |
+| Next.js | 15.5.15 | 已过 2 年支持期（2026-10-21 截止），见下方 flag 说明 |
+| React | 19.2.5 | |
+| @opennextjs/cloudflare | 1.19.1 | peer 支持 next ≥15.5.15、wrangler ^4.65 |
+| wrangler | 4.81.1 | 前端与两个 Worker 一致 |
+| TypeScript | 5.9.3 | 前端与两个 Worker 一致 |
+| @cloudflare/workers-types | 4.20260702.1 | 两个 Worker 一致 |
+| compatibility_date | 2026-04-12 | 前端与两个 Worker 一致 |
+| CI Node | 22 | 本地开发 Node 24 |
 
-然后手动打开正式站点，确认页面内容和你这次提交一致。
+`--dangerouslyUseUnsupportedNextVersion` 只跳过 OpenNext 的「Next 大版本已过官方支持期」日期检查，不代表忽略不兼容；当前因为没有升级到 Next 16 才必须保留。迁移到 Next 16 后可移除该 flag。
 
-### 9.3 如果只是一个很小的改动
+## 5. 数据新鲜度
 
-例如：
+- Steam 数据：GitHub Actions 每天 UTC 02:00 运行 `scripts/fetch-steam-data.js`，写入 R2 并提交 `public/data/steam-games.json`；该 workflow **不触发前端部署**。
+- 因此：R2 / `mays-game-api` 的数据立即变新，但 `/game` 页面是构建期快照（`STEAM_DATA_SOURCE=static` + OpenNext 默认 `incrementalCache: "dummy"`，`revalidate = 3600` 在运行时不会真正刷新），要重新部署前端才会更新页面。
+- 若要「不部署也更新页面」，需改成客户端始终从 game-api 取数，或配置 R2 增量缓存并去掉 `STEAM_DATA_SOURCE=static`。
+- 照片数据：浏览器 localStorage 为主、photo-api 为从，双写。
 
-- 改 favicon
-- 改首页一个入口文案
-- 改某个按钮链接
+## 6. 回滚与排障
 
-也建议照样走：
+- 查看版本：Cloudflare 控制台 Worker → Deployments，或 `npx wrangler deployments list`。
+- 回滚：控制台把流量切回旧版本；或 `git checkout <commit> && pnpm deploy`。
+- 页面 410：命中了 legacy 子域名，改用主域名路由。
+- API 报 CORS：检查 Worker 的 `CORS_ORIGIN` var 与请求 Origin。
+- 部署失败：先看 `predeploy-check` 输出，再确认 GitHub Secrets / Variables 是否齐全。
 
-1. 本地改
-2. `pnpm build`
-3. `git add`
-4. `git commit`
-5. `pnpm deploy`
+## 7. 参考
 
-不要因为改动小就跳过提交；小改动反而最容易忘。
-
-### 9.4 这个流程和 GitHub 自动部署的区别
-
-这里要分清两件事：
-
-- **Git 提交**：只是把代码历史记下来
-- **Cloudflare 部署**：才是把内容发到线上
-
-在当前这个仓库里，手动执行 `pnpm deploy` 时，Cloudflare 发布的是**你本机当前代码**，不是“只认已提交代码”。
-
-所以：
-
-- `git commit` 了，但没 `pnpm deploy`，线上不会变
-- `pnpm deploy` 了，但没 `git commit`，线上也会变
-
-这正是为什么推荐你以后固定使用“先提交，再发布”。
-
-### 9.5 最稳的习惯
-
-以后如果我要帮你发这个站，默认按下面的习惯执行：
-
-1. 先确认本次改动范围
-2. 本地构建验证
-3. 提交改动
-4. 再部署到 Cloudflare
-5. 部署后复查线上
-
-这样以后你再回头看 Git 历史，基本就能知道：
-
-- 哪次提交对应哪次上线
-- 某个页面是什么时候改的
-- 出问题时该回滚到哪一版
+- Next.js on Workers：<https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/>
+- OpenNext Cloudflare：<https://opennext.js.org/cloudflare>
+- Workers 自定义域名：<https://developers.cloudflare.com/workers/configuration/routing/custom-domains/>

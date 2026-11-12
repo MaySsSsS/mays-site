@@ -34,13 +34,14 @@ pnpm lint                             # next lint
 pnpm build                            # next build
 
 # 预览 & 部署
-pnpm preview                          # Cloudflare 本地预览（需先 build）
-pnpm deploy                           # 构建并部署到 Cloudflare
+pnpm preview                          # Cloudflare 本地预览（会先构建）
+pnpm deploy                           # 检查工作区 → 构建 → 部署到 Cloudflare
+pnpm deploy:only                      # 复用已有 .open-next 产物直接发布
 
 # Workers
 pnpm dev:game-api                     # game-api 本地开发
 pnpm dev:photo-api                    # photo-api 本地开发
-# 部署 Workers：cd workers/<name> && npx wrangler deploy
+# 部署 Workers：cd workers/<name> && npm run deploy（即 wrangler deploy -c wrangler.toml）
 
 # 数据脚本
 node scripts/fetch-steam-data.js      # 需要 STEAM_API_KEY + STEAM_ID
@@ -130,7 +131,9 @@ scripts/
 
 ## Deployment
 
-- 前端：推 main 自动触发 GitHub Actions → `pnpm deploy` → Cloudflare Workers
-- Workers：`cd workers/<name> && npx wrangler deploy`
+- 前端：推 main 自动触发 GitHub Actions → `pnpm deploy` → Cloudflare Worker `mays-site-web`（域名 linkmays.com）
+- 手动发布：`pnpm deploy` 会先跑 `scripts/predeploy-check.mjs`，工作区不干净会被拒绝（`ALLOW_DIRTY_DEPLOY=1` 可强制）；`pnpm deploy:only` 复用已有 `.open-next` 产物
+- Workers：`cd workers/<name> && npm run deploy`；必须带 `-c wrangler.toml`，不要裸跑 `npx wrangler`，否则 wrangler 4 的 autoconfig 可能读到根目录配置
 - Secrets：game-api 需 `UPLOAD_SECRET`，photo-api 需 `AUTH_PASSWORD`（可选 `JWT_SECRET`）
 - GitHub Secrets：`STEAM_API_KEY`, `STEAM_ID`, `GAME_UPLOAD_SECRET`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+- 详细流程、版本基线与数据新鲜度见 `DEPLOYMENT.md`

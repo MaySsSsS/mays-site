@@ -14,10 +14,10 @@ build:
 
 check: typecheck lint build
 
-preview: build
+preview:
 	pnpm preview
 
-deploy: build
+deploy:
 	pnpm deploy
 
 dev-game-api:
