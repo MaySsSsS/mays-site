@@ -69,6 +69,8 @@ test("主界面保留游戏机本体结构：图标行与选中态", () => {
   assert.ok(nintendo.includes("styles.dock"), "Switch 主界面需要底部系统图标栏");
   assert.ok(nintendo.includes("keycap"), "Switch 主界面需要手柄键位提示");
   assert.ok(nintendo.includes("tileActive"), "Switch 主界面需要选中态");
+  assert.ok(nintendo.includes("styles.info"), "Switch 主界面需要选中游戏的浮层信息");
+  assert.ok(nintendo.includes("infoTitle"), "Switch 浮层信息需要显示游戏名");
 
   const playstation = read("components/game/PlayStationHome.tsx");
   assert.ok(playstation.includes("styles.rail"), "PS5 主界面需要顶部游戏卡片行");

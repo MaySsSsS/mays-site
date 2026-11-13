@@ -108,6 +108,7 @@ const DOCK_ITEMS = [
 export function NintendoHome() {
   const [gameIndex, setGameIndex] = useState(0);
   const total = NINTENDO_DEMO_GAMES.length;
+  const activeGame = NINTENDO_DEMO_GAMES[gameIndex];
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -159,6 +160,23 @@ export function NintendoHome() {
             </button>
         ))}
       </div>
+
+      {activeGame ? (
+        <div className={styles.info}>
+          <span className={styles.infoCover}>
+            {/* 演示封面为本地静态图，尺寸由 CSS 控制 */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={activeGame.cover} alt="" draggable={false} />
+          </span>
+          <span className={styles.infoText}>
+            <span className={styles.infoTitle}>{activeGame.title}</span>
+            <span className={styles.infoHint}>
+              <span className={`${styles.keycap} ${styles.keycapSmall}`}>A</span>
+              启动
+            </span>
+          </span>
+        </div>
+      ) : null}
 
       <footer className={styles.footer}>
         <ConsoleGlyph />
