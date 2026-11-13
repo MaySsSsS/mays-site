@@ -41,3 +41,4 @@ workers/**/.dev.vars
 # 敏感文档（包含账户信息、密码等）
 docs/
 PHOTO_STORAGE_PLAN.md
+.pnpm-store/
