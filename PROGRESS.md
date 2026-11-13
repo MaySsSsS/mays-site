@@ -210,6 +210,7 @@
 |------|------|------|----------|
 | 2026-04-19 | CLAUDE.md 与 AGENTS.md 内容完全一致 | 两个 agent 并用，避免信息分裂 | 各自独立维护 + CI 同步检查 |
 | 2026-04-19 | Makefile 统一验证入口 | agent 只需 `make check` 一条命令 | 依赖 CLAUDE.md 中的命令说明 |
+| 2026-11-13 | `next dev` 与 `next build` 使用独立产物目录（dev 走 `.next-dev`，build 走 `.next`） | 约定本地预览常驻 dev 服务给用户看效果，而 `next build` 会清空 `.next`，共用目录会让 dev 立刻 500（`MODULE_NOT_FOUND`） | 每次构建前停掉 dev；或只用 `next start` 预览 |
 | 2026-05-01 | `maysssss.cn` 新入口页定位为 `MAYS UNIVERSE` 美漫封面 + 分格目录 | 用户希望主站第一眼足够惊艳，像真正的美漫，同时仍作为 Game / Photos / Coming Soon 的入口 | 普通导航页、个人介绍首页、展示型内容首页 |
 | 2026-05-01 | Coming Soon 入口使用封印分格按钮，不跳转 | 保留未来扩张感，同时避免暴露未定子页面 | 命名未来栏目、创建占位页、完全不响应 |
 | 2026-05-01 | 根 `<html>` 使用 `suppressHydrationWarning` | in-app browser/扩展可能在 React hydration 前注入属性，需避免误报 | 为注入属性写客户端逻辑、忽略红屏 |
