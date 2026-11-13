@@ -137,6 +137,7 @@ scripts/
 2. 跑全量验证：`pnpm typecheck && pnpm lint && pnpm build`
 3. 清理调试代码（console.log / debugger / 临时注释）
 4. 提交已完成的工作
+5. **把本地预览地址发给用户看效果**：每完成一次可查看的改动，就启动 `pnpm dev` 并给出地址（默认 http://localhost:3000）以及本次改动的具体页面路径；不要只贴截图，用户要自己在浏览器里点。
 
 ## Data Flows
 
