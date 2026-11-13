@@ -10,13 +10,10 @@ export function NintendoShell({ children }: Readonly<{ children: React.ReactNode
 
   useEffect(() => {
     const updateTime = () => {
-      setCurrentTime(
-        new Date().toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false
-        })
-      );
+      const now = new Date();
+      const hours = now.getHours() % 12 || 12;
+      const minutes = now.getMinutes().toString().padStart(2, "0");
+      setCurrentTime(`${hours}:${minutes}${now.getHours() >= 12 ? "PM" : "AM"}`);
     };
 
     updateTime();
@@ -35,6 +32,8 @@ export function NintendoShell({ children }: Readonly<{ children: React.ReactNode
         />
 
         <div className={styles.status}>
+          <time className={styles.clock}>{currentTime}</time>
+
           <svg className={styles.statusIcon} viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 17.6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" fill="currentColor" stroke="none" />
             <path
@@ -48,11 +47,10 @@ export function NintendoShell({ children }: Readonly<{ children: React.ReactNode
 
           <svg className={styles.batteryIcon} viewBox="0 0 27 14" aria-hidden="true">
             <rect x="1" y="1" width="21" height="12" rx="3.2" fill="none" stroke="currentColor" strokeWidth="1.5" />
-            <rect x="3.2" y="3.2" width="15" height="7.6" rx="1.8" fill="currentColor" />
+            <rect x="3.2" y="3.2" width="15" height="7.6" rx="1.8" fill="#22c55e" />
             <rect x="23.4" y="4.4" width="2.4" height="5.2" rx="1.2" fill="currentColor" />
           </svg>
 
-          <time className={styles.clock}>{currentTime}</time>
         </div>
       </header>
 
