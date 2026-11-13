@@ -69,9 +69,14 @@ export function SteamShell({
             })}
           </nav>
 
-          <Link href="/games" className={styles.backLink}>
-            <span aria-hidden="true">←</span> 传送门
-          </Link>
+          <div className={styles.topActions}>
+            <Link href="/" className={styles.iconLink} aria-label="返回主站" title="返回主站">
+              ⌂
+            </Link>
+            <Link href="/games" className={styles.backLink}>
+              <span aria-hidden="true">←</span> 传送门
+            </Link>
+          </div>
         </div>
       </header>
 
