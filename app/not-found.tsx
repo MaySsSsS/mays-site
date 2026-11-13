@@ -23,7 +23,7 @@ export default function NotFoundPage() {
           <span className={styles.cardAction}>Back</span>
         </Link>
 
-        <Link href="/game" className={styles.card}>
+        <Link href="/games" className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Game</span>
             <span className={styles.cardDomain}>linkmays.com/game</span>

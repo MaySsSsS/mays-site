@@ -15,8 +15,8 @@ const portalItems: PortalItem[] = [
   {
     eyebrow: "GAME",
     title: "PLAYER ONE",
-    href: "/game",
-    domain: "linkmays.com/game",
+    href: "/games",
+    domain: "linkmays.com/games",
     className: styles.gamePanel
   },
   {

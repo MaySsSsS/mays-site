@@ -1,6 +1,6 @@
 import { GameShell } from "@/components/game/GameShell";
 
-export default function GameLayout({
+export default function SteamLayout({
   children
 }: Readonly<{
   children: React.ReactNode;

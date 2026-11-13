@@ -36,7 +36,7 @@ export function PhotoShell({
             >
               照片 · 足迹
             </Link>
-            <Link href="/game" className={styles.navLink}>
+            <Link href="/games" className={styles.navLink}>
               Game
             </Link>
             <Link href="/" className={styles.navLink}>
@@ -59,7 +59,7 @@ export function PhotoShell({
             <Link href="/photos" className={styles.mobileLink}>
               照片 · 足迹
             </Link>
-            <Link href="/game" className={styles.mobileLink}>
+            <Link href="/games" className={styles.mobileLink}>
               返回 Game
             </Link>
             <Link href="/" className={styles.mobileLink}>
@@ -79,7 +79,7 @@ export function PhotoShell({
               用地图记录旅行，用照片把分组和城市重新串起来。
             </p>
           </div>
-          <Link href="/game" className={styles.footerLink}>
+          <Link href="/games" className={styles.footerLink}>
             打开 Game 仪表盘
           </Link>
         </div>

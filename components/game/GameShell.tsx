@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 import styles from "@/styles/game/GameShell.module.css";
 
 const links = [
-  { href: "/game", label: "HOME" },
-  { href: "/games", label: "LIBRARY" },
-  { href: "/photos", label: "PHOTOS" },
-  { href: "/", label: "PORTAL" }
+  { href: "/games/steam", label: "OVERVIEW" },
+  { href: "/games/steam/library", label: "LIBRARY" },
+  { href: "/games", label: "PLATFORMS" },
+  { href: "/", label: "MAIN SITE" }
 ];
 
 export function GameShell({
@@ -44,9 +44,9 @@ export function GameShell({
     <div className={styles.shell}>
       <header className={styles.topBar}>
         <div className={styles.topBarInner}>
-          <Link href="/game" className={styles.logo}>
+          <Link href="/games/steam" className={styles.logo}>
             <span className={styles.logoPrompt}>&gt;</span>
-            <span className={styles.logoText}>MAYS://NEXT</span>
+            <span className={styles.logoText}>MAYS://STEAM</span>
             <span className={styles.statusDot} />
           </Link>
 
@@ -106,7 +106,7 @@ export function GameShell({
           <span className={styles.statusDivider}>|</span>
           <span className={styles.statusMuted}>{currentTime}</span>
           <span className={styles.statusSpacer} />
-          <span className={styles.statusMuted}>GAME SUBSITE PRESERVED IN NEXT</span>
+          <span className={styles.statusMuted}>STEAM SUBSITE / linkmays.com</span>
         </div>
       </footer>
     </div>

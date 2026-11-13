@@ -17,7 +17,7 @@ test("mobile portal panels keep comic borders and actions inside the viewport", 
 });
 
 test("portal exposes the remaining game, photos and tools entries", () => {
-  assert.match(portalPage, /href:\s*"\/game"/);
+  assert.match(portalPage, /href:\s*"\/games"/);
   assert.match(portalPage, /href:\s*"\/photos"/);
   assert.match(portalPage, /href:\s*"\/tools"/);
   assert.doesNotMatch(portalPage, /signal-arena|ai-daily|universe/);

@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 const RETIRED_SUBDOMAINS = {
-  "game.": "https://linkmays.com/game",
+  "game.": "https://linkmays.com/games",
   "photo.": "https://linkmays.com/photos"
 } as const;
 
