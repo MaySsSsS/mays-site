@@ -15,13 +15,13 @@
 .backdropActive {
   position: absolute;
   inset: 0;
-  background-position: center 26%;
+  background-position: center;
   background-size: cover;
   opacity: 0;
-  transform: scale(1.05);
+  transform: scale(1.04);
   transition:
-    opacity 620ms ease,
-    transform 900ms ease;
+    opacity 700ms ease,
+    transform 1100ms ease;
 }
 
 .backdropActive {
@@ -29,95 +29,238 @@
   transform: scale(1);
 }
 
+/* 左暗右透 + 底部压暗，两层叠加（与参考实现的叠法一致） */
 .shade {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(
+      90deg,
+      rgba(5, 8, 18, 0.9) 0%,
+      rgba(5, 8, 18, 0.58) 40%,
+      rgba(5, 8, 18, 0.16) 76%,
+      rgba(5, 8, 18, 0.06) 100%
+    ),
+    linear-gradient(
       180deg,
-      rgba(4, 6, 12, 0.66) 0%,
-      rgba(4, 6, 12, 0.12) 24%,
-      rgba(4, 6, 12, 0.26) 56%,
-      rgba(4, 6, 12, 0.78) 82%,
-      rgba(2, 3, 8, 0.96) 100%
+      rgba(5, 8, 18, 0.35) 0%,
+      rgba(5, 8, 18, 0.08) 26%,
+      rgba(5, 8, 18, 0.3) 62%,
+      rgba(3, 4, 10, 0.92) 100%
     );
 }
 
-.title {
+/* 选中游戏的强调色辉光（左下） */
+.glow {
   position: absolute;
-  right: 0;
-  bottom: clamp(150px, 19vh, 214px);
-  left: 0;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.94);
-  font-family: var(--font-ui);
-  font-size: 0.86rem;
-  font-weight: 500;
-  letter-spacing: 0.34em;
-  text-align: center;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.65);
-  text-transform: uppercase;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 18% 82%,
+    color-mix(in srgb, var(--ps-accent) 24%, transparent) 0%,
+    transparent 58%
+  );
+  transition: background 600ms ease;
 }
 
-.dock {
-  position: absolute;
-  right: 0;
-  bottom: clamp(30px, 4.6vh, 52px);
-  left: 0;
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: clamp(66px, 8.6vh, 82px);
+}
+
+/* 顶部游戏卡片行：选中卡片放大并上浮 */
+.rail {
   display: flex;
   align-items: flex-end;
-  justify-content: center;
-  gap: clamp(10px, 1.1vw, 18px);
-  padding: 0 3vw;
+  gap: 10px;
+  padding: 16px clamp(20px, 2.8vw, 40px) 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.tile {
-  flex: none;
-  width: clamp(66px, 6vw, 88px);
-  aspect-ratio: 1;
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  flex: 0 0 auto;
+  width: clamp(86px, 8vw, 115px);
+  height: clamp(50px, 4.6vw, 65px);
   padding: 0;
-  border: 2px solid transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
+  background: #0b101f;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    width 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 240ms ease,
+    box-shadow 320ms ease;
+}
+
+.cardArt {
+  display: block;
+  width: 100%;
+  height: 100%;
   background-position: center;
   background-size: cover;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
-  cursor: pointer;
-  opacity: 0.52;
-  transform: scale(0.9);
-  transition:
-    width 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 240ms ease,
-    transform 280ms ease,
-    border-color 240ms ease,
-    box-shadow 280ms ease;
 }
 
-.tile:hover {
-  opacity: 0.85;
+.card:hover {
+  transform: translateY(-3px) scale(1.04);
+  border-color: rgba(0, 112, 209, 0.85);
+  box-shadow: 0 8px 24px rgba(0, 112, 209, 0.45);
 }
 
-.tileActive {
-  width: clamp(88px, 8.2vw, 118px);
-  border-color: rgba(255, 255, 255, 0.92);
+.cardActive,
+.cardActive:hover {
+  width: clamp(132px, 12.5vw, 180px);
+  height: clamp(78px, 7.3vw, 105px);
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.9);
   box-shadow:
-    0 0 34px -4px color-mix(in srgb, var(--ps-accent) 62%, transparent),
-    0 12px 32px rgba(0, 0, 0, 0.58);
-  opacity: 1;
-  transform: none;
+    0 4px 24px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* 底部：左侧游戏标志与操作，右侧切换圆点 */
+.bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 clamp(20px, 2.8vw, 40px) clamp(22px, 3.4vh, 34px);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 1.6vh, 18px);
+  max-width: min(560px, 62vw);
+}
+
+.logo {
+  display: block;
+  width: auto;
+  max-width: clamp(220px, 26vw, 380px);
+  max-height: clamp(58px, 9vh, 130px);
+  object-fit: contain;
+  filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.6));
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.play {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px clamp(18px, 1.8vw, 26px);
+  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  color: #000000;
+  font-family: var(--font-ui);
+  font-size: clamp(12px, 0.95vw, 13px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    transform 200ms ease;
+}
+
+.play:hover {
+  background: #ffffff;
+  transform: scale(1.03);
+}
+
+.more {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 200ms ease;
+}
+
+.more:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 6px;
+}
+
+.dot {
+  width: 6px;
+  height: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+  transition:
+    width 280ms ease,
+    background 280ms ease;
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.dotActive {
+  width: 28px;
+  background: rgba(255, 255, 255, 0.92);
 }
 
 @media (max-width: 720px) {
-  .title {
-    bottom: 140px;
-    font-size: 0.74rem;
-    letter-spacing: 0.26em;
+  .card {
+    width: 72px;
+    height: 42px;
   }
 
-  .tile {
-    width: 60px;
+  .cardActive,
+  .cardActive:hover {
+    width: 112px;
+    height: 66px;
   }
 
-  .tileActive {
-    width: 84px;
+  .info {
+    max-width: 72vw;
+  }
+
+  .logo {
+    max-width: 62vw;
+    max-height: 56px;
+  }
+
+  .more {
+    width: 34px;
+    height: 34px;
   }
 }

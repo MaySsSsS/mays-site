@@ -25,30 +25,35 @@ export interface PlayStationDemoGame {
   id: string;
   title: string;
   banner: string;
+  logo: string;
   accent: string;
 }
 
 /**
- * PS5 主界面演示数据：background 用同一张 key art，
- * accent 用于选中图标的辉光颜色。图片见 public/games/playstation。
+ * PS5 主界面演示数据：background 与卡片共用同一张 key art，
+ * logo 为深底亮字的游戏标志（渲染时用 screen 混合去掉黑底），
+ * accent 用于选中辉光与圆点色。图片见 public/games/playstation。
  */
 export const PLAYSTATION_DEMO_GAMES: readonly PlayStationDemoGame[] = [
   {
     id: "call-of-duty",
     title: "Call of Duty",
     banner: "/games/playstation/cod-banner.jpg",
+    logo: "/games/playstation/cod-logo.png",
     accent: "#c8981a"
   },
   {
     id: "kena-bridge-of-spirits",
     title: "Kena: Bridge of Spirits",
     banner: "/games/playstation/kena-banner.jpg",
+    logo: "/games/playstation/kena-logo.png",
     accent: "#3ab5e0"
   },
   {
     id: "moving-out",
     title: "Moving Out",
     banner: "/games/playstation/moving-out-banner.jpg",
+    logo: "/games/playstation/moving-out-logo.png",
     accent: "#f04c2e"
   }
 ];

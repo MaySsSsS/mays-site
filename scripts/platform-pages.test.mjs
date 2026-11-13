@@ -71,6 +71,7 @@ test("主界面保留游戏机本体结构：图标行与选中态", () => {
   assert.ok(nintendo.includes("tileActive"), "Switch 主界面需要选中态");
 
   const playstation = read("components/game/PlayStationHome.tsx");
-  assert.ok(playstation.includes("dock"), "PS5 主界面需要底部图标栏");
+  assert.ok(playstation.includes("styles.rail"), "PS5 主界面需要顶部游戏卡片行");
+  assert.ok(playstation.includes("cardActive"), "PS5 主界面需要卡片选中态");
   assert.ok(playstation.includes("backdropActive"), "PS5 主界面需要背景联动");
 });

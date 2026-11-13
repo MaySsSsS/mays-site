@@ -2,9 +2,23 @@
 
 import { useEffect, useState } from "react";
 
+import { PlatformLogo } from "@/components/game/PlatformLogo";
 import { PLAYSTATION_DEMO_GAMES } from "@/lib/demo-games";
 
 import styles from "@/styles/game/playstationHome.module.css";
+
+function CrossIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M18 6L6 18M6 6l12 12"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export function PlayStationHome() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -47,25 +61,69 @@ export function PlayStationHome() {
       </div>
 
       <div className={styles.shade} aria-hidden="true" />
+      <div className={styles.glow} aria-hidden="true" />
 
-      {active ? <p className={styles.title}>{active.title}</p> : null}
+      <div className={styles.content}>
+        <div className={styles.rail} role="group" aria-label="游戏">
+          {PLAYSTATION_DEMO_GAMES.map((game, index) => {
+            const selected = index === activeIndex;
 
-      <div className={styles.dock} role="group" aria-label="游戏">
-        {PLAYSTATION_DEMO_GAMES.map((game, index) => {
-          const selected = index === activeIndex;
+            return (
+              <button
+                key={game.id}
+                type="button"
+                className={`${styles.card} ${selected ? styles.cardActive : ""}`}
+                onClick={() => setActiveIndex(index)}
+                aria-pressed={selected}
+                aria-label={game.title}
+              >
+                <span
+                  className={styles.cardArt}
+                  style={{ backgroundImage: `url(${game.banner})` }}
+                />
+              </button>
+            );
+          })}
+        </div>
 
-          return (
-            <button
-              key={game.id}
-              type="button"
-              className={`${styles.tile} ${selected ? styles.tileActive : ""}`}
-              style={{ backgroundImage: `url(${game.banner})` }}
-              onClick={() => setActiveIndex(index)}
-              aria-pressed={selected}
-              aria-label={game.title}
-            />
-          );
-        })}
+        <div className={styles.spacer} />
+
+        <div className={styles.bottom}>
+          <div className={styles.info}>
+            {active ? (
+              <PlatformLogo
+                key={active.id}
+                className={styles.logo}
+                src={active.logo}
+                alt={active.title}
+              />
+            ) : null}
+
+            <div className={styles.actions}>
+              <button type="button" className={styles.play}>
+                <CrossIcon />
+                开始游玩
+              </button>
+              <button type="button" className={styles.more} aria-label="更多选项">
+                ···
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.dots} role="tablist" aria-label="切换游戏">
+            {PLAYSTATION_DEMO_GAMES.map((game, index) => (
+              <button
+                key={game.id}
+                type="button"
+                role="tab"
+                aria-selected={index === activeIndex}
+                aria-label={game.title}
+                className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ""}`}
+                onClick={() => setActiveIndex(index)}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
