@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-13T14:51:13.952Z",
+  "lastUpdated": "2026-11-13T14:55:32.083Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -2539,7 +2539,7 @@
     {
       "appid": 4115450,
       "name": "Phantom Blade Zero",
-      "playtime_2weeks": 1747,
+      "playtime_2weeks": 1740,
       "playtime_forever": 2704,
       "img_icon_url": "ce420dc458dd3d7af276f48fbaa44a05876760dc",
       "has_community_visible_stats": true,
