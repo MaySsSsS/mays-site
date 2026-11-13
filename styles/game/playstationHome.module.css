@@ -75,7 +75,7 @@
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  padding: 16px clamp(20px, 2.8vw, 40px) 0;
+  padding: 34px clamp(20px, 2.8vw, 40px) 6px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -86,8 +86,8 @@
 
 .card {
   flex: 0 0 auto;
-  width: clamp(86px, 8vw, 115px);
-  height: clamp(50px, 4.6vw, 65px);
+  width: clamp(96px, 9.2vw, 132px);
+  height: clamp(56px, 5.4vw, 74px);
   padding: 0;
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
@@ -119,8 +119,8 @@
 
 .cardActive,
 .cardActive:hover {
-  width: clamp(132px, 12.5vw, 180px);
-  height: clamp(78px, 7.3vw, 105px);
+  width: clamp(150px, 14.5vw, 208px);
+  height: clamp(88px, 8.4vw, 117px);
   transform: translateY(-6px);
   border-color: rgba(255, 255, 255, 0.9);
   box-shadow:
@@ -579,13 +579,60 @@
   background: #1a86ea;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1180px) {
+  .panel {
+    width: clamp(196px, 17vw, 240px);
+    padding: 14px;
+  }
+
+  .statValue {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 980px) {
+  .panel {
+    width: 190px;
+    padding: 12px 14px;
+  }
+
+  .panelTitle {
+    font-size: 0.76rem;
+  }
+
+  .avatar {
+    width: 26px;
+    height: 26px;
+  }
+
+  .friendName {
+    font-size: 0.78rem;
+  }
+
+  .chatList {
+    max-height: 72px;
+  }
+
+  .bottom {
+    gap: 12px;
+  }
+
+  .info {
+    max-width: 52vw;
+  }
+
+  .logo {
+    max-width: 42vw;
+  }
+}
+
+@media (max-width: 760px) {
   .partyPanel {
     display: none;
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 640px) {
   .side {
     display: none;
   }
