@@ -56,17 +56,6 @@ export function GameHome({
         <div className={styles.heroGrid} />
         <div className={styles.heroContent}>
           <div className={styles.heroProfile}>
-            {currentPlayer ? (
-              <div className={styles.avatarFrame}>
-                <img
-                  src={currentPlayer.avatarfull}
-                  alt={currentPlayer.personaname}
-                  className={styles.avatar}
-                />
-                <span className={styles.avatarDot} />
-              </div>
-            ) : null}
-
             <div>
               <div className={styles.statusPath}>
                 STEAM://{currentPlayer?.personaname ?? "LOADING..."}
