@@ -72,7 +72,8 @@ GitHub Secrets：`STEAM_API_KEY`、`STEAM_ID`、`GAME_UPLOAD_SECRET`、`CLOUDFLA
 ## 5. 数据新鲜度
 
 - Steam 数据：GitHub Actions 每天 UTC 02:00 运行 `scripts/fetch-steam-data.js`，写入 R2 并提交 `public/data/steam-games.json`；该 workflow **不触发前端部署**。
-- 因此：R2 / `mays-game-api` 的数据立即变新，但 `/game` 页面是构建期快照（`STEAM_DATA_SOURCE=static` + OpenNext 默认 `incrementalCache: "dummy"`，`revalidate = 3600` 在运行时不会真正刷新），要重新部署前端才会更新页面。
+- 因此：R2 / `mays-game-api` 的数据立即变新，但页面是构建期快照（`STEAM_DATA_SOURCE=static`，且 `wrangler.jsonc` 里也用 `vars` 固定为 static），要重新部署前端才会更新页面。
+- **不要给页面加 `revalidate`**：OpenNext 默认 `incrementalCache: "dummy"`，运行时重渲染既不会真正刷新缓存，又会在 Cloudflare 上把请求挂住（`error code: 1101`，Workers 报 `code had hung and would never generate a response`）。2026-11-13 的 `/games/steam`、`/games/steam/library` 500 就是这个原因，改为纯静态预渲染后恢复。
 - 若要「不部署也更新页面」，需改成客户端始终从 game-api 取数，或配置 R2 增量缓存并去掉 `STEAM_DATA_SOURCE=static`。
 - 照片数据：浏览器 localStorage 为主、photo-api 为从，双写。
 

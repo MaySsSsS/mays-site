@@ -13,6 +13,10 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // 线上固定用构建期快照：运行时再回源 game-api 会拖慢/挂住 Worker 渲染（曾导致 1101）。
+  "vars": {
+    "STEAM_DATA_SOURCE": "static"
+  },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",

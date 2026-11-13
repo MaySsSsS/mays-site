@@ -55,8 +55,8 @@ Next.js 15 + React 19 + TypeScript strict + Zustand + CSS Modules。单体应用
 主域名路由（legacy 子域名由 middleware 拦截停用）：
   linkmays.com                     → app/page.tsx                    （门户首页）
   linkmays.com/games               → app/games/page.tsx              （平台传送门）
-  linkmays.com/games/steam         → app/games/steam/                （Steam 概览，server + ISR 1h）
-  linkmays.com/games/steam/library → app/games/steam/library/        （Steam 游戏库，server + ISR 1h）
+  linkmays.com/games/steam         → app/games/steam/                （Steam 概览，server component，构建期快照）
+  linkmays.com/games/steam/library → app/games/steam/library/        （Steam 游戏库，server component，构建期快照）
   linkmays.com/games/nintendoswitch→ app/games/nintendoswitch/       （Switch 演示页，client）
   linkmays.com/games/playstation   → app/games/playstation/          （PS5 演示页，client）
   linkmays.com/photos              → app/(photo)/photos/             （照片地图，client component）
@@ -110,7 +110,7 @@ scripts/
 
 ## Hard Constraints
 
-1. **Steam 概览/游戏库用 server component + ISR**，Switch/PS 演示页与 Photo 页用 client component — 不混用
+1. **Steam 概览/游戏库用 server component（构建期读取快照，不要加 `revalidate`：OpenNext 默认 dummy 缓存下运行时重渲染会让 Worker 挂住并返回 1101）**，Switch/PS 演示页与 Photo 页用 client component — 不混用
 2. **状态管理只用 Zustand**（`stores/`），纯函数放 `lib/`
 3. **Workers 有独立 tsconfig**，不引用根目录 `@/` alias
 4. **所有 Worker API 端点必须有 CORS 配置**
