@@ -202,15 +202,26 @@ async function main() {
       games: enrichedGames,
     };
 
+    // 先落本地快照：上传失败时仓库里的数据仍然是最新的，
+    // 避免「上传 401 → 快照也没写 → 一次全红」。
+    fs.writeFileSync(SNAPSHOT_PATH, JSON.stringify(outputData, null, 2));
+
     // 上传到 Cloudflare Worker (R2)
     if (UPLOAD_SECRET) {
       console.log("☁️ 通过 Worker API 上传到 R2...");
-      await uploadToWorker(outputData);
-      console.log("✅ 上传成功!");
+      try {
+        await uploadToWorker(outputData);
+        console.log("✅ 上传成功!");
+      } catch (error) {
+        console.error(
+          `⚠️ 上传 R2 失败（本地快照已更新，仓库数据仍可用）：${error.message}`
+        );
+        console.error(
+          "   检查 GitHub secret GAME_UPLOAD_SECRET 与 Worker 的 UPLOAD_SECRET 是否一致。"
+        );
+        process.exitCode = 1;
+      }
     }
-
-    // 同时保存本地文件（用于开发和备份）
-    fs.writeFileSync(SNAPSHOT_PATH, JSON.stringify(outputData, null, 2));
 
     console.log(`✅ 成功! 共获取 ${games.length} 款游戏`);
     console.log(`📁 数据已保存到: ${SNAPSHOT_PATH}`);
