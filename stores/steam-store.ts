@@ -28,8 +28,8 @@ interface SteamStoreState {
   getGameStats: () => GameStats;
   getTopGames: (limit?: number) => GameData[];
   getRecentlyPlayed: (limit?: number) => GameData[];
-  getGameHeaderImage: (appid: number) => string;
-  getGameCapsuleImage: (appid: number) => string;
+  getGameHeaderImage: (game: GameData) => string;
+  getGameCapsuleImage: (game: GameData) => string;
 }
 
 function normalizeSteamPayload(payload: unknown): SteamDataPayload {

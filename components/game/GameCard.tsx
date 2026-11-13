@@ -37,7 +37,7 @@ export function GameCard({
           <div className={styles.artFallback}>MAYS://NO_ART</div>
         ) : (
           <img
-            src={getGameHeaderImage(game.appid)}
+            src={getGameHeaderImage(game)}
             alt={game.name}
             className={styles.image}
             loading="lazy"

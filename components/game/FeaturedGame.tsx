@@ -28,7 +28,7 @@ export function FeaturedGame({
       <div className={styles.topBar}>PID:{game.appid}</div>
       <div className={styles.imageWrap}>
         <img
-          src={getGameHeaderImage(game.appid)}
+          src={getGameHeaderImage(game)}
           alt={game.name}
           className={styles.image}
         />

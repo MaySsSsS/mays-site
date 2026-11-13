@@ -37,7 +37,7 @@ function Capsule({ game }: Readonly<{ game: GameData }>) {
     // eslint-disable-next-line @next/next/no-img-element
     <img
       className={styles.capsule}
-      src={getGameHeaderImage(game.appid)}
+      src={getGameHeaderImage(game)}
       alt=""
       loading="lazy"
       draggable={false}
@@ -115,7 +115,7 @@ export function SteamProfile({
         <section className={styles.profileCard}>
           <div
             className={styles.banner}
-            style={bannerGame ? { backgroundImage: `url(${getGameHeaderImage(bannerGame.appid)})` } : undefined}
+            style={bannerGame ? { backgroundImage: `url(${getGameHeaderImage(bannerGame)})` } : undefined}
             aria-hidden="true"
           />
           <div className={styles.bannerShade} aria-hidden="true" />

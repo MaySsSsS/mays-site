@@ -19,6 +19,11 @@ const GAME_API_URL =
 const UPLOAD_SECRET = process.env.GAME_UPLOAD_SECRET || "";
 
 const API_BASE = "https://api.steampowered.com";
+// 商店素材接口：Web API 的 GetOwnedGames 只给 32×32 图标哈希，头图/胶囊图
+// 只能走商店接口取（返回的是 shared.akamai.steamstatic.com 上带内容哈希的路径）
+const STORE_DETAILS_API = "https://store.steampowered.com/api/appdetails";
+const STORE_REQUEST_DELAY_MS = 1000;
+const SNAPSHOT_PATH = path.join(__dirname, "../public/data/steam-games.json");
 
 // 通过 Worker API 上传数据
 async function uploadToWorker(data) {
@@ -60,6 +65,102 @@ async function fetchRecentlyPlayedGames() {
   return data.response.games || [];
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchStoreAssets(appid) {
+  const url = `${STORE_DETAILS_API}?appids=${appid}&filters=basic&l=schinese`;
+  const response = await fetch(url, { headers: { "User-Agent": "mays-site/1.0" } });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = await response.json();
+  const entry = payload?.[String(appid)];
+
+  if (!entry?.success) {
+    return null;
+  }
+
+  const { header_image: headerImage, capsule_image: capsuleImage } = entry.data ?? {};
+
+  if (!headerImage && !capsuleImage) {
+    return null;
+  }
+
+  return { header_image: headerImage, capsule_image: capsuleImage };
+}
+
+/** 上一份快照里已经补齐的封面，避免每天重复查询 */
+function loadKnownAssets() {
+  try {
+    const snapshot = JSON.parse(fs.readFileSync(SNAPSHOT_PATH, "utf8"));
+    const known = new Map();
+
+    for (const game of snapshot.games ?? []) {
+      if (game.header_image) {
+        known.set(game.appid, {
+          header_image: game.header_image,
+          capsule_image: game.capsule_image
+        });
+      }
+    }
+
+    return known;
+  } catch {
+    return new Map();
+  }
+}
+
+/**
+ * 给缺封面的游戏补真实素材地址。
+ * 已补齐的（快照里带着 header_image）直接跳过，所以日常运行只查新增游戏；
+ * 单个 appid 失败（例如没有商店页的测试版）只留空，不影响整体采集。
+ */
+async function enrichGameAssets(games) {
+  const known = loadKnownAssets();
+  const targets = games.filter(
+    (game) => !game.header_image && !known.has(game.appid)
+  );
+
+  if (targets.length === 0) {
+    console.log("🖼️ 封面已齐备，跳过商店接口查询");
+    return games.map((game) => {
+      const asset = known.get(game.appid);
+      return asset ? { ...game, ...asset } : game;
+    });
+  }
+
+  console.log(`🖼️ 补全封面: ${targets.length} 款需要查询商店接口...`);
+  const assets = new Map(known);
+  let failed = 0;
+
+  for (const [index, game] of targets.entries()) {
+    try {
+      const asset = await fetchStoreAssets(game.appid);
+
+      if (asset) {
+        assets.set(game.appid, asset);
+      } else {
+        failed += 1;
+      }
+    } catch (error) {
+      failed += 1;
+    }
+
+    if (index < targets.length - 1) {
+      await sleep(STORE_REQUEST_DELAY_MS);
+    }
+  }
+
+  console.log(`🖼️ 封面补全完成: 成功 ${assets.size - known.size}, 无素材/失败 ${failed}`);
+
+  return games.map((game) => {
+    const asset = assets.get(game.appid);
+    return asset ? { ...game, ...asset } : game;
+  });
+}
+
 async function main() {
   console.log("🎮 开始获取 Steam 数据...");
 
@@ -91,11 +192,14 @@ async function main() {
       };
     });
 
+    // 补全封面地址（商店接口，失败只留空）
+    const enrichedGames = await enrichGameAssets(mergedGames);
+
     // 构建输出数据
     const outputData = {
       lastUpdated: new Date().toISOString(),
       player: player,
-      games: mergedGames,
+      games: enrichedGames,
     };
 
     // 上传到 Cloudflare Worker (R2)
@@ -106,11 +210,10 @@ async function main() {
     }
 
     // 同时保存本地文件（用于开发和备份）
-    const outputPath = path.join(__dirname, "../public/data/steam-games.json");
-    fs.writeFileSync(outputPath, JSON.stringify(outputData, null, 2));
+    fs.writeFileSync(SNAPSHOT_PATH, JSON.stringify(outputData, null, 2));
 
     console.log(`✅ 成功! 共获取 ${games.length} 款游戏`);
-    console.log(`📁 数据已保存到: ${outputPath}`);
+    console.log(`📁 数据已保存到: ${SNAPSHOT_PATH}`);
 
     // 输出统计信息
     const totalPlaytime = games.reduce(

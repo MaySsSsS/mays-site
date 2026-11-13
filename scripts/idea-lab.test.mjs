@@ -37,7 +37,7 @@ test("Idea Lab uses actual controls rather than a static landing page", () => {
 test("Idea Lab is discoverable from the tools hub", () => {
   assert.match(toolsHub, /title:\s*"Idea Lab"/);
   assert.match(toolsHub, /href:\s*"\/tools\/idea-lab"/);
-  assert.match(toolsHub, /Project Brief/);
+  assert.match(toolsHub, /displayTitle:\s*"IDEA LAB"/);
 });
 
 test("Idea Lab layout has responsive workspace and stable tool panels", () => {

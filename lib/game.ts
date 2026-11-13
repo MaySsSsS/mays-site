@@ -107,10 +107,23 @@ export function formatSyncDate(value: string | null): string {
   return `${year}-${month}-${day}`;
 }
 
-export function getGameHeaderImage(appid: number): string {
-  return `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/header.jpg`;
+type GameArtSource = Pick<GameData, "appid" | "header_image" | "capsule_image">;
+
+/**
+ * 封面地址优先用采集脚本补进来的真实地址（Steam 商店素材已改成
+ * shared.akamai.steamstatic.com 上带内容哈希的路径，拼不出来），
+ * 老游戏仍可回退到可预测的 CDN 路径。
+ */
+export function getGameHeaderImage(game: GameArtSource): string {
+  return (
+    game.header_image ??
+    `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`
+  );
 }
 
-export function getGameCapsuleImage(appid: number): string {
-  return `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/capsule_231x87.jpg`;
+export function getGameCapsuleImage(game: GameArtSource): string {
+  return (
+    game.capsule_image ??
+    `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/capsule_231x87.jpg`
+  );
 }
