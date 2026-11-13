@@ -10,11 +10,11 @@ preview_urls = true
 [vars]
 CORS_ORIGIN = "https://linkmays.com"
 
-# database_id 由 `npx wrangler d1 create mays-social-db` 生成后回填
+# 库名 mays-social-db（2026-11-13 在控制台创建）；表结构由 src/schema.ts 首次请求时自愈创建
 [[d1_databases]]
 binding = "SOCIAL_DB"
 database_name = "mays-social-db"
-database_id = "PLACEHOLDER"
+database_id = "9da12a9d-5f3d-4bd2-a533-e0d4e2acbcf0"
 
 [observability]
 enabled = true

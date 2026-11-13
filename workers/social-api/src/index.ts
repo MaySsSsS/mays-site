@@ -1,6 +1,7 @@
 import { collect, collectAll, linkNintendo, linkPsn, PLATFORMS, unlink } from "./collect.js";
 import { readSnapshot, readStatus } from "./db.js";
 import { nintendoExchangeSessionToken } from "./nintendo.js";
+import { ensureSchema } from "./schema.js";
 import type { Env, Platform, PlatformStatus } from "./types.js";
 
 const DEFAULT_ORIGINS = ["https://linkmays.com", "http://localhost:3000"];
@@ -129,6 +130,13 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
+
+    try {
+      await ensureSchema(env.SOCIAL_DB);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return json(env, request, { error: `数据库未就绪：${message}` }, { status: 500 });
+    }
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(env, request) });

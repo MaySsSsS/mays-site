@@ -51,6 +51,14 @@ test("采集失败保留旧快照，只改状态", () => {
   assert.ok(!/catch[\s\S]{0,300}writeSnapshot\(env\.SOCIAL_DB, \{\s*\.\.\./.test(collect), "失败时不能写入空快照");
 });
 
+test("表结构自愈创建，不依赖外部迁移步骤", () => {
+  const schema = read("workers/social-api/src/schema.ts");
+  const index = read("workers/social-api/src/index.ts");
+  assert.ok(schema.includes("CREATE TABLE IF NOT EXISTS snapshots"));
+  assert.ok(schema.includes("ready = null"), "建表失败要能重试");
+  assert.match(index, /await ensureSchema\(env\.SOCIAL_DB\)/, "请求入口要先建表");
+});
+
 test("定时采集已配置 cron", () => {
   const toml = read("workers/social-api/wrangler.toml");
   assert.match(toml, /\[triggers\][\s\S]*crons = \[/);

@@ -24,7 +24,8 @@ PSN / 任天堂的**个人游戏数据后端**：一次性登录导入凭证 →
 ## 运维
 
 ```bash
-# 首次：建库并回填 wrangler.toml 的 database_id
+# 首次：建库并回填 wrangler.toml 的 database_id（表结构由 src/schema.ts 首次请求自愈创建，
+#   schema.sql 只是给控制台/CLI 手工建表用的同款 DDL）
 npx wrangler@4.81.1 d1 create mays-social-db
 npx wrangler@4.81.1 d1 execute mays-social-db --remote --file workers/social-api/schema.sql
 

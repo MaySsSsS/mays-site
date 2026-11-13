@@ -1,13 +1,13 @@
 name: Infra Social API (one-off)
 
-# 一次性任务：建 D1 库、建表、写 Worker 密钥、部署。跑完即删。
+# 一次性任务：给 social-api 写 Worker 密钥并部署。表结构由 Worker 首次请求自愈创建。跑完即删。
 on:
   workflow_dispatch:
 
 jobs:
   infra:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -16,25 +16,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: 建库（已存在则跳过）
-        run: npx -y wrangler@4.81.1 d1 create mays-social-db || echo "库已存在，继续"
-
-      - name: 解析 database_id 并回填 wrangler.toml
-        run: |
-          npx -y wrangler@4.81.1 d1 list --json > /tmp/d1.json
-          node -e '
-            const list = require("/tmp/d1.json");
-            const db = list.find((item) => item.name === "mays-social-db");
-            if (!db) { console.error("找不到 mays-social-db"); process.exit(1); }
-            console.log("DATABASE_ID=" + db.database_id);
-          ' | tee /tmp/db-id.txt
-          ID=$(sed -n "s/^DATABASE_ID=//p" /tmp/db-id.txt)
-          sed -i "s/database_id = \"PLACEHOLDER\"/database_id = \"$ID\"/" workers/social-api/wrangler.toml
-          grep -n "database_id" workers/social-api/wrangler.toml
-
-      - name: 建表
-        run: npx -y wrangler@4.81.1 d1 execute mays-social-db --remote --file workers/social-api/schema.sql -y
 
       - name: 写 Worker 密钥
         run: |

@@ -8,6 +8,7 @@ import {
   writeStatus,
 } from "./db.js";
 import { SocialApiError, psnLoginWithNpsso, psnRefresh, psnSnapshot } from "./psn.js";
+import { ensureSchema } from "./schema.js";
 import { nintendoSnapshot } from "./nintendo.js";
 import type { Env, Platform, PlatformState, PlatformStatus, PsnTokens } from "./types.js";
 
@@ -76,6 +77,7 @@ export async function unlink(env: Env, platform: Platform): Promise<PlatformStat
  * 网络抖动或限流不该让页面变成空白。
  */
 export async function collect(env: Env, platform: Platform): Promise<PlatformStatus> {
+  await ensureSchema(env.SOCIAL_DB);
   const row = await readCredential(env.SOCIAL_DB, platform);
   if (!row) {
     return recordStatus(env, platform, "unlinked", null);
