@@ -100,3 +100,11 @@ test("Steam 概览页使用个人资料页布局与 Steam 等级换算", () => {
   assert.ok(level.includes("getXpRequiredForLevel"), "等级换算需要沿用每 10 级一档的 Steam 规则");
   assert.ok(level.includes("XP_PER_GAME"), "等级 XP 需要按游戏数折算");
 });
+
+test("旧 /game 路由 301 到 /games/steam，不再 404", () => {
+  const middleware = read("middleware.ts");
+
+  assert.ok(middleware.includes("LEGACY_GAME_PREFIX"), "middleware 需要处理旧 /game 路径");
+  assert.ok(middleware.includes("/games/steam"), "/game 应重定向到 Steam 概览页");
+  assert.ok(middleware.includes("), 301)"), "旧链接应用永久重定向");
+});
