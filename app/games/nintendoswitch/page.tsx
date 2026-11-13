@@ -4,7 +4,7 @@ import { NintendoHome } from "@/components/game/NintendoHome";
 
 export const metadata: Metadata = {
   title: "Nintendo Switch",
-  description: "Switch 2 主界面风格的演示游戏墙：拖动浏览、空槽位与选中详情。"
+  description: "Nintendo Switch 2 主界面复刻：方形游戏图标与底部系统图标栏。"
 };
 
 export default function NintendoSwitchPage() {

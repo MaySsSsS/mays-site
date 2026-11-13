@@ -17,16 +17,21 @@ export function PlatformAvatar({
   platform,
   name,
   avatarUrl,
-  subtitle
+  subtitle,
+  variant = "full",
+  align = "start"
 }: Readonly<{
   platform: PlatformKey;
   name: string;
   avatarUrl?: string | null;
   subtitle: string;
+  variant?: "full" | "compact";
+  align?: "start" | "end";
 }>) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const initial = name.trim().charAt(0).toUpperCase() || "M";
+  const compact = variant === "compact";
 
   useEffect(() => {
     if (!open) {
@@ -54,10 +59,10 @@ export function PlatformAvatar({
   }, [open]);
 
   return (
-    <div className={styles.root} ref={rootRef}>
+    <div className={`${styles.root} ${skinClass[platform]}`} ref={rootRef}>
       <button
         type="button"
-        className={`${styles.trigger} ${skinClass[platform]}`}
+        className={`${styles.trigger} ${compact ? styles.triggerCompact : ""}`}
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
@@ -75,17 +80,26 @@ export function PlatformAvatar({
           )}
           <span className={styles.presence} aria-hidden="true" />
         </span>
-        <span className={styles.identity}>
-          <span className={styles.name}>{name}</span>
-          <span className={styles.subtitle}>{subtitle}</span>
-        </span>
-        <span className={`${styles.caret} ${open ? styles.caretOpen : ""}`} aria-hidden="true">
-          ▾
-        </span>
+
+        {compact ? null : (
+          <>
+            <span className={styles.identity}>
+              <span className={styles.name}>{name}</span>
+              <span className={styles.subtitle}>{subtitle}</span>
+            </span>
+            <span className={`${styles.caret} ${open ? styles.caretOpen : ""}`} aria-hidden="true">
+              ▾
+            </span>
+          </>
+        )}
       </button>
 
       {open ? (
-        <div className={styles.menu} role="menu" aria-label="切换平台">
+        <div
+          className={`${styles.menu} ${align === "end" ? styles.menuEnd : ""}`}
+          role="menu"
+          aria-label="切换平台"
+        >
           <p className={styles.menuHint}>切换平台</p>
           {PLATFORMS.map((entry) =>
             entry.key === platform ? (

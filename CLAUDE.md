@@ -121,7 +121,7 @@ scripts/
 9. **Photo 数据双写**：写操作先 localStorage 再推 Worker API
 10. **Steam 数据读取**：server component 读静态 JSON，client store 可从 Worker API 回退
 11. **平台页入口收敛**：`/games/*` 子页只保留「传送门 + 主站」返回入口，不链接 `/photos`、`/tools`；不恢复 `/game` 路由
-12. **演示数据只用本地静态图**（`public/games/`），不引入远程 CDN 依赖；接入 PSN/Nintendo 真实数据前不得让按钮产生真实动作
+12. **演示平台页只复刻主机主界面**：仅保留图标行 / 背景与账号入口，不加标题、统计、列表等说明性内容；演示图片只用 `public/games/` 本地静态图，不引入远程 CDN
 
 ## Session Protocol
 

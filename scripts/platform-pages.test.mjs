@@ -21,17 +21,18 @@ test("平台页只保留传送门与主站入口，不出现照片/工具页链�
   }
 });
 
-test("平台外壳的返回入口指向 /games 与 /", () => {
+test("平台外壳的账号入口指向 /games 与 /", () => {
   for (const shell of [
     "components/game/SteamShell.tsx",
     "components/game/NintendoShell.tsx",
-    "components/game/PlayStationShell.tsx",
-    "components/game/PlatformAvatar.tsx"
+    "components/game/PlayStationShell.tsx"
   ]) {
-    const source = read(shell);
-    assert.ok(source.includes('href="/games"'), `${shell} 需要返回传送门入口`);
-    assert.ok(source.includes('href="/"'), `${shell} 需要返回主站入口`);
+    assert.ok(read(shell).includes("PlatformAvatar"), `${shell} 需要渲染 PlatformAvatar`);
   }
+
+  const avatar = read("components/game/PlatformAvatar.tsx");
+  assert.ok(avatar.includes('href="/games"'), "账号菜单需要返回传送门入口");
+  assert.ok(avatar.includes('href="/"'), "账号菜单需要返回主站入口");
 });
 
 test("传送门列出三个平台且 /game 路由已被移除", () => {
@@ -48,17 +49,27 @@ test("演示数据引用本地静态图，避免外链失效", () => {
   const demo = read("lib/demo-games.ts");
   assert.ok(demo.includes('cover: "/games/nintendo/'));
   assert.ok(demo.includes('banner: "/games/playstation/'));
-  assert.ok(demo.includes('logo: "/games/playstation/'));
   assert.ok(!demo.includes("http"), "演示数据不应依赖远程图片地址");
 });
 
-test("演示数据保留空槽位与进度条所需的字段", () => {
-  const demo = read("lib/demo-games.ts");
-  assert.ok(demo.includes("progress:"));
-  assert.ok(demo.includes("hoursPlayed:"));
-  assert.ok(demo.includes("size:"));
+test("主界面复刻不渲染说明性标题、统计与提示文案", () => {
+  const banned = ["游戏墙", "游戏库", "演示数据", "未接入", "<h1", "<h2", "游玩时长", "进度"];
 
+  for (const file of ["components/game/NintendoHome.tsx", "components/game/PlayStationHome.tsx"]) {
+    const source = read(file);
+
+    for (const word of banned) {
+      assert.ok(!source.includes(word), `${file} 不应出现「${word}」`);
+    }
+  }
+});
+
+test("主界面保留游戏机本体结构：图标行与选中态", () => {
   const nintendo = read("components/game/NintendoHome.tsx");
-  assert.ok(nintendo.includes("SLOT_COUNT"), "Switch 游戏墙需要空槽位样式");
-  assert.ok(nintendo.includes("emptySlot"), "Switch 游戏墙需要空槽位样式");
+  assert.ok(nintendo.includes("systemRow"), "Switch 主界面需要底部系统图标行");
+  assert.ok(nintendo.includes("tileActive"), "Switch 主界面需要选中态");
+
+  const playstation = read("components/game/PlayStationHome.tsx");
+  assert.ok(playstation.includes("dock"), "PS5 主界面需要底部图标栏");
+  assert.ok(playstation.includes("backdropActive"), "PS5 主界面需要背景联动");
 });

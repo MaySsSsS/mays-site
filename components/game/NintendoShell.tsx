@@ -1,17 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { PlatformAvatar } from "./PlatformAvatar";
 import styles from "@/styles/game/nintendoShell.module.css";
 
-const links = [{ href: "/games/nintendoswitch", label: "主页" }];
-
 export function NintendoShell({ children }: Readonly<{ children: React.ReactNode }>) {
-  const pathname = usePathname();
-  const [currentTime, setCurrentTime] = useState("--:--");
+  const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
     const updateTime = () => {
@@ -25,50 +20,43 @@ export function NintendoShell({ children }: Readonly<{ children: React.ReactNode
     };
 
     updateTime();
-    const intervalId = window.setInterval(updateTime, 30_000);
+    const intervalId = window.setInterval(updateTime, 15_000);
     return () => window.clearInterval(intervalId);
   }, []);
 
   return (
     <div className={styles.shell}>
       <header className={styles.topBar}>
-        <div className={styles.topBarInner}>
-          <PlatformAvatar platform="nintendoswitch" name="Mays" subtitle="NINTENDO SWITCH" />
+        <PlatformAvatar
+          platform="nintendoswitch"
+          name="Mays"
+          subtitle="NINTENDO SWITCH"
+          variant="compact"
+        />
 
-          <div className={styles.topRight}>
-            <time className={styles.clock} dateTime={currentTime}>
-              {currentTime}
-            </time>
-            <Link href="/games" className={styles.iconLink} aria-label="返回平台传送门" title="返回传送门">
-              ◱
-            </Link>
-            <Link href="/" className={styles.iconLink} aria-label="返回主站" title="返回主站">
-              ⌂
-            </Link>
-          </div>
+        <div className={styles.status}>
+          <svg className={styles.statusIcon} viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 17.6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" fill="currentColor" stroke="none" />
+            <path
+              d="M7.4 12.6a6.6 6.6 0 0 1 9.2 0M4.6 9.8a10.6 10.6 0 0 1 14.8 0"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          <svg className={styles.batteryIcon} viewBox="0 0 27 14" aria-hidden="true">
+            <rect x="1" y="1" width="21" height="12" rx="3.2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <rect x="3.2" y="3.2" width="15" height="7.6" rx="1.8" fill="currentColor" />
+            <rect x="23.4" y="4.4" width="2.4" height="5.2" rx="1.2" fill="currentColor" />
+          </svg>
+
+          <time className={styles.clock}>{currentTime}</time>
         </div>
       </header>
 
-      <nav className={styles.nav} aria-label="Switch 站内导航">
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={`${styles.navLink} ${pathname === link.href ? styles.navLinkActive : ""}`}
-            aria-current={pathname === link.href ? "page" : undefined}
-          >
-            {link.label}
-          </Link>
-        ))}
-        <span className={styles.navHint}>演示数据 · 未接入 Nintendo 账号</span>
-      </nav>
-
       <main className={styles.main}>{children}</main>
-
-      <footer className={styles.footer}>
-        <span>NINTENDO SUBSITE / linkmays.com</span>
-        <span className={styles.footerHint}>SWITCH 2 UI STUDY</span>
-      </footer>
     </div>
   );
 }
