@@ -66,7 +66,8 @@ test("主界面复刻不渲染说明性标题、统计与提示文案", () => {
 
 test("主界面保留游戏机本体结构：图标行与选中态", () => {
   const nintendo = read("components/game/NintendoHome.tsx");
-  assert.ok(nintendo.includes("systemRow"), "Switch 主界面需要底部系统图标行");
+  assert.ok(nintendo.includes("styles.dock"), "Switch 主界面需要底部系统图标栏");
+  assert.ok(nintendo.includes("keycap"), "Switch 主界面需要手柄键位提示");
   assert.ok(nintendo.includes("tileActive"), "Switch 主界面需要选中态");
 
   const playstation = read("components/game/PlayStationHome.tsx");

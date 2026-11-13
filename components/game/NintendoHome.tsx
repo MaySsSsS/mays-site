@@ -6,7 +6,14 @@ import { NINTENDO_DEMO_GAMES } from "@/lib/demo-games";
 
 import styles from "@/styles/game/nintendoHome.module.css";
 
-type Zone = "games" | "system";
+function ChatIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5.4 5h13.2a1.8 1.8 0 0 1 1.8 1.8v8.1a1.8 1.8 0 0 1-1.8 1.8h-6.9L7 19.9v-3.2H5.4a1.8 1.8 0 0 1-1.8-1.8V6.8A1.8 1.8 0 0 1 5.4 5Z" />
+      <path d="M9 11.6h6" />
+    </svg>
+  );
+}
 
 function NewsIcon() {
   return (
@@ -65,103 +72,107 @@ function SleepIcon() {
   );
 }
 
-const SYSTEM_ICONS = [
-  { key: "news", label: "新闻", Icon: NewsIcon },
-  { key: "shop", label: "商店", Icon: ShopIcon },
-  { key: "album", label: "相册", Icon: AlbumIcon },
-  { key: "controllers", label: "手柄", Icon: ControllerIcon },
-  { key: "settings", label: "设置", Icon: SettingsIcon },
-  { key: "sleep", label: "休眠", Icon: SleepIcon }
+function ConsoleGlyph() {
+  return (
+    <svg viewBox="0 0 64 28" aria-hidden="true" className={styles.consoleGlyph}>
+      <rect width="64" height="28" rx="6" fill="#2e2e2e" />
+      <rect x="13" y="4" width="38" height="20" fill="#f0f0f0" />
+      <circle cx="6" cy="8" r="3" fill="#f0f0f0" />
+      <circle cx="58" cy="20" r="3" fill="#f0f0f0" />
+      <circle cx="6.5" cy="15.5" r="1.5" fill="#f0f0f0" />
+      <circle cx="57.5" cy="6.5" r="1.5" fill="#f0f0f0" />
+      <circle cx="3.5" cy="18.5" r="1.5" fill="#f0f0f0" />
+      <circle cx="54.5" cy="9.5" r="1.5" fill="#f0f0f0" />
+      <circle cx="9.5" cy="18.5" r="1.5" fill="#f0f0f0" />
+      <circle cx="60.5" cy="9.5" r="1.5" fill="#f0f0f0" />
+      <circle cx="6.5" cy="21.5" r="1.5" fill="#f0f0f0" />
+      <circle cx="57.5" cy="12.5" r="1.5" fill="#f0f0f0" />
+    </svg>
+  );
+}
+
+const DOCK_ITEMS = [
+  { key: "chat", label: "聊天", color: "#f97316", Icon: ChatIcon },
+  { key: "news", label: "新闻", color: "#22c55e", Icon: NewsIcon },
+  { key: "shop", label: "Nintendo eShop", color: "#ef4444", Icon: ShopIcon },
+  { key: "album", label: "相册", color: "#3b82f6", Icon: AlbumIcon },
+  { key: "controllers", label: "手柄", color: "#64748b", Icon: ControllerIcon },
+  { key: "settings", label: "设置", color: "#64748b", Icon: SettingsIcon },
+  { key: "sleep", label: "休眠", color: "#64748b", Icon: SleepIcon }
 ] as const;
 
+/**
+ * Switch 主界面复刻：游戏图标行 + 底部系统图标栏 + 手柄键位提示。
+ * 所有图标只做视觉复刻，不承载真实功能。
+ */
 export function NintendoHome() {
-  const [zone, setZone] = useState<Zone>("games");
   const [gameIndex, setGameIndex] = useState(0);
-  const [iconIndex, setIconIndex] = useState(0);
-
   const total = NINTENDO_DEMO_GAMES.length;
 
   useEffect(() => {
-    if (total === 0) {
-      return;
-    }
-
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowDown") {
-        setZone("system");
-        return;
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setGameIndex((index) => (index + 1) % total);
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setGameIndex((index) => (index - 1 + total) % total);
       }
-
-      if (event.key === "ArrowUp") {
-        setZone("games");
-        return;
-      }
-
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
-        return;
-      }
-
-      const step = event.key === "ArrowRight" ? 1 : -1;
-
-      if (zone === "games") {
-        setGameIndex((index) => (index + step + total) % total);
-        return;
-      }
-
-      setIconIndex((index) => (index + step + SYSTEM_ICONS.length) % SYSTEM_ICONS.length);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [total, zone]);
+  }, [total]);
 
   return (
     <div className={styles.home}>
-      <div className={styles.shelf} role="group" aria-label="游戏">
-        {NINTENDO_DEMO_GAMES.map((game, index) => {
-          const active = index === gameIndex;
-
-          return (
+      <div className={styles.stage}>
+        <div className={styles.shelf} role="group" aria-label="游戏">
+          {NINTENDO_DEMO_GAMES.map((game, index) => (
             <button
               key={game.id}
               type="button"
-              className={`${styles.tile} ${active ? styles.tileActive : ""}`}
-              onClick={() => {
-                setGameIndex(index);
-                setZone("games");
-              }}
-              aria-pressed={active}
+              className={`${styles.tile} ${index === gameIndex ? styles.tileActive : ""}`}
+              onClick={() => setGameIndex(index)}
+              aria-pressed={index === gameIndex}
               aria-label={game.title}
             >
-              {/* 演示封面为本地静态图，尺寸固定，无需 next/image 优化 */}
+              {/* 演示封面为本地静态图，尺寸由 CSS 控制 */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={game.cover} alt="" className={styles.art} draggable={false} />
+              <img src={game.cover} alt="" draggable={false} />
             </button>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
-      <div className={styles.systemRow} role="group" aria-label="系统功能">
-        {SYSTEM_ICONS.map((entry, index) => {
-          const focused = zone === "system" && index === iconIndex;
-
-          return (
+      <div className={styles.dock} role="group" aria-label="系统菜单">
+          {DOCK_ITEMS.map((entry) => (
             <button
               key={entry.key}
               type="button"
-              className={`${styles.systemIcon} ${focused ? styles.systemIconFocused : ""}`}
-              onClick={() => {
-                setIconIndex(index);
-                setZone("system");
-              }}
+              className={styles.dockItem}
+              style={{ color: entry.color }}
               aria-label={entry.label}
-              title={entry.label}
             >
               <entry.Icon />
+              <span className={styles.dockLabel}>{entry.label}</span>
             </button>
-          );
-        })}
+        ))}
       </div>
+
+      <footer className={styles.footer}>
+        <ConsoleGlyph />
+        <div className={styles.controls}>
+          <span className={styles.control}>
+            <span className={styles.keycap}>+</span>
+            选项
+          </span>
+          <span className={styles.control}>
+            <span className={styles.keycap}>A</span>
+            确定
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
