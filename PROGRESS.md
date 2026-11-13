@@ -4,6 +4,7 @@
 
 ## 当前状态
 
+- 2026-11-13：游戏区重构为「传送门 + 三平台子页」。取消 `/game` 路由（无重定向），新增 `/games` 平台传送门（`PlatformPortal` + `lib/platforms.ts`，三张大卡片带各自强调色），Steam 侧改为 `/games/steam`（概览）与 `/games/steam/library`（原游戏库），并新增 `/games/nintendoswitch`、`/games/playstation` 两个演示页。三个平台各用独立布局壳（`SteamShell` / `NintendoShell` / `PlayStationShell`），共用 `PlatformAvatar` 头像菜单（切换平台 / 当前平台 / 返回传送门 / 返回主站），平台子页不再链接 `/photos`、`/tools`。Steam 页改用 Steam Deck 深色风格：真实头像与真实数据（142 款游戏），`lib/game.ts` 的时长/时间格式化函数改为中文文案并删除 `formatPlaytime`，`GameCard` 增加头图失败占位与客户端交互。Switch 页为浅色主机风格（方形封面、拖动浏览、空槽位占位样式），PS5 页为深色影院风格（← → 切换游戏、海报驱动背景、媒体栏）。演示数据集中在 `lib/demo-games.ts`，图片已本地化到 `public/games/nintendo`、`public/games/playstation`，所有操作按钮只提示"未接入账号"，不产生真实动作。新增 `scripts/platform-pages.test.mjs`（5 条断言）。验证：`node --test scripts/platform-pages.test.mjs scripts/portal-layout.test.mjs` 9 项通过，`pnpm typecheck` / `pnpm lint` / `pnpm build` 全部通过（构建产物含 `/games`、`/games/steam`、`/games/steam/library`、`/games/nintendoswitch`、`/games/playstation`，无 `/game`），并用无头浏览器实测头像菜单、PS 媒体栏切换与 Switch 拖动滚动。`README.md` / `AGENTS.md` / `CLAUDE.md` 已同步路由与新增约束。提交：`9d78cb9`、`d483c84`、`3cdfb8c`、`cf293b0`；未部署。
 - 2026-11-12：整理部署配置、发布流程与版本基线。删除与现状冲突的 `docs/DEPLOYMENT.md`（GitHub Pages + 子域名旧方案），把根 `DEPLOYMENT.md` 重写为唯一权威文档（架构 / 域名 / 发布流程 / 版本基线 / 数据新鲜度）。发布流程：新增 `scripts/predeploy-check.mjs`（工作区不干净时阻止部署，`ALLOW_DIRTY_DEPLOY=1` 可强制；非 main 分支告警），脚本拆分为 `build:cf` / `deploy` / `deploy:only` / `upload`，Makefile 去掉重复构建；`deploy-frontend.yml` 升级 Node 22 并缓存 `.next/cache`。版本同步：两个 Worker 统一到 wrangler `^4.81.1`、TypeScript `^5.9.3`、`@cloudflare/workers-types` `4.20260702.1`、`compatibility_date` `2026-04-12`；Worker 脚本固定 `wrangler dev/deploy -c wrangler.toml`（wrangler 4 autoconfig 会误读根 `wrangler.jsonc`）；`photo-api` 上传处适配新 workers-types 的 `FormData.get()` 类型。`README.md` / `AGENTS.md` / `CLAUDE.md` 同步。验证：`pnpm typecheck` / `pnpm lint` / `pnpm build` 与两个 Worker 的 `npm run typecheck` 全部通过；`predeploy-check` 的阻止与放行路径均实测符合预期；未部署。
 - 2026-11-10：修复相册数据加载后消失的问题：`photo-api` 返回空分组时会覆盖并清空本地缓存，现改为远端为空时保留本地数据并回传初始化远端；`PhotosClient` 的同步 effect 去掉 `groups.length` 依赖，避免每次数据变化重复拉取。城市坐标表从 34 个扩展到 181 个（含九寨沟、稻城、敦煌、婺源等目的地），`CityCoordinate` 的 `top`/`left` 改为可选。`/tools` 的 `TOOLS` 标题改用 `Hylia Serif`，覆盖 `SheikahTextTitle` 内部的 Roboto 斜体。验证：`pnpm typecheck` / `pnpm lint` / `pnpm build` / `pnpm test:portal` 通过；已部署 `mays-site-web` 版本 `abef28f6-5b06-45e9-af70-741c863935c4`，线上 CSS 已包含 Hylia Serif 规则，照片页 JS 已包含新增城市数据。
 - 2026-11-10：下线 `signal-arena`、`ai-daily`、`universe` 三个模块。删除对应页面、组件、lib/types/styles、静态数据、脚本与测试、`.github/workflows/ai-daily.yml` 和 `workers/signal-arena-api`；门户首页只保留 Game / Photos / Tools 三个入口，`portal.module.css` 中对应面板样式一并移除。修复 `photo-api` / `game-api` 的 CORS：`CORS_ORIGIN` 改为 `https://linkmays.com`。验证：`pnpm typecheck` / `pnpm lint` / `pnpm build`（13 个静态页）/ `pnpm test:portal` 通过；`pnpm test:idea-lab` 因工作区既有 `/tools` 重构断言未同步而失败，与本次删除无关。已部署前端 `mays-site-web`（最终版本 `8db1c1ea-faaa-4dfc-9be6-59cf0b4219ba`）、`mays-photo-api` 版本 `c569331c-fec9-4bb5-a13c-fef2beebe76e`、`mays-game-api` 版本 `f2ad03da-2a69-4e80-a0c1-8bb155ea510a`；线上 `/signal-arena`、`/ai-daily`、`/universe` 返回 404，`/`、`/game`、`/photos`、`/tools` 返回 200，photo-api 预检返回 `access-control-allow-origin: https://linkmays.com`。Cloudflare 上的 `mays-signal-arena-api` Worker 已删除。
@@ -235,13 +236,19 @@
 | 2026-11-12 | 保留 `--dangerouslyUseUnsupportedNextVersion` | Next 15 的官方支持期已于 2026-10-21 结束，OpenNext 会直接拒绝构建；该 flag 只跳过日期检查，1.19.1 的 peer 范围仍包含 next 15.5.15，升级 Next 16 属于独立任务 | 立即升级 Next 16、删 flag 后构建失败 |
 | 2026-11-12 | 发布前强制工作区干净（`scripts/predeploy-check.mjs`） | 发布读取的是本地工作区，脏工作区会让线上内容无法对应到任何提交；CI 在干净 checkout 上不受影响 | 继续允许任意脏工作区直接发布 |
 | 2026-11-12 | 不在 `wrangler.jsonc` 声明 `routes`，域名继续控制台手工绑定 | 自动绑定要求 zone 与 Worker 同账号且配置正确，写错会让发布失败；当前域名已手工可用 | 把 `custom_domain` 直接写进配置 |
+| 2026-11-13 | 取消 `/game`，改由 `/games` 作为唯一游戏入口（传送门 + 平台子页） | 三个平台需要并列入口，`/game` 直接落 Steam 会让其余平台成为二等公民；保留旧路径还要维护重定向与 404 语义 | 保留 `/game` 并重定向到 `/games`、保留 `/game` 同时并存 |
+| 2026-11-13 | 三个平台页各用独立布局壳，不复用旧 `GameShell` | 三平台视觉语言差异大（Steam 深蓝、Switch 浅色、PS 深黑），共用一套外壳只能靠条件类名硬堆，反而更难维护 | 一套 `GameShell` 加平台条件样式 |
+| 2026-11-13 | Steam 子站采用 Steam Deck 风格并直接用真实数据与真实头像 | 用户明确要求 Steam 可用真实数据；现有 `steam-games.json` 已含头像与完整游戏列表，无需额外后端 | 沿用旧深绿 Game 风格、使用占位头像 |
+| 2026-11-13 | Switch / PS 演示数据只用本地静态图，按钮不产生真实动作 | 当前不接 PSN / Nintendo 数据，远程 CDN 海报会在演示期失效；"假按钮"若真发起请求会让用户误判已接入 | 直接引用参考项目的远程 CDN 图片、按钮跳转真实商店链接 |
 
 ## 下一步
 
 1. 在 Cloudflare 控制台为 `mays-site-web` 绑定自定义域名 `linkmays.com`，并确认两个 API Worker 无遗留自定义域名
-2. 观察新域名下 `/`、`/game`、`/photos`、`/tools` 的线上访问与 photo-api 登录流程
+2. 观察新域名下 `/`、`/games` 及其三个平台子页、`/photos`、`/tools` 的线上访问与 photo-api 登录流程
 3. 旧域名 `maysssss.cn` 如不再续费，可移除 Squarespace 的 DNS 与 Cloudflare 旧绑定
 4. 处理 `scripts/idea-lab.test.mjs` 与当前 `/tools` 新 UI 文案不一致的既有断言
 5. 如需长期同步 UI-Prompt 上游数据，再把当前 `scripts/audit-ui-prompt-data.mjs` 扩展为可手动运行的数据同步脚本
-6. 若要让 `/game` 不重新部署也显示最新 Steam 数据，二选一：客户端始终从 game-api 取数，或配置 R2 增量缓存并去掉 CI 的 `STEAM_DATA_SOURCE=static`
-7. 待当前工作区（含 2026-11-10 下线与换域名改动）提交后，本地 `pnpm deploy` 才能通过 `predeploy-check`；也可临时用 `ALLOW_DIRTY_DEPLOY=1`
+6. 若要让 `/games/steam` 不重新部署也显示最新 Steam 数据，二选一：客户端始终从 game-api 取数，或配置 R2 增量缓存并去掉 CI 的 `STEAM_DATA_SOURCE=static`
+7. 演示图片（`public/games/nintendo`、`public/games/playstation`）为参考项目素材，接入真实数据或正式上线前需替换或删除，避免版权问题
+8. 若后续要接 PSN / Nintendo 真实数据：先在 `workers/` 里加采集 Worker（凭据加密存储 + 定时拉取），再把 `lib/demo-games.ts` 换成真实数据源；页面壳与交互无需重写
+9. 发布游戏区重构：工作区干净后 `pnpm deploy`（或推 `main` 触发 CI），发布后核对 `/games`、`/games/steam/library`、两个演示页的线上表现

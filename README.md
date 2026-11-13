@@ -21,7 +21,7 @@ mays-site/
 
 ## 当前重构状态
 
-- `Game` 首页、`/games` 游戏库与主站入口页已迁移到 Next.js App Router。
+- `/games` 平台传送门、Steam 概览与游戏库、Switch/PS 演示页、主站入口页都已在 Next.js App Router 内。
 - `/photos` 页面已迁移到 React + Zustand，继续复用现有 Photo Worker。
 - 旧版 Vue 前端目录已删除，仓库以单一 Next.js 应用为准。
 
@@ -47,9 +47,14 @@ pnpm deploy:only
 ## 路由
 
 - `/`：主站入口页
-- `/game`：Game 仪表盘首页
-- `/games`：游戏库
+- `/games`：游戏平台传送门（Steam / Nintendo Switch / PlayStation 三张大卡片）
+- `/games/steam`：Steam 概览（真实数据与头像）
+- `/games/steam/library`：Steam 游戏库
+- `/games/nintendoswitch`：Switch 2 主界面风格演示页
+- `/games/playstation`：PS5 主界面风格演示页
 - `/photos`：照片与足迹
+
+> 旧 `/game` 路由已取消，游戏入口统一为 `/games`。
 
 ## 技术栈
 

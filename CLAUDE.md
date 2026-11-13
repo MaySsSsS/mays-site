@@ -53,10 +53,16 @@ Next.js 15 + React 19 + TypeScript strict + Zustand + CSS Modules。单体应用
 
 ```
 主域名路由（legacy 子域名由 middleware 拦截停用）：
-  linkmays.com        → app/page.tsx          （门户首页）
-  linkmays.com/game   → app/(game)/game/      （游戏仪表盘，server component + ISR 1h）
-  linkmays.com/photos → app/(photo)/photos/   （照片地图，client component）
+  linkmays.com                     → app/page.tsx                    （门户首页）
+  linkmays.com/games               → app/games/page.tsx              （平台传送门）
+  linkmays.com/games/steam         → app/games/steam/                （Steam 概览，server + ISR 1h）
+  linkmays.com/games/steam/library → app/games/steam/library/        （Steam 游戏库，server + ISR 1h）
+  linkmays.com/games/nintendoswitch→ app/games/nintendoswitch/       （Switch 演示页，client）
+  linkmays.com/games/playstation   → app/games/playstation/          （PS5 演示页，client）
+  linkmays.com/photos              → app/(photo)/photos/             （照片地图，client component）
 ```
+
+旧 `/game` 路由已取消（无重定向）；`/games` 是唯一的游戏入口。
 
 ### Project Layout
 
@@ -64,15 +70,22 @@ Next.js 15 + React 19 + TypeScript strict + Zustand + CSS Modules。单体应用
 app/
   layout.tsx                    # 根布局
   page.tsx                      # 门户首页
-  (game)/layout.tsx             # GameShell 布局壳
-  (game)/game/page.tsx          # 游戏仪表盘（async server component）
-  (game)/games/page.tsx         # 游戏库（async server component）
+  games/page.tsx                # 平台传送门（三张大卡片）
+  games/steam/layout.tsx        # SteamShell 布局壳（读取 Steam 头像）
+  games/steam/page.tsx          # Steam 概览（async server component）
+  games/steam/library/page.tsx  # Steam 游戏库（async server component）
+  games/nintendoswitch/         # Switch 演示页 + NintendoShell
+  games/playstation/            # PS5 演示页 + PlayStationShell
   (photo)/layout.tsx            # PhotoShell 布局壳
   (photo)/photos/page.tsx       # 照片页（client component）
 components/
-  game/                         # GameShell, GameHome, GameLibrary, GameCard, FeaturedGame
+  game/                         # SteamShell/SteamHome, NintendoShell/NintendoHome,
+                                # PlayStationShell/PlayStationHome, PlatformPortal,
+                                # PlatformAvatar, GameLibrary, GameCard, FeaturedGame
   photo/                        # PhotoShell, PhotosClient, ChinaMap, CitySelector, PhotoAuth, PhotoLightbox, PhotoUploader, PhotoAsset
 lib/
+  platforms.ts                  # 三个平台的名称/路由/强调色元数据
+  demo-games.ts                 # Switch 与 PS 的演示数据（本地静态图）
   steam-data.ts                 # server-only，导入静态 JSON 快照
   game.ts                       # 游戏数据计算函数
   photo.ts                      # 照片工具函数、城市坐标
@@ -97,7 +110,7 @@ scripts/
 
 ## Hard Constraints
 
-1. **Game 页用 server component + ISR**，Photo 页用 client component — 不混用
+1. **Steam 概览/游戏库用 server component + ISR**，Switch/PS 演示页与 Photo 页用 client component — 不混用
 2. **状态管理只用 Zustand**（`stores/`），纯函数放 `lib/`
 3. **Workers 有独立 tsconfig**，不引用根目录 `@/` alias
 4. **所有 Worker API 端点必须有 CORS 配置**
@@ -107,6 +120,8 @@ scripts/
 8. **TypeScript strict mode**，禁止 `any`
 9. **Photo 数据双写**：写操作先 localStorage 再推 Worker API
 10. **Steam 数据读取**：server component 读静态 JSON，client store 可从 Worker API 回退
+11. **平台页入口收敛**：`/games/*` 子页只保留「传送门 + 主站」返回入口，不链接 `/photos`、`/tools`；不恢复 `/game` 路由
+12. **演示数据只用本地静态图**（`public/games/`），不引入远程 CDN 依赖；接入 PSN/Nintendo 真实数据前不得让按钮产生真实动作
 
 ## Session Protocol
 
