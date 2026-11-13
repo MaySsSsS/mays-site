@@ -1,0 +1,564 @@
+/* Steam 个人资料页布局：主栏 1fr + 右栏 340px，卡片沿用 Steam 的渐变面板 */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: #c7d5e0;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- 资料卡 ---------- */
+
+.profileCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(42, 71, 94, 0.4) 0%, rgba(27, 40, 56, 0.4) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.banner {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  opacity: 0.55;
+}
+
+.bannerShade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(27, 40, 56, 0.95) 0%, rgba(27, 40, 56, 0.72) 45%, rgba(27, 40, 56, 0.35) 100%),
+    linear-gradient(to top, rgba(23, 26, 33, 0.92) 0%, rgba(23, 26, 33, 0.2) 60%, rgba(23, 26, 33, 0) 100%);
+}
+
+.profileBody {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+  padding: 32px;
+  min-height: 260px;
+}
+
+.avatarWrap {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  padding: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  background: #171a21;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 32px -18px #000;
+}
+
+.avatarWrap::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 2px solid var(--ring-color, #4a90e2);
+  border-radius: 6px;
+  box-shadow: 0 0 18px -4px var(--ring-color, #4a90e2);
+  pointer-events: none;
+}
+
+.avatar,
+.avatarFallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  background: linear-gradient(135deg, #2a475e 0%, #171a21 100%);
+}
+
+.identity {
+  min-width: 0;
+  padding-top: 6px;
+}
+
+.name {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.4vw, 1.9rem);
+  font-weight: 300;
+  line-height: 1.15;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.statusLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #b3c4d3;
+}
+
+.statusDot,
+.statusDotOffline {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #57cbde;
+  box-shadow: 0 0 8px rgba(87, 203, 222, 0.8);
+}
+
+.statusDotOffline {
+  background: #6b7784;
+  box-shadow: none;
+}
+
+.description {
+  margin: 12px 0 0;
+  max-width: 46ch;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: #a9bdcc;
+}
+
+.profileLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.primaryLink {
+  padding: 8px 18px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #67c1f5 0%, #1a9fff 100%);
+  color: #06121c;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.primaryLink:hover {
+  background: linear-gradient(180deg, #8ed4ff 0%, #47b3ff 100%);
+}
+
+.ghostLink {
+  padding: 8px 18px;
+  border-radius: 3px;
+  background: rgba(103, 193, 245, 0.16);
+  color: #8fd3f9;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ghostLink:hover {
+  background: rgba(103, 193, 245, 0.26);
+}
+
+/* ---------- 展示柜 ---------- */
+
+.showcase {
+  padding: 16px;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(42, 71, 94, 0.34) 0%, rgba(27, 40, 56, 0.34) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.showcaseHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.showcaseTitle {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #dfe9f2;
+}
+
+.showcaseLink {
+  font-size: 0.78rem;
+  color: #67c1f5;
+  text-decoration: none;
+}
+
+.showcaseLink:hover {
+  color: #8ed4ff;
+  text-decoration: underline;
+}
+
+.showcaseHint {
+  font-size: 0.74rem;
+  color: #7d8f9f;
+}
+
+.capsuleRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.capsuleCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.capsule,
+.capsuleFallback {
+  display: block;
+  width: 100%;
+  aspect-ratio: 460 / 215;
+  border-radius: 3px;
+  object-fit: cover;
+  background: #101822;
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.capsuleCard:hover .capsule,
+.capsuleCard:hover .capsuleFallback {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+}
+
+.capsuleFallback {
+  background: linear-gradient(135deg, #22344a 0%, #101822 100%);
+}
+
+.capsuleName {
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #dfe9f2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.capsuleMeta {
+  font-size: 0.72rem;
+  color: #8296a6;
+}
+
+.collectorList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collectorItem {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.collectorRank {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #6e8598;
+}
+
+.collectorBody {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.collectorRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.collectorName {
+  overflow: hidden;
+  font-size: 0.82rem;
+  color: #d5e4ef;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collectorBody:hover .collectorName {
+  color: #fff;
+}
+
+.collectorHours {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  color: #8296a6;
+}
+
+.collectorBar {
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(103, 193, 245, 0.14);
+  overflow: hidden;
+}
+
+.collectorBarFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1a9fff 0%, #67c1f5 100%);
+}
+
+.emptyState {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed rgba(103, 193, 245, 0.24);
+  border-radius: 3px;
+  font-size: 0.8rem;
+  color: #7d8f9f;
+}
+
+/* ---------- 右栏 ---------- */
+
+.railCard {
+  padding: 16px;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(42, 71, 94, 0.4) 0%, rgba(27, 40, 56, 0.4) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.railTitle {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #dfe9f2;
+}
+
+.levelBlock {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.levelRing {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 108px;
+  height: 108px;
+  flex-shrink: 0;
+}
+
+.ringSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ringTrack {
+  fill: none;
+  stroke: rgba(103, 193, 245, 0.16);
+  stroke-width: 6;
+}
+
+.ringProgress {
+  fill: none;
+  stroke: var(--ring-color, #1a9fff);
+  stroke-width: 6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px var(--ring-glow, rgba(26, 159, 255, 0.6)));
+}
+
+.levelNumber {
+  position: relative;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.levelMeta {
+  min-width: 0;
+  flex: 1;
+}
+
+.levelName {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #dfe9f2;
+}
+
+.levelXp {
+  margin: 4px 0 8px;
+  font-size: 0.74rem;
+  color: #8296a6;
+}
+
+.levelBar {
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(103, 193, 245, 0.16);
+  overflow: hidden;
+}
+
+.levelBarFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.statList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.statRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(103, 193, 245, 0.1);
+}
+
+.statRow:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.statRow dt {
+  font-size: 0.76rem;
+  color: #8296a6;
+}
+
+.statRow dd {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #e6f1f8;
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activityItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.activityName {
+  overflow: hidden;
+  font-size: 0.8rem;
+  color: #d5e4ef;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activityMeta {
+  font-size: 0.72rem;
+  color: #7d8f9f;
+}
+
+.railEmpty {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #7d8f9f;
+}
+
+.errorBanner {
+  grid-column: 1 / -1;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 156, 144, 0.35);
+  border-radius: 4px;
+  background: rgba(255, 156, 144, 0.12);
+  font-size: 0.8rem;
+  color: #ffb4a9;
+}
+
+@media (max-width: 1080px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  .profileBody {
+    gap: 22px;
+    padding: 24px;
+  }
+
+  .avatarWrap {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .profileBody {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .avatarWrap {
+    width: 96px;
+    height: 96px;
+  }
+
+  .capsuleRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

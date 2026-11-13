@@ -89,3 +89,14 @@ test("PS5 主界面保留选中游戏后的附加内容面板", () => {
     assert.ok(panels.includes(word), `面板文件缺少「${word}」`);
   }
 });
+
+test("Steam 概览页使用个人资料页布局与 Steam 等级换算", () => {
+  const profile = read("components/game/SteamProfile.tsx");
+  const level = read("lib/steam-level.ts");
+
+  assert.ok(profile.includes("styles.showcase"), "Steam 页需要展示柜");
+  assert.ok(profile.includes("styles.rail"), "Steam 页需要右栏");
+  assert.ok(profile.includes("calculateLevelFromXp"), "Steam 页需要等级换算");
+  assert.ok(level.includes("getXpRequiredForLevel"), "等级换算需要沿用每 10 级一档的 Steam 规则");
+  assert.ok(level.includes("XP_PER_GAME"), "等级 XP 需要按游戏数折算");
+});
