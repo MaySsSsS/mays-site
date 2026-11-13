@@ -82,7 +82,7 @@ export function GameLibrary({
             <span>GAME_LIBRARY</span>
             <span className={styles.sectionLine} />
             <span className={styles.sectionStatus}>
-              {stats.totalGames} 款 / 共 {formatTotalHours(stats.totalPlaytime)} 小时
+              {stats.totalGames} 款 / 共 {formatTotalHours(stats.totalPlaytime)}
             </span>
           </div>
           <p className={styles.headerText}>

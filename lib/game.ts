@@ -66,9 +66,9 @@ export function formatTotalHours(minutes: number): string {
     return "---";
   }
   if (hours >= 1000) {
-    return `${(hours / 1000).toFixed(1)}k`;
+    return `${(hours / 1000).toFixed(1)}k h`;
   }
-  return `${hours}`;
+  return `${hours} h`;
 }
 
 export function formatRelativePlayed(timestamp: number): string {
