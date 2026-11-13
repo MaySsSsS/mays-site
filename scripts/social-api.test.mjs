@@ -1,0 +1,57 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+
+test("social-api 用 D1 存加密凭证与快照", () => {
+  const index = read("workers/social-api/src/index.ts");
+  const schema = read("workers/social-api/schema.sql");
+  const toml = read("workers/social-api/wrangler.toml");
+
+  assert.ok(schema.includes("CREATE TABLE IF NOT EXISTS credentials"), "缺少 credentials 表");
+  assert.ok(schema.includes("CREATE TABLE IF NOT EXISTS snapshots"), "缺少 snapshots 表");
+  assert.match(schema, /ciphertext TEXT NOT NULL/);
+  assert.ok(toml.includes('binding = "SOCIAL_DB"'), "wrangler.toml 缺少 D1 绑定");
+  assert.match(index, /readSnapshot\(env\.SOCIAL_DB/, "快照要从 D1 读");
+});
+
+test("管理接口必须校验 ADMIN_TOKEN", () => {
+  const index = read("workers/social-api/src/index.ts");
+  assert.ok(index.includes("Bearer ${token}"), "缺少 Bearer 校验");
+  const linkBlocks = index.split("isAdmin(env, request)").length - 1;
+  assert.ok(linkBlocks >= 3, "写接口（link/collect/delete）都要鉴权");
+});
+
+test("凭证只以密文入库，使用 AES-GCM", () => {
+  const crypto = read("workers/social-api/src/crypto.ts");
+  const collect = read("workers/social-api/src/collect.ts");
+  assert.ok(crypto.includes('"AES-GCM"'), "需要用 AES-GCM");
+  assert.ok(crypto.includes("crypto.getRandomValues"), "每次加密要有随机 IV");
+  assert.ok(collect.includes("encryptJson"), "入库前必须加密");
+  assert.match(collect, /writeCredential\(env\.SOCIAL_DB, "nintendo", payload\.ciphertext/, "任天堂凭证入库必须用密文");
+  assert.match(collect, /writeCredential\(env\.SOCIAL_DB, "psn", payload\.ciphertext/, "PSN 凭证入库必须用密文");
+});
+
+test("PSN 时长取自 playDuration，任天堂取自 moon 每日汇总", () => {
+  const psn = read("workers/social-api/src/psn.ts");
+  const nintendo = read("workers/social-api/src/nintendo.ts");
+  const parse = read("workers/social-api/src/parse.ts");
+  assert.ok(psn.includes("gamelist/v2/users/me/titles"), "PSN 游戏列表端点");
+  assert.ok(psn.includes("playDuration"), "PSN 用 playDuration 算时长");
+  assert.ok(nintendo.includes("/daily_summaries"), "任天堂用每日汇总");
+  assert.ok(parse.includes("devicePlayers"), "任天堂按玩家维度汇总时长");
+  assert.ok(parse.includes("applicationId"), "按 applicationId 聚合");
+});
+
+test("采集失败保留旧快照，只改状态", () => {
+  const collect = read("workers/social-api/src/collect.ts");
+  assert.ok(collect.includes("needs_relogin"), "要区分 needs_relogin");
+  assert.ok(collect.includes("retryable"), "网络/限流不该要求重新登录");
+  assert.ok(!/catch[\s\S]{0,300}writeSnapshot\(env\.SOCIAL_DB, \{\s*\.\.\./.test(collect), "失败时不能写入空快照");
+});
+
+test("定时采集已配置 cron", () => {
+  const toml = read("workers/social-api/wrangler.toml");
+  assert.match(toml, /\[triggers\][\s\S]*crons = \[/);
+});

@@ -1,0 +1,24 @@
+# 个人游戏数据后端：一次性登录导入凭证（D1 加密存储），定时采集 PSN / 任天堂时长与游戏信息
+name = "mays-social-api"
+main = "src/index.ts"
+compatibility_date = "2026-04-12"
+compatibility_flags = ["nodejs_compat"]
+
+workers_dev = true
+preview_urls = true
+
+[vars]
+CORS_ORIGIN = "https://linkmays.com"
+
+# database_id 由 `npx wrangler d1 create mays-social-db` 生成后回填
+[[d1_databases]]
+binding = "SOCIAL_DB"
+database_name = "mays-social-db"
+database_id = "PLACEHOLDER"
+
+[observability]
+enabled = true
+
+# 每天 4 次：PSN / 任天堂都不需要更频繁
+[triggers]
+crons = ["0 2,8,14,20 * * *"]

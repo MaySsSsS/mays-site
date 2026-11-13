@@ -42,3 +42,4 @@ workers/**/.dev.vars
 docs/
 PHOTO_STORAGE_PLAN.md
 .pnpm-store/
+.npm-home/

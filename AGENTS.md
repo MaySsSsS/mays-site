@@ -41,6 +41,7 @@ pnpm deploy:only                      # 复用已有 .open-next 产物直接发�
 # Workers
 pnpm dev:game-api                     # game-api 本地开发
 pnpm dev:photo-api                    # photo-api 本地开发
+pnpm dev:social-api                   # social-api 本地开发（PSN/任天堂数据）
 # 部署 Workers：cd workers/<name> && npm run deploy（即 wrangler deploy -c wrangler.toml）
 
 # 数据脚本
@@ -104,6 +105,7 @@ public/data/
 workers/
   game-api/                     # Cloudflare Worker: R2 存 Steam 数据，GET/POST
   photo-api/                    # Cloudflare Worker: R2 存照片，JWT 认证，完整 CRUD
+  social-api/                   # Cloudflare Worker: D1 存加密凭证 + 快照，采集 PSN/任天堂时长
 scripts/
   fetch-steam-data.js           # Steam API → R2 + 本地 JSON
 ```
@@ -150,6 +152,7 @@ scripts/
 - 前端：推 main 自动触发 GitHub Actions → `pnpm deploy` → Cloudflare Worker `mays-site-web`（域名 linkmays.com）
 - 手动发布：`pnpm deploy` 会先跑 `scripts/predeploy-check.mjs`，工作区不干净会被拒绝（`ALLOW_DIRTY_DEPLOY=1` 可强制）；`pnpm deploy:only` 复用已有 `.open-next` 产物
 - Workers：`cd workers/<name> && npm run deploy`；必须带 `-c wrangler.toml`，不要裸跑 `npx wrangler`，否则 wrangler 4 的 autoconfig 可能读到根目录配置
-- Secrets：game-api 需 `UPLOAD_SECRET`，photo-api 需 `AUTH_PASSWORD`（可选 `JWT_SECRET`）
+- Secrets：game-api 需 `UPLOAD_SECRET`；photo-api 需 `AUTH_PASSWORD`（可选 `JWT_SECRET`）；social-api 需 `ADMIN_TOKEN` + `TOKEN_ENC_KEY`（AES-GCM 加密 PSN/任天堂凭证）
+- 链接 PSN/任天堂账号：`POST /api/link/{platform}`（Bearer `ADMIN_TOKEN`），之后每天 4 次 cron 采集，前端只读快照
 - GitHub Secrets：`STEAM_API_KEY`, `STEAM_ID`, `GAME_UPLOAD_SECRET`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
 - 详细流程、版本基线与数据新鲜度见 `DEPLOYMENT.md`

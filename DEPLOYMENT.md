@@ -35,9 +35,13 @@ pnpm upload       # 只上传新版本，不切流量
 ## 3. Workers 发布
 
 ```bash
-cd workers/game-api  && npm run deploy   # wrangler deploy -c wrangler.toml
-cd workers/photo-api && npm run deploy
-npm run typecheck                        # 两个 Worker 各自独立 tsconfig
+cd workers/game-api   && npm run deploy  # wrangler deploy -c wrangler.toml
+cd workers/photo-api  && npm run deploy
+cd workers/social-api && npm run deploy
+npm run typecheck                        # 每个 Worker 各自独立 tsconfig
+
+# 本地没有 Cloudflare 凭证时，用 GitHub Actions 手动发布：
+gh workflow run deploy-workers.yml -f worker=social-api
 ```
 
 注意：wrangler 4 默认开启 autoconfig，在 Worker 子目录里裸跑 `npx wrangler deploy` 可能向上找到根目录的 `wrangler.jsonc` 而误发 `mays-site-web`。所以脚本里始终显式带 `-c wrangler.toml`，不要省略。
@@ -51,6 +55,9 @@ Secrets（`wrangler secret put` 设置，不进仓库）：
 | photo-api | `AUTH_PASSWORD` | 照片页登录密码 |
 | photo-api | `JWT_SECRET` | 可选，签发 7 天 JWT |
 | photo-api | `CORS_ORIGIN`（var） | `https://linkmays.com` |
+| social-api | `ADMIN_TOKEN` | `/api/link/*`、`/api/collect` 的 Bearer 密钥 |
+| social-api | `TOKEN_ENC_KEY` | 32 字节随机值的 base64，AES-GCM 加密 PSN/任天堂凭证；丢了只能重新登录 |
+| social-api | D1 `SOCIAL_DB` | 库名 `mays-social-db`，表结构见 `workers/social-api/schema.sql` |
 
 GitHub Secrets：`STEAM_API_KEY`、`STEAM_ID`、`GAME_UPLOAD_SECRET`、`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`；GitHub Variables：`NEXT_PUBLIC_GAME_API_URL`、`NEXT_PUBLIC_PHOTO_API_URL`。
 

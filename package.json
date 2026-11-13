@@ -19,7 +19,9 @@
     "dev:photo-api": "pnpm --dir workers/photo-api dev",
     "test:idea-lab": "node --test scripts/idea-lab.test.mjs",
     "test:portal": "node --test scripts/portal-layout.test.mjs",
-    "test:steam-assets": "node --test scripts/steam-assets.test.mjs"
+    "test:steam-assets": "node --test scripts/steam-assets.test.mjs",
+    "test:social-api": "node --test scripts/social-api.test.mjs",
+    "dev:social-api": "pnpm --dir workers/social-api dev"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",

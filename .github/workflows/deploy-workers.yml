@@ -1,0 +1,41 @@
+name: Deploy Worker
+
+# Workers 改动不会触发前端部署，这里手动选择要发布的 Worker
+on:
+  workflow_dispatch:
+    inputs:
+      worker:
+        description: "要部署的 Worker 目录（workers/<name>）"
+        required: true
+        type: choice
+        options:
+          - game-api
+          - photo-api
+          - social-api
+
+concurrency:
+  group: deploy-worker-${{ inputs.worker }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Typecheck
+        run: |
+          cd "workers/${{ inputs.worker }}"
+          npm install --no-audit --no-fund
+          npm run typecheck
+
+      - name: Deploy
+        run: npx -y wrangler@4.81.1 deploy -c "workers/${{ inputs.worker }}/wrangler.toml"
