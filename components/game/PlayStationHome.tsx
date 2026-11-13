@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { PlatformLogo } from "@/components/game/PlatformLogo";
+import { FriendsPanel, PartyPanel, TrophyPanel } from "@/components/game/PlayStationPanels";
 import { PLAYSTATION_DEMO_GAMES } from "@/lib/demo-games";
 
 import styles from "@/styles/game/playstationHome.module.css";
@@ -108,20 +109,27 @@ export function PlayStationHome() {
                 ···
               </button>
             </div>
+
+            <PartyPanel />
           </div>
 
-          <div className={styles.dots} role="tablist" aria-label="切换游戏">
-            {PLAYSTATION_DEMO_GAMES.map((game, index) => (
-              <button
-                key={game.id}
-                type="button"
-                role="tab"
-                aria-selected={index === activeIndex}
-                aria-label={game.title}
-                className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ""}`}
-                onClick={() => setActiveIndex(index)}
-              />
-            ))}
+          <div className={styles.side}>
+            <FriendsPanel />
+            <TrophyPanel />
+
+            <div className={styles.dots} role="tablist" aria-label="切换游戏">
+              {PLAYSTATION_DEMO_GAMES.map((game, index) => (
+                <button
+                  key={game.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === activeIndex}
+                  aria-label={game.title}
+                  className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ""}`}
+                  onClick={() => setActiveIndex(index)}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

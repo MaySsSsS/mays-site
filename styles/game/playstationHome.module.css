@@ -264,3 +264,329 @@
     height: 34px;
   }
 }
+/* ── 玻璃面板：好友 / 等级与奖杯 / 派对 ── */
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.panel {
+  width: clamp(232px, 19.4vw, 280px);
+  padding: clamp(14px, 1.4vw, 20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(20px);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.panelIcon {
+  display: grid;
+  place-items: center;
+  color: #4a9eff;
+}
+
+.panelTitle {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+.onlinePill {
+  margin-left: auto;
+  padding: 2px 8px;
+  border: 1px solid rgba(0, 230, 118, 0.25);
+  border-radius: 20px;
+  background: rgba(0, 230, 118, 0.12);
+  color: #00e676;
+  font-size: 0.63rem;
+  font-weight: 700;
+}
+
+.friendList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.friendRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  transition: background 150ms ease;
+}
+
+.friendRow:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.avatar,
+.partyAvatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 0.75rem;
+}
+
+.partyAvatar {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.63rem;
+}
+
+.avatarDot {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid rgba(8, 10, 20, 0.9);
+  border-radius: 50%;
+  background: #00e676;
+  box-shadow: 0 0 5px #00e676;
+}
+
+.avatarDotPlaying {
+  background: #4a9eff;
+  box-shadow: 0 0 5px #4a9eff;
+}
+
+.friendMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.friendName {
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friendGame,
+.friendOnline {
+  overflow: hidden;
+  font-size: 0.63rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friendGame {
+  color: #9db0c9;
+}
+
+.friendOnline {
+  color: #00e676;
+}
+
+/* 等级与奖杯 */
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.statCell {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.statLabel {
+  margin-bottom: 4px;
+  color: #9db0c9;
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.statValue {
+  color: #ffffff;
+  font-size: 1.375rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.statBar {
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.statBarFill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #0070d1, #00d4ff);
+}
+
+.statHint {
+  margin-top: 4px;
+  color: #9db0c9;
+  font-size: 0.56rem;
+}
+
+.trophyRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.trophyItem {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.trophyDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.trophyCount {
+  color: #9db0c9;
+  font-size: 0.56rem;
+}
+
+/* 派对聊天（左下） */
+.partyPanel {
+  margin-top: 2px;
+}
+
+.partyAvatars {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.chatList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 96px;
+  margin-bottom: 10px;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.chatRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.chatRowSelf {
+  justify-content: flex-end;
+}
+
+.chatAuthor {
+  min-width: 20px;
+  padding-top: 2px;
+  color: #4a9eff;
+  font-size: 0.63rem;
+  font-weight: 700;
+}
+
+.chatBubble {
+  max-width: 180px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e8eef6;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.chatBubbleSelf {
+  background: rgba(0, 112, 209, 0.32);
+}
+
+.chatInputRow {
+  display: flex;
+  gap: 6px;
+}
+
+.chatInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  outline: none;
+}
+
+.chatInput::placeholder {
+  color: #7c8ea6;
+}
+
+.chatInput:focus {
+  border-color: rgba(74, 158, 255, 0.6);
+}
+
+.chatSend {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: #0070d1;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.chatSend:hover {
+  background: #1a86ea;
+}
+
+@media (max-width: 1080px) {
+  .partyPanel {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .side {
+    display: none;
+  }
+}

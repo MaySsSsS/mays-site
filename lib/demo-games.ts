@@ -57,3 +57,52 @@ export const PLAYSTATION_DEMO_GAMES: readonly PlayStationDemoGame[] = [
     accent: "#f04c2e"
   }
 ];
+export interface PlayStationDemoFriend {
+  id: string;
+  name: string;
+  status: "online" | "in-game";
+  game: string | null;
+}
+
+/**
+ * PS5 主界面演示数据：好友列表（在线状态与正在玩的游戏）。
+ */
+export const PLAYSTATION_DEMO_FRIENDS: readonly PlayStationDemoFriend[] = [
+  { id: "shadow-ninja", name: "ShadowNinja47", status: "in-game", game: "Call of Duty" },
+  { id: "cosmic-gamer", name: "CosmicGamer", status: "online", game: null },
+  { id: "pixel-master", name: "PixelMaster99", status: "in-game", game: "Kena: Bridge of Spirits" }
+];
+
+export interface PlayStationDemoProfile {
+  level: number;
+  nextLevel: number;
+  levelXp: number;
+  nextLevelXp: number;
+  trophies: { bronze: number; silver: number; gold: number };
+}
+
+/**
+ * PS5 主界面演示数据：等级进度与奖杯数量（个人资料面板用）。
+ */
+export const PLAYSTATION_DEMO_PROFILE: PlayStationDemoProfile = {
+  level: 47,
+  nextLevel: 48,
+  levelXp: 8750,
+  nextLevelXp: 10000,
+  trophies: { bronze: 38, silver: 12, gold: 4 }
+};
+
+export interface PlayStationDemoMessage {
+  id: string;
+  author: string;
+  text: string;
+  self?: boolean;
+}
+
+/**
+ * PS5 主界面演示数据：派对聊天历史（只在本地 state 里追加，不落库）。
+ */
+export const PLAYSTATION_DEMO_CHAT: readonly PlayStationDemoMessage[] = [
+  { id: "m1", author: "SH", text: "上一局打得很漂亮" },
+  { id: "m2", author: "CO", text: "准备好排位了吗" }
+];

@@ -75,3 +75,15 @@ test("主界面保留游戏机本体结构：图标行与选中态", () => {
   assert.ok(playstation.includes("cardActive"), "PS5 主界面需要卡片选中态");
   assert.ok(playstation.includes("backdropActive"), "PS5 主界面需要背景联动");
 });
+test("PS5 主界面保留选中游戏后的附加内容面板", () => {
+  const home = read("components/game/PlayStationHome.tsx");
+  assert.ok(home.includes("PartyPanel"), "PS5 主界面需要派对面板");
+  assert.ok(home.includes("FriendsPanel"), "PS5 主界面需要好友面板");
+  assert.ok(home.includes("styles.side"), "右侧面板需要独立容器");
+
+  const panels = read("components/game/PlayStationPanels.tsx");
+
+  for (const word of ["好友", "等级与奖杯", "派对"]) {
+    assert.ok(panels.includes(word), `面板文件缺少「${word}」`);
+  }
+});
