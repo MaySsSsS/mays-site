@@ -1,6 +1,9 @@
+"use client";
+
+import { useState } from "react";
+
 import {
   formatCompactHours,
-  formatPlaytime,
   formatRelativePlayed,
   getGameHeaderImage
 } from "@/lib/game";
@@ -15,6 +18,8 @@ export function GameCard({
   game: GameData;
   showRecent?: boolean;
 }>) {
+  const [artFailed, setArtFailed] = useState(false);
+
   return (
     <a
       href={`https://store.steampowered.com/app/${game.appid}`}
@@ -24,16 +29,22 @@ export function GameCard({
     >
       <div className={styles.topBar}>
         <span className={styles.tag}>PID:{game.appid}</span>
-        <span className={styles.playtime}>{formatPlaytime(game.playtime_forever)}</span>
+        <span className={styles.playtime}>{formatCompactHours(game.playtime_forever)}</span>
       </div>
 
       <div className={styles.imageWrap}>
-        <img
-          src={getGameHeaderImage(game.appid)}
-          alt={game.name}
-          className={styles.image}
-        />
-        <div className={styles.overlay}>▶ RUN</div>
+        {artFailed ? (
+          <div className={styles.artFallback}>MAYS://NO_ART</div>
+        ) : (
+          <img
+            src={getGameHeaderImage(game.appid)}
+            alt={game.name}
+            className={styles.image}
+            loading="lazy"
+            onError={() => setArtFailed(true)}
+          />
+        )}
+        <div className={styles.overlay}>▶ 打开商店</div>
       </div>
 
       <div className={styles.content}>
@@ -41,14 +52,12 @@ export function GameCard({
         <div className={styles.meta}>
           {showRecent && game.playtime_2weeks ? (
             <span className={styles.metaItem}>
-              <span className={styles.metaKey}>2W:</span>
-              {formatCompactHours(game.playtime_2weeks)}
+              近两周 <span className={styles.metaKey}>{formatCompactHours(game.playtime_2weeks)}</span>
             </span>
           ) : null}
           {game.rtime_last_played ? (
             <span className={styles.metaItem}>
-              <span className={styles.metaKey}>LAST:</span>
-              {formatRelativePlayed(game.rtime_last_played)}
+              最近游玩 {formatRelativePlayed(game.rtime_last_played)}
             </span>
           ) : null}
         </div>

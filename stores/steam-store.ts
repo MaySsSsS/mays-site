@@ -4,7 +4,6 @@ import { create } from "zustand";
 
 import {
   buildGameStats,
-  formatPlaytime,
   GAME_API_URL,
   getGameCapsuleImage,
   getGameHeaderImage,
@@ -29,7 +28,6 @@ interface SteamStoreState {
   getGameStats: () => GameStats;
   getTopGames: (limit?: number) => GameData[];
   getRecentlyPlayed: (limit?: number) => GameData[];
-  formatPlaytime: (minutes: number) => string;
   getGameHeaderImage: (appid: number) => string;
   getGameCapsuleImage: (appid: number) => string;
 }
@@ -101,7 +99,6 @@ export const useSteamStore = create<SteamStoreState>((set, get) => ({
   getGameStats: () => buildGameStats(get().games),
   getTopGames: (limit) => getTopGames(get().games, limit),
   getRecentlyPlayed: (limit) => getRecentlyPlayedGames(get().games, limit),
-  formatPlaytime,
   getGameHeaderImage,
   getGameCapsuleImage
 }));

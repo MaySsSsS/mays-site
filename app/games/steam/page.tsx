@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { GameHome } from "@/components/game/GameHome";
+import { SteamHome } from "@/components/game/SteamHome";
 import { getSteamGamesData } from "@/lib/steam-data";
 
 export const revalidate = 3600;
@@ -12,5 +12,5 @@ export const metadata: Metadata = {
 
 export default async function SteamPage() {
   const initialData = await getSteamGamesData();
-  return <GameHome initialData={initialData} />;
+  return <SteamHome initialData={initialData} />;
 }

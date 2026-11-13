@@ -82,7 +82,7 @@ export function GameLibrary({
             <span>GAME_LIBRARY</span>
             <span className={styles.sectionLine} />
             <span className={styles.sectionStatus}>
-              {stats.totalGames} MODULES / {formatTotalHours(stats.totalPlaytime)}H TOTAL
+              {stats.totalGames} 款 / 共 {formatTotalHours(stats.totalPlaytime)} 小时
             </span>
           </div>
           <p className={styles.headerText}>
@@ -98,7 +98,7 @@ export function GameLibrary({
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="SEARCH"
+              placeholder="搜索游戏名称"
               className={styles.searchInput}
             />
           </label>
@@ -108,9 +108,9 @@ export function GameLibrary({
             onChange={(event) => setSortBy(event.target.value as SortMode)}
             className={styles.sortSelect}
           >
-            <option value="playtime">BY_PLAYTIME</option>
-            <option value="name">BY_NAME</option>
-            <option value="recent">BY_RECENT</option>
+            <option value="playtime">按总时长</option>
+            <option value="name">按名称</option>
+            <option value="recent">按最近游玩</option>
           </select>
 
           <button
@@ -120,7 +120,7 @@ export function GameLibrary({
             }`}
             onClick={() => setShowOnlyPlayed((value) => !value)}
           >
-            {showOnlyPlayed ? "[x]" : "[ ]"} PLAYED_ONLY
+            {showOnlyPlayed ? "✓" : ""} 只看玩过的
           </button>
         </div>
       </section>
@@ -128,11 +128,7 @@ export function GameLibrary({
       <section className={styles.library}>
         {error ? <div className={styles.errorBanner}>ERROR: {error}</div> : null}
         <div className={styles.resultCount}>
-          {"// DISPLAYING "}
-          {filteredGames.length}
-          {" OF "}
-          {stats.totalGames}
-          {" MODULES"}
+          显示 {filteredGames.length} / {stats.totalGames} 款
         </div>
 
         {loading && currentGames.length === 0 ? (
@@ -140,7 +136,7 @@ export function GameLibrary({
         ) : null}
 
         {!loading && filteredGames.length === 0 ? (
-          <div className={styles.emptyState}>{"// NO_RESULTS_FOUND"}</div>
+          <div className={styles.emptyState}>没有符合条件的游戏</div>
         ) : (
           <div className={styles.grid}>
             {paginatedGames.map((game) => (
@@ -157,7 +153,7 @@ export function GameLibrary({
               disabled={safePage === 1}
               onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
             >
-              [PREV]
+              ← 上一页
             </button>
             <span className={styles.pageInfo}>
               {safePage}/{totalPages}
@@ -170,7 +166,7 @@ export function GameLibrary({
                 setCurrentPage((page) => Math.min(totalPages, page + 1))
               }
             >
-              [NEXT]
+              下一页 →
             </button>
           </div>
         ) : null}

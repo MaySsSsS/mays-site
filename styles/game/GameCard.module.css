@@ -1,14 +1,19 @@
 .card {
   display: block;
   overflow: hidden;
-  border: 1px solid var(--game-border);
-  background: rgba(8, 13, 24, 0.9);
-  transition: transform 180ms ease, border-color 180ms ease;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 14px;
+  background: rgba(19, 23, 30, 0.92);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  border-color: var(--game-border-strong);
+  transform: translateY(-4px);
+  border-color: rgba(102, 192, 244, 0.5);
+  box-shadow: 0 20px 40px -28px rgba(102, 192, 244, 0.6);
 }
 
 .topBar {
@@ -16,43 +21,63 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--game-border);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   letter-spacing: 0.08em;
 }
 
 .tag {
-  color: var(--game-muted);
+  color: #6f7d93;
 }
 
 .playtime {
-  color: var(--game-primary);
+  color: #66c0f4;
 }
 
 .imageWrap {
   position: relative;
+  display: grid;
+  place-items: center;
   aspect-ratio: 460 / 215;
   overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(102, 192, 244, 0.08), rgba(11, 14, 19, 0.9)),
+    #0b0e13;
+}
+
+.artFallback {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: rgba(141, 160, 182, 0.5);
 }
 
 .image {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.82) saturate(0.82);
 }
 
 .overlay {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: grid;
   place-items: center;
   opacity: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(6, 9, 13, 0.62);
   font-family: var(--font-mono);
-  letter-spacing: 0.18em;
-  color: var(--game-primary);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  color: #66c0f4;
   transition: opacity 180ms ease;
 }
 
@@ -61,14 +86,17 @@
 }
 
 .content {
-  padding: 0.85rem;
-  border-top: 1px solid var(--game-border);
+  padding: 0.8rem 0.85rem 0.9rem;
 }
 
 .name {
-  margin: 0 0 0.45rem;
-  color: var(--game-text);
-  font-size: 0.95rem;
+  margin: 0 0 0.4rem;
+  color: #e6edf3;
+  font-size: 0.9rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .meta {
@@ -76,10 +104,16 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--game-muted);
+  font-size: 0.64rem;
+  color: #7f8da3;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28rem;
 }
 
 .metaKey {
-  color: var(--game-primary);
+  color: #66c0f4;
 }

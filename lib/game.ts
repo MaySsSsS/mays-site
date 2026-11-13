@@ -49,31 +49,15 @@ export function getFeaturedGames(games: GameData[], limit = 6): GameData[] {
     .slice(0, limit);
 }
 
-export function formatPlaytime(minutes: number): string {
-  if (minutes < 60) {
-    return `${minutes} 分钟`;
-  }
-
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours < 24) {
-    return remainingMinutes > 0
-      ? `${hours} 小时 ${remainingMinutes} 分钟`
-      : `${hours} 小时`;
-  }
-
-  const days = Math.floor(hours / 24);
-  const remainingHours = hours % 24;
-  return `${days} 天 ${remainingHours} 小时`;
-}
-
 export function formatCompactHours(minutes: number): string {
   const hours = Math.floor(minutes / 60);
-  if (hours >= 1000) {
-    return `${(hours / 1000).toFixed(1)}k_h`;
+  if (hours === 0) {
+    return `${Math.max(minutes, 0)} 分钟`;
   }
-  return `${hours}h`;
+  if (hours >= 1000) {
+    return `${(hours / 1000).toFixed(1)}k h`;
+  }
+  return `${hours} h`;
 }
 
 export function formatTotalHours(minutes: number): string {
@@ -89,26 +73,26 @@ export function formatTotalHours(minutes: number): string {
 
 export function formatRelativePlayed(timestamp: number): string {
   const diffDays = Math.floor((Date.now() / 1000 - timestamp) / 86400);
-  if (diffDays === 0) {
-    return "today";
+  if (diffDays <= 0) {
+    return "今天";
   }
   if (diffDays === 1) {
-    return "1d_ago";
+    return "昨天";
   }
   if (diffDays < 30) {
-    return `${diffDays}d_ago`;
+    return `${diffDays} 天前`;
   }
   if (diffDays < 365) {
-    return `${Math.floor(diffDays / 30)}mo_ago`;
+    return `${Math.floor(diffDays / 30)} 个月前`;
   }
-  return `${Math.floor(diffDays / 365)}y_ago`;
+  return `${Math.floor(diffDays / 365)} 年前`;
 }
 
 export function formatActivityDate(timestamp: number): string {
-  return new Date(timestamp * 1000).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short"
-  });
+  const date = new Date(timestamp * 1000);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${month}-${day}`;
 }
 
 export function formatSyncDate(value: string | null): string {
@@ -116,11 +100,11 @@ export function formatSyncDate(value: string | null): string {
     return "";
   }
 
-  return new Date(value).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  });
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function getGameHeaderImage(appid: number): string {
