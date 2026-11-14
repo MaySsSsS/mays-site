@@ -52,6 +52,13 @@ test("采集失败保留旧快照，只改状态", () => {
   assert.ok(!/catch[\s\S]{0,300}writeSnapshot\(env\.SOCIAL_DB, \{\s*\.\.\./.test(collect), "失败时不能写入空快照");
 });
 
+test("PSN 资料按 JWT 里的 account_id 取，不用 /users/me", () => {
+  const psn = read("workers/social-api/src/psn.ts");
+  assert.ok(psn.includes("account_id"), "从 access_token 里解 account_id");
+  assert.ok(psn.includes("/userProfile/v1/internal/users/${accountId}/profiles"), "资料路径必须带 accountId");
+  assert.ok(!psn.includes('internal/users/me/profiles"'), "不要再请求 /users/me/profiles（会 400）");
+});
+
 test("表结构自愈创建，不依赖外部迁移步骤", () => {
   const schema = read("workers/social-api/src/schema.ts");
   const index = read("workers/social-api/src/index.ts");

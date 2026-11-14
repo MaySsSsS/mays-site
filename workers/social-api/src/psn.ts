@@ -136,10 +136,38 @@ function toGame(title: PsnTitle): SocialGame | null {
   };
 }
 
+/** access_token 是 JWT，`account_id` 抽不到就拿不到个人资料（`/users/me/profiles` 会 400）。 */
+function accountIdFromToken(accessToken: string): string | null {
+  const segment = accessToken.split(".")[1];
+  if (!segment) return null;
+  try {
+    const normalized = segment.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
+    const payload = JSON.parse(atob(padded)) as { account_id?: unknown };
+    return typeof payload.account_id === "string" || typeof payload.account_id === "number"
+      ? String(payload.account_id)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+interface PsnProfile {
+  onlineId?: string;
+  personalDetail?: { profilePictures?: { size?: string; url?: string }[] };
+}
+
 /** 拉取个人资料 + 全部已玩游戏（含 playDuration 游玩时长）。 */
 export async function psnSnapshot(accessToken: string): Promise<SocialSnapshot> {
-  const profile = await psnGet(accessToken, "/userProfile/v1/internal/users/me/profiles").catch(() => null);
-  const avatarUrls = (profile?.avatarUrls as { avatarUrl?: string; size?: string }[] | undefined) ?? [];
+  const accountId = accountIdFromToken(accessToken);
+  const profile = accountId
+    ? ((await psnGet(
+        accessToken,
+        `/userProfile/v1/internal/users/${accountId}/profiles`,
+      ).catch(() => null)) as PsnProfile | null)
+    : null;
+  const pictures = profile?.personalDetail?.profilePictures ?? [];
+  const avatar = pictures.find((picture) => picture.size === "l") ?? pictures[0];
 
   const games: SocialGame[] = [];
   let offset = 0;
@@ -164,7 +192,7 @@ export async function psnSnapshot(accessToken: string): Promise<SocialSnapshot> 
     profile: profile
       ? {
           name: String(profile.onlineId ?? "PSN"),
-          avatarUrl: avatarUrls[0]?.avatarUrl ?? null,
+          avatarUrl: avatar?.url ?? null,
         }
       : null,
     games: sorted,
