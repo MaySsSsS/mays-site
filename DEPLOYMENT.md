@@ -44,6 +44,14 @@ npm run typecheck                        # 每个 Worker 各自独立 tsconfig
 gh workflow run deploy-workers.yml -f worker=social-api
 ```
 
+账号绑定只在终端做，站点里没有任何绑定页面（`/games/link` 不存在）：
+
+```bash
+ADMIN_TOKEN=xxx node scripts/link-account.mjs status    # 看两家状态
+ADMIN_TOKEN=xxx node scripts/link-account.mjs psn       # 粘 NPSSO
+ADMIN_TOKEN=xxx node scripts/link-account.mjs nintendo  # 浏览器登录后粘回调 URL
+```
+
 注意：wrangler 4 默认开启 autoconfig，在 Worker 子目录里裸跑 `npx wrangler deploy` 可能向上找到根目录的 `wrangler.jsonc` 而误发 `mays-site-web`。所以脚本里始终显式带 `-c wrangler.toml`，不要省略。
 
 Secrets（`wrangler secret put` 设置，不进仓库）：
@@ -57,7 +65,7 @@ Secrets（`wrangler secret put` 设置，不进仓库）：
 | photo-api | `CORS_ORIGIN`（var） | `https://linkmays.com` |
 | social-api | `ADMIN_TOKEN` | `/api/link/*`、`/api/collect` 的 Bearer 密钥 |
 | social-api | `TOKEN_ENC_KEY` | 32 字节随机值的 base64，AES-GCM 加密 PSN/任天堂凭证；丢了只能重新登录 |
-| social-api | D1 `SOCIAL_DB` | 库名 `mays-social-db`，表结构见 `workers/social-api/schema.sql` |
+| social-api | D1 `SOCIAL_DB` | 库名 `mays-social-db`（id 见 `workers/social-api/wrangler.toml`），表结构由 Worker 首次请求自愈创建，`schema.sql` 只是同一份 DDL |
 
 GitHub Secrets：`STEAM_API_KEY`、`STEAM_ID`、`GAME_UPLOAD_SECRET`、`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`；GitHub Variables：`NEXT_PUBLIC_GAME_API_URL`、`NEXT_PUBLIC_PHOTO_API_URL`。
 

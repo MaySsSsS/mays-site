@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
@@ -64,16 +65,14 @@ test("定时采集已配置 cron", () => {
   assert.match(toml, /\[triggers\][\s\S]*crons = \[/);
 });
 
-test("绑定页用 PKCE，令牌只存浏览器", () => {
-  const client = read("lib/social-api.ts");
-  const linkUi = read("components/game/LinkClient.tsx");
-  assert.ok(client.includes("session_token_code_challenge_method"), "任天堂要走 PKCE");
-  assert.ok(client.includes('"S256"'), "PKCE 用 S256");
-  assert.ok(client.includes("npf54789befb391a838://auth"), "回调必须是 znma 客户端的 scheme");
-  assert.ok(linkUi.includes("localStorage"), "管理令牌只存浏览器");
-  assert.ok(!linkUi.includes("ghp_"), "页面里不能写死任何真实令牌");
-  assert.ok(!client.includes("ADMIN_TOKEN="), "客户端只读环境变量，不内置令牌");
-  const linkPage = read("app/games/link/page.tsx");
-  assert.ok(linkPage.includes('robots: { index: false'), "绑定页不要被搜索引擎收录");
-  assert.match(linkPage, /process\.env\.NODE_ENV === "production"[\s\S]{0,120}notFound\(\)/, "线上构建必须 404，绑定页只留本地");
+test("绑定走本地 CLI，站点里没有绑定页", () => {
+  assert.equal(existsSync(new URL("../app/games/link", import.meta.url)), false, "不能有 /games/link 页面");
+  const script = read("scripts/link-account.mjs");
+  assert.ok(script.includes("session_token_code_challenge_method"), "任天堂要走 PKCE");
+  assert.ok(script.includes('"S256"'), "PKCE 用 S256");
+  assert.ok(script.includes("npf54789befb391a838://auth"), "回调必须是 znma 客户端的 scheme");
+  assert.match(script, /stateMatch\[1\] !== state/, "回调必须校验 state");
+  assert.ok(script.includes("process.env.ADMIN_TOKEN"), "令牌只从环境变量读");
+  assert.ok(!script.includes("ghp_"), "脚本里不能写死任何真实令牌");
+  assert.ok(!read("lib/social-api.ts").includes("/api/link/"), "前端只保留只读接口");
 });
