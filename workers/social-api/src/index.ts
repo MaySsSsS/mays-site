@@ -120,11 +120,16 @@ async function handleNintendoDebug(env: Env, request: Request): Promise<Response
   const credential = await readCredential(env.SOCIAL_DB, "nintendo");
   if (!credential) return json(env, request, { error: "任天堂还没绑定" }, { status: 404 });
   if (!env.TOKEN_ENC_KEY) return json(env, request, { error: "缺少 TOKEN_ENC_KEY" }, { status: 500 });
-  const { sessionToken } = await decryptJson<{ sessionToken: string }>(env.TOKEN_ENC_KEY, {
-    ciphertext: credential.ciphertext,
-    iv: credential.iv,
-  });
-  return json(env, request, await nintendoDiagnostics(sessionToken));
+  try {
+    const { sessionToken } = await decryptJson<{ sessionToken: string }>(env.TOKEN_ENC_KEY, {
+      ciphertext: credential.ciphertext,
+      iv: credential.iv,
+    });
+    return json(env, request, await nintendoDiagnostics(sessionToken));
+  } catch (error) {
+    const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    return json(env, request, { error: "诊断失败", message }, { status: 200 });
+  }
 }
 
 async function handleCollect(env: Env, request: Request): Promise<Response> {
