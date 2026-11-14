@@ -1,6 +1,6 @@
 import { SocialApiError } from "./psn.js";
 import type { SocialGame, SocialSnapshot } from "./types.js";
-import { fetchZncaF, type ZncaConfig } from "./znca.js";
+import { fetchZncaF, probeZnca, type ZncaConfig, type ZncaProbe } from "./znca.js";
 
 const ACCOUNT_TOKEN_URL = "https://accounts.nintendo.com/connect/1.0.0/api/token";
 const SESSION_TOKEN_URL = "https://accounts.nintendo.com/connect/1.0.0/api/session_token";
@@ -270,6 +270,34 @@ export interface NintendoDiagnostics {
   nickname: string | null;
   coral: { ok: boolean; nsaId?: string; error?: string };
   playLog: { count: number; totalMinutes: number; sample: string[] };
+  /** id_token 的声明（不含令牌本身），用于确认换出来的令牌对不对 */
+  idTokenClaims: { aud: string | null; iss: string | null; exp: number | null; sub: string | null };
+  /** 把 f 服务的几种请求形态都打一遍的结果 */
+  zncaProbes: ZncaProbe[];
+}
+
+/** 读 id_token 的 payload（base64url），只取非敏感的声明。 */
+function readIdTokenClaims(idToken: string): NintendoDiagnostics["idTokenClaims"] {
+  const empty = { aud: null, iss: null, exp: null, sub: null };
+  const payload = idToken.split(".")[1];
+  if (!payload) return empty;
+  try {
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const json = JSON.parse(atob(base64 + "=".repeat((4 - (base64.length % 4)) % 4))) as {
+      aud?: string | string[];
+      iss?: string;
+      exp?: number;
+      sub?: string;
+    };
+    return {
+      aud: Array.isArray(json.aud) ? json.aud.join(" ") : json.aud ?? null,
+      iss: json.iss ?? null,
+      exp: json.exp ?? null,
+      sub: json.sub ?? null,
+    };
+  } catch {
+    return empty;
+  }
 }
 
 export async function nintendoDiagnostics(
@@ -284,6 +312,8 @@ export async function nintendoDiagnostics(
     nickname: account.nickname ?? null,
     coral: { ok: false },
     playLog: { count: 0, totalMinutes: 0, sample: [] },
+    idTokenClaims: readIdTokenClaims(tokens.idToken),
+    zncaProbes: await probeZnca(zncaConfig, tokens.idToken, account.id ?? ""),
   };
 
   try {

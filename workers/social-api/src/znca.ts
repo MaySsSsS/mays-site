@@ -79,3 +79,66 @@ export async function fetchZncaF(
   }
   return { f: data.f, timestamp: data.timestamp, request_id: data.request_id };
 }
+export interface ZncaProbe {
+  variant: string;
+  status: number;
+  body: string;
+}
+
+/**
+ * 只读诊断：把几种请求体形态都打一遍，看服务端到底哪一步不认。
+ * 不返回 token 本身，只返回状态码与响应片段。
+ */
+export async function probeZnca(
+  config: ZncaConfig,
+  idToken: string,
+  naId: string,
+): Promise<ZncaProbe[]> {
+  const base = (config.url ?? ZNCA_DEFAULT_URL).replace(/\/$/, "");
+  const isZncaServer = base.includes("fancy.org.uk");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json; charset=utf-8",
+    Accept: "application/json",
+    "User-Agent": USER_AGENT,
+  };
+  if (isZncaServer) {
+    headers["X-znca-Client-Version"] = ZNCA_CLIENT_VERSION;
+    headers["X-znca-Platform"] = ZNCA_PLATFORM;
+    headers["X-znca-Version"] = ZNCA_VERSION;
+  }
+  if (config.apiKey) headers.Authorization = `Bearer ${config.apiKey}`;
+
+  const variants: Array<{ variant: string; body: Record<string, unknown> }> = [
+    { variant: "token+hash_method(number)", body: { token: idToken, hash_method: 1 } },
+    {
+      variant: "token+hash_method+timestamp+request_id",
+      body: {
+        token: idToken,
+        hash_method: 1,
+        timestamp: Date.now(),
+        request_id: crypto.randomUUID(),
+      },
+    },
+    { variant: "token+hash_method(string)+na_id", body: { token: idToken, hash_method: "1", na_id: naId } },
+  ];
+
+  const results: ZncaProbe[] = [];
+  for (const entry of variants) {
+    try {
+      const response = await fetch(`${base}/f`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(entry.body),
+      });
+      const text = await response.text().catch(() => "");
+      results.push({ variant: entry.variant, status: response.status, body: text.slice(0, 220) });
+    } catch (error) {
+      results.push({
+        variant: entry.variant,
+        status: 0,
+        body: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  return results;
+}
