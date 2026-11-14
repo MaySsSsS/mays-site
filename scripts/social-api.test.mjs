@@ -77,6 +77,7 @@ test("绑定走本地 CLI，站点里没有绑定页", () => {
   const script = read("scripts/link-account.mjs");
   assert.ok(script.includes("session_token_code_challenge_method"), "任天堂要走 PKCE");
   assert.ok(script.includes('"S256"'), "PKCE 用 S256");
+  assert.ok(script.includes("moonDailySummary"), "znma 客户端要 moon 系列 scope，不是 NSO 的 user.mii");
   assert.ok(script.includes("npf54789befb391a838://auth"), "回调必须是 znma 客户端的 scheme");
   assert.match(script, /stateMatch\[1\] !== state/, "回调必须校验 state");
   assert.ok(script.includes("process.env.ADMIN_TOKEN"), "令牌只从环境变量读");

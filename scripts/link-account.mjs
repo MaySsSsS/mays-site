@@ -14,6 +14,21 @@ import { createInterface } from "node:readline/promises";
 const API_URL = process.env.SOCIAL_API_URL ?? "https://mays-social-api.mays.workers.dev";
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "";
 
+const NINTENDO_SCOPES = [
+  "openid",
+  "user",
+  "moonUser:administration",
+  "moonDevice:create",
+  "moonOwnedDevice:administration",
+  "moonParentalControlSetting",
+  "moonParentalControlSetting:update",
+  "moonParentalControlSettingState",
+  "moonPairingState",
+  "moonSmartDevice:administration",
+  "moonDailySummary",
+  "moonMonthlySummary",
+].join(" ");
+
 const DIE = (message) => {
   console.error(`✖ ${message}`);
   process.exit(1);
@@ -76,7 +91,9 @@ async function linkWithNintendo(rl) {
     state,
     redirect_uri: "npf54789befb391a838://auth",
     client_id: "54789befb391a838",
-    scope: "openid user user.birthday user.mii user.screenName",
+    // znma（Switch 家长控制）客户端要的是 moon 系列 scope；
+    // 用 NSO 客户端的 user.birthday/user.mii 会登录后被判「要求无效」。
+    scope: NINTENDO_SCOPES,
     response_type: "session_token_code",
     session_token_code_challenge: challenge,
     session_token_code_challenge_method: "S256",
