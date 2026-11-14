@@ -66,12 +66,14 @@ test("定时采集已配置 cron", () => {
 
 test("绑定页用 PKCE，令牌只存浏览器", () => {
   const client = read("lib/social-api.ts");
-  const page = read("components/game/LinkClient.tsx");
+  const linkUi = read("components/game/LinkClient.tsx");
   assert.ok(client.includes("session_token_code_challenge_method"), "任天堂要走 PKCE");
   assert.ok(client.includes('"S256"'), "PKCE 用 S256");
   assert.ok(client.includes("npf54789befb391a838://auth"), "回调必须是 znma 客户端的 scheme");
-  assert.ok(page.includes("localStorage"), "管理令牌只存浏览器");
-  assert.ok(!page.includes("ghp_"), "页面里不能写死任何真实令牌");
+  assert.ok(linkUi.includes("localStorage"), "管理令牌只存浏览器");
+  assert.ok(!linkUi.includes("ghp_"), "页面里不能写死任何真实令牌");
   assert.ok(!client.includes("ADMIN_TOKEN="), "客户端只读环境变量，不内置令牌");
-  assert.ok(read("app/games/link/page.tsx").includes('robots: { index: false'), "绑定页不要被搜索引擎收录");
+  const linkPage = read("app/games/link/page.tsx");
+  assert.ok(linkPage.includes('robots: { index: false'), "绑定页不要被搜索引擎收录");
+  assert.match(linkPage, /process\.env\.NODE_ENV === "production"[\s\S]{0,120}notFound\(\)/, "线上构建必须 404，绑定页只留本地");
 });
