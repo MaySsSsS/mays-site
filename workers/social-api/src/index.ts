@@ -1,6 +1,7 @@
 import { collect, collectAll, linkNintendo, linkPsn, PLATFORMS, unlink } from "./collect.js";
-import { readSnapshot, readStatus } from "./db.js";
-import { nintendoExchangeSessionToken } from "./nintendo.js";
+import { readCredential, readSnapshot, readStatus } from "./db.js";
+import { nintendoDiagnostics, nintendoExchangeSessionToken } from "./nintendo.js";
+import { decryptJson } from "./crypto.js";
 import { ensureSchema } from "./schema.js";
 import type { Env, Platform, PlatformStatus } from "./types.js";
 
@@ -115,6 +116,17 @@ async function handleLink(env: Env, request: Request, platform: Platform): Promi
   return json(env, request, { ok: status.state === "ok", status });
 }
 
+async function handleNintendoDebug(env: Env, request: Request): Promise<Response> {
+  const credential = await readCredential(env.SOCIAL_DB, "nintendo");
+  if (!credential) return json(env, request, { error: "任天堂还没绑定" }, { status: 404 });
+  if (!env.TOKEN_ENC_KEY) return json(env, request, { error: "缺少 TOKEN_ENC_KEY" }, { status: 500 });
+  const { sessionToken } = await decryptJson<{ sessionToken: string }>(env.TOKEN_ENC_KEY, {
+    ciphertext: credential.ciphertext,
+    iv: credential.iv,
+  });
+  return json(env, request, await nintendoDiagnostics(sessionToken));
+}
+
 async function handleCollect(env: Env, request: Request): Promise<Response> {
   const body = await readBody(request);
   const platform = asPlatform(typeof body.platform === "string" ? body.platform : undefined);
@@ -161,6 +173,11 @@ export default {
       if (request.method === "POST") return handleLink(env, request, platform);
       if (request.method === "DELETE") return json(env, request, { status: await unlink(env, platform) });
       return json(env, request, { error: "方法不支持" }, { status: 405 });
+    }
+
+    if (path === "/api/debug/nintendo" && request.method === "GET") {
+      if (!isAdmin(env, request)) return json(env, request, { error: "未授权" }, { status: 401 });
+      return handleNintendoDebug(env, request);
     }
 
     if (path === "/api/collect" && request.method === "POST") {

@@ -156,3 +156,46 @@ export async function nintendoSnapshot(sessionToken: string): Promise<SocialSnap
     generatedAt: new Date().toISOString(),
   };
 }
+
+/**
+ * 临时诊断：绑定后如果快照是空的，用它看设备/每日汇总/月度汇总到底返回了什么。
+ * 只读，不下发任何凭证。
+ */
+export interface NintendoDiagnostics {
+  devices: number;
+  deviceIds: string[];
+  daily: { deviceId: string; count: number; dates: string[]; sample: unknown }[];
+  latestMonthly: unknown;
+}
+
+export async function nintendoDiagnostics(sessionToken: string): Promise<NintendoDiagnostics> {
+  const tokens = await nintendoAccessToken(sessionToken);
+  const devices = await moonGet<MoonDevices>(tokens, "/v2/actions/user/fetchOwnedDevices");
+  const deviceIds = [...(devices.ownedDevices ?? []), ...(devices.devices ?? [])]
+    .map((device) => device.deviceId)
+    .filter((id): id is string => Boolean(id));
+
+  const daily: NintendoDiagnostics["daily"] = [];
+  for (const deviceId of deviceIds.slice(0, MAX_DEVICES)) {
+    const payload = await moonGet<MoonDailySummaries>(
+      tokens,
+      `/v2/actions/playSummary/fetchDailySummaries?deviceId=${encodeURIComponent(deviceId)}`,
+    );
+    const summaries = payload.dailySummaries ?? payload.items ?? [];
+    daily.push({
+      deviceId,
+      count: summaries.length,
+      dates: summaries.map((summary) => summary.date ?? ""),
+      sample: summaries[0] ?? null,
+    });
+  }
+
+  const latestMonthly = deviceIds[0]
+    ? await moonGet<unknown>(
+        tokens,
+        `/v2/actions/playSummary/fetchLatestMonthlySummary?deviceId=${encodeURIComponent(deviceIds[0])}`,
+      )
+    : null;
+
+  return { devices: deviceIds.length, deviceIds, daily, latestMonthly };
+}
