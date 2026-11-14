@@ -10,7 +10,7 @@ const NSO_CLIENT_ID = "71b963c1b7b6d119";
 /** 家长控制（znma）客户端：只用于兜底，现有 D1 里的 session_token 是它签发的 */
 const ZNMA_CLIENT_ID = "54789befb391a838";
 const ZNC_URL = "https://api-lp1.znc.srv.nintendo.net";
-const ZNCA_VERSION = "3.5.0";
+const ZNCA_VERSION = "3.6.0";
 const ZNCA_PLATFORM = "Android";
 const ZNCA_PLATFORM_VERSION = "12";
 const USER_AGENT = `com.nintendo.znca/${ZNCA_VERSION}(${ZNCA_PLATFORM}/${ZNCA_PLATFORM_VERSION})`;

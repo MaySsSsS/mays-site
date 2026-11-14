@@ -5,8 +5,14 @@ import { SocialApiError } from "./psn.js";
  * 社区标准做法是 nxapi 的 znca 服务（Frida 在 root 安卓上跑官方 App），
  * 这里把地址做成可配置，将来要自建只改 ZNCA_API_URL，业务代码不用动。
  */
-export const ZNCA_DEFAULT_URL = "https://nxapi-znca-api.fancy.org.uk/api/znca";
-const ZNCA_VERSION = "3.5.0";
+/**
+ * 默认用 imink 的公开 f 服务（与 nxapi 的 znca 服务接口兼容：POST /f，
+ * body `{ token, hash_method }`，响应 `{ f, timestamp, request_id }`）。
+ * nxapi 的公共服现在要求申请授权，imink 只要 User-Agent 里带上项目名/版本即可。
+ * 自建 znca 服务时把 ZNCA_API_URL 指过去，接口形状一致，不用改代码。
+ */
+export const ZNCA_DEFAULT_URL = "https://api.imink.app";
+const ZNCA_VERSION = "3.6.0";
 const ZNCA_PLATFORM = "Android";
 const ZNCA_CLIENT_VERSION = "d8fAZDPzwimzQ7c6";
 const USER_AGENT = "mays-site/1.0 (+https://linkmays.com)";
