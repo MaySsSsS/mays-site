@@ -1,4 +1,4 @@
-import { collect, collectAll, linkNintendo, linkPsn, PLATFORMS, unlink } from "./collect.js";
+import { collect, collectAll, linkNintendo, linkPsn, PLATFORMS, unlink, zncaConfig } from "./collect.js";
 import { readCredential, readSnapshot, readStatus } from "./db.js";
 import { nintendoDiagnostics, nintendoExchangeSessionToken } from "./nintendo.js";
 import { decryptJson } from "./crypto.js";
@@ -125,7 +125,7 @@ async function handleNintendoDebug(env: Env, request: Request): Promise<Response
       ciphertext: credential.ciphertext,
       iv: credential.iv,
     });
-    return json(env, request, await nintendoDiagnostics(sessionToken));
+    return json(env, request, await nintendoDiagnostics(sessionToken, zncaConfig(env)));
   } catch (error) {
     const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     return json(env, request, { error: "诊断失败", message }, { status: 200 });

@@ -5,7 +5,8 @@ PSN / 任天堂的**个人游戏数据后端**：一次性登录导入凭证 →
 ## 为什么需要它
 
 - PSN 的游玩时长只在 `gamelist/v2/users/me/titles` 的 `playDuration` 里（`PT228H56M33S`），要 OAuth 令牌才能读。
-- 任天堂要在 Parental Controls（moon）里读每日汇总；Switch 2 的游玩时长在 `devicePlayers[].playedApps[].playingTime`。
+- 任天堂的历史游玩记录只在自己的 App 后端（coral）里：`POST /v4/User/PlayLog/Show` 返回 `{ name, imageUri, totalPlayTime, firstPlayedAt }`，`totalPlayTime` 是累计分钟数。家长控制接口只能看到开启之后的每日明细，拿不到历史，所以不用。
+- 登 coral 需要 `f` 参数（官方 App 的客户端完整性校验），由 znca 服务生成；地址用 `ZNCA_API_URL` 配置，默认公共服，自建时改成自己的地址即可。
 - 两家都要**长效凭证**，只能放在服务端。凭证用 AES-GCM 加密后存 D1（`TOKEN_ENC_KEY` 在 Worker secret 里，不入库）。
 
 ## 接口
@@ -15,7 +16,7 @@ PSN / 任天堂的**个人游戏数据后端**：一次性登录导入凭证 →
 | GET | `/health` | 公开（带 `Authorization` 时多返回错误详情） | 各平台状态 |
 | GET | `/api/snapshot/{psn,nintendo}` | 公开 | 前端读的快照，`max-age=300` |
 | POST | `/api/link/psn` | `Bearer ADMIN_TOKEN` | body `{ "npsso": "..." }` |
-| POST | `/api/link/nintendo` | `Bearer ADMIN_TOKEN` | body `{ "sessionTokenCode": "...", "codeVerifier": "..." }` 或 `{ "sessionToken": "..." }` |
+| POST | `/api/link/nintendo` | `Bearer ADMIN_TOKEN` | body `{ "sessionTokenCode": "...", "codeVerifier": "..." }`（NSO 客户端 + PKCE）或 `{ "sessionToken": "..." }` |
 | POST | `/api/collect` | `Bearer ADMIN_TOKEN` | body `{}` 全采，`{ "platform": "psn" }` 单采 |
 | DELETE | `/api/link/{platform}` | `Bearer ADMIN_TOKEN` | 解绑并删除凭证 |
 

@@ -14,20 +14,9 @@ import { createInterface } from "node:readline/promises";
 const API_URL = process.env.SOCIAL_API_URL ?? "https://mays-social-api.mays.workers.dev";
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "";
 
-const NINTENDO_SCOPES = [
-  "openid",
-  "user",
-  "moonUser:administration",
-  "moonDevice:create",
-  "moonOwnedDevice:administration",
-  "moonParentalControlSetting",
-  "moonParentalControlSetting:update",
-  "moonParentalControlSettingState",
-  "moonPairingState",
-  "moonSmartDevice:administration",
-  "moonDailySummary",
-  "moonMonthlySummary",
-].join(" ");
+// NSO 客户端的 scope（PlayLog 属于 NSO，不是家长控制）；历史数据只走这一条路。
+const NINTENDO_CLIENT_ID = "71b963c1b7b6d119";
+const NINTENDO_SCOPES = ["openid", "user", "user.birthday", "user.mii", "user.screenName"].join(" ");
 
 const DIE = (message) => {
   console.error(`✖ ${message}`);
@@ -89,8 +78,8 @@ async function linkWithNintendo(rl) {
   const state = base64Url(randomBytes(16));
   const params = new URLSearchParams({
     state,
-    redirect_uri: "npf54789befb391a838://auth",
-    client_id: "54789befb391a838",
+    redirect_uri: `npf${NINTENDO_CLIENT_ID}://auth`,
+    client_id: NINTENDO_CLIENT_ID,
     // znma（Switch 家长控制）客户端要的是 moon 系列 scope；
     // 用 NSO 客户端的 user.birthday/user.mii 会登录后被判「要求无效」。
     scope: NINTENDO_SCOPES,
@@ -102,7 +91,7 @@ async function linkWithNintendo(rl) {
   console.log(
     "\n1) 浏览器打开下面这个链接并登录任天堂账号：\n\n" +
       `   https://accounts.nintendo.com/connect/1.0.0/authorize?${params.toString()}\n\n` +
-      "2) 登录成功后浏览器会跳到 npf54789befb391a838://auth#session_token_code=… 的失败页（正常现象）\n" +
+      "2) 登录成功后浏览器会跳到 npf71b963c1b7b6d119://auth#session_token_code=… 的失败页（正常现象）\n" +
       "3) 把地址栏整条 URL 复制粘贴到下面\n",
   );
   const pasted = (await rl.question("回调 URL：")).trim();

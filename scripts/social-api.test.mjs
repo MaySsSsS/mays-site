@@ -34,18 +34,21 @@ test("凭证只以密文入库，使用 AES-GCM", () => {
   assert.match(collect, /writeCredential\(env\.SOCIAL_DB, "psn", payload\.ciphertext/, "PSN 凭证入库必须用密文");
 });
 
-test("PSN 时长取自 playDuration，任天堂取自 moon 每日汇总", () => {
+test("PSN 时长取自 playDuration，任天堂取自 NSO PlayLog", () => {
   const psn = read("workers/social-api/src/psn.ts");
   const nintendo = read("workers/social-api/src/nintendo.ts");
+  const znca = read("workers/social-api/src/znca.ts");
   const parse = read("workers/social-api/src/parse.ts");
   assert.ok(psn.includes("gamelist/v2/users/me/titles"), "PSN 游戏列表端点");
   assert.ok(psn.includes("playDuration"), "PSN 用 playDuration 算时长");
-  assert.ok(nintendo.includes("/v2/actions/playSummary/fetchDailySummaries"), "任天堂用 znma v2 每日汇总");
-  assert.ok(nintendo.includes("app.lp1.znma.srv.nintendo.net"), "任天堂走 znma 新域名（旧 /moon/v1 会 update_required）");
-  assert.ok(nintendo.includes("X-Moon-Model"), "moon 请求要带 X-Moon-Model");
-  assert.ok(parse.includes("devicePlayers"), "兼容旧版按玩家维度汇总时长");
-  assert.ok(parse.includes("playedGames"), "兼容新版 players[].playedGames");
-  assert.ok(parse.includes("applicationId"), "按 applicationId 聚合");
+  assert.ok(nintendo.includes("/v4/User/PlayLog/Show"), "任天堂历史数据走 NSO PlayLog");
+  assert.ok(nintendo.includes("api-lp1.znc.srv.nintendo.net"), "任天堂后端是 coral（api-lp1.znc）");
+  assert.ok(nintendo.includes("totalPlayTime"), "PlayLog 用 totalPlayTime 累计分钟");
+  assert.ok(znca.includes("hash_method"), "登录 NSO 需要 f 参数（hash_method）");
+  assert.ok(znca.includes("X-znca-Client-Version"), "znca 服务要求客户端版本头");
+  assert.ok(znca.includes("ZNCA_API_URL"), "f 参数服务地址要可配置");
+  assert.ok(!nintendo.includes("X-Moon"), "不能再用家长控制接口");
+  assert.ok(!parse.includes("Moon"), "parse 里不要残留 moon 聚合");
 });
 
 test("采集失败保留旧快照，只改状态", () => {
@@ -80,8 +83,9 @@ test("绑定走本地 CLI，站点里没有绑定页", () => {
   const script = read("scripts/link-account.mjs");
   assert.ok(script.includes("session_token_code_challenge_method"), "任天堂要走 PKCE");
   assert.ok(script.includes('"S256"'), "PKCE 用 S256");
-  assert.ok(script.includes("moonDailySummary"), "znma 客户端要 moon 系列 scope，不是 NSO 的 user.mii");
-  assert.ok(script.includes("npf54789befb391a838://auth"), "回调必须是 znma 客户端的 scheme");
+  assert.ok(script.includes("71b963c1b7b6d119"), "任天堂登录要用 NSO 客户端（PlayLog 只认它）");
+  assert.ok(script.includes("npf71b963c1b7b6d119://auth"), "回调必须是 NSO 客户端的 scheme");
+  assert.ok(!script.includes("moonDailySummary"), "不要再要家长控制 scope");
   assert.match(script, /stateMatch\[1\] !== state/, "回调必须校验 state");
   assert.ok(script.includes("process.env.ADMIN_TOKEN"), "令牌只从环境变量读");
   assert.ok(!script.includes("ghp_"), "脚本里不能写死任何真实令牌");

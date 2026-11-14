@@ -10,9 +10,15 @@ import {
 import { SocialApiError, psnLoginWithNpsso, psnRefresh, psnSnapshot } from "./psn.js";
 import { ensureSchema } from "./schema.js";
 import { nintendoSnapshot } from "./nintendo.js";
+import type { ZncaConfig } from "./znca.js";
 import type { Env, Platform, PlatformState, PlatformStatus, PsnTokens } from "./types.js";
 
 export const PLATFORMS: Platform[] = ["psn", "nintendo"];
+
+/** `f` 参数服务地址：默认用公共服，自建时用 ZNCA_API_URL 覆盖。 */
+export function zncaConfig(env: Env): ZncaConfig {
+  return { url: env.ZNCA_API_URL, apiKey: env.ZNCA_API_KEY };
+}
 
 interface NintendoCredential {
   sessionToken: string;
@@ -93,7 +99,7 @@ export async function collect(env: Env, platform: Platform): Promise<PlatformSta
       await writeSnapshot(env.SOCIAL_DB, snapshot);
     } else {
       const stored = await decryptJson<NintendoCredential>(encryptionKey(env), row);
-      const snapshot = await nintendoSnapshot(stored.sessionToken);
+      const snapshot = await nintendoSnapshot(stored.sessionToken, zncaConfig(env));
       await writeSnapshot(env.SOCIAL_DB, snapshot);
     }
     return recordStatus(env, platform, "ok", null);

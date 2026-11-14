@@ -49,6 +49,10 @@ export interface Env {
   /** 凭证加密密钥：32 字节随机值的 base64（44 字符） */
   TOKEN_ENC_KEY?: string;
   CORS_ORIGIN?: string;
-  /** 只在调试时设置：跳过任天堂 moon 的固定请求头 */
+  /** `f` 参数服务地址（默认公共 nxapi-znca-api，自建时覆盖） */
+  ZNCA_API_URL?: string;
+  /** `f` 参数服务的访问令牌（我们自己的部署需要时用） */
+  ZNCA_API_KEY?: string;
+  /** 只在调试时设置：输出更详细的日志 */
   DEBUG?: string;
 }
