@@ -190,12 +190,18 @@ export async function nintendoDiagnostics(sessionToken: string): Promise<Nintend
     });
   }
 
-  const latestMonthly = deviceIds[0]
-    ? await moonGet<unknown>(
+  let latestMonthly: unknown = null;
+  if (deviceIds[0]) {
+    try {
+      latestMonthly = await moonGet<unknown>(
         tokens,
         `/v2/actions/playSummary/fetchLatestMonthlySummary?deviceId=${encodeURIComponent(deviceIds[0])}`,
-      )
-    : null;
+      );
+    } catch (error) {
+      // 刚绑定家长控制时当月还没有汇总，404 是正常的，别让诊断整体失败。
+      latestMonthly = { error: error instanceof Error ? error.message : String(error) };
+    }
+  }
 
   return { devices: deviceIds.length, deviceIds, daily, latestMonthly };
 }
