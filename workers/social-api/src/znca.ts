@@ -34,7 +34,7 @@ export interface ZncaF {
 export async function fetchZncaF(
   config: ZncaConfig,
   idToken: string,
-  naId: string,
+  _naId: string,
 ): Promise<ZncaF> {
   const base = (config.url ?? ZNCA_DEFAULT_URL).replace(/\/$/, "");
   const isZncaServer = base.includes("fancy.org.uk");
@@ -55,8 +55,9 @@ export async function fetchZncaF(
   const response = await fetch(`${base}/f`, {
     method: "POST",
     headers,
-    // hash_method 1 = HashMethod.CORAL（NSO 客户端登录）。imink 要求数字，别传字符串。
-    body: JSON.stringify({ token: idToken, hash_method: 1, na_id: naId }),
+    // hash_method 1 = HashMethod.CORAL（NSO 客户端登录）。
+    // 只传 imink 文档里列的两项：na_id 服务端会自己从 token 里解出来。
+    body: JSON.stringify({ token: idToken, hash_method: 1 }),
   });
 
   if (!response.ok) {
