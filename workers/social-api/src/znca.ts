@@ -55,6 +55,7 @@ export async function fetchZncaF(
   const response = await fetch(`${base}/f`, {
     method: "POST",
     headers,
+    signal: AbortSignal.timeout(15_000),
     // hash_method 1 = HashMethod.CORAL（NSO 客户端登录）。
     // 只传 imink 文档里列的两项：na_id 服务端会自己从 token 里解出来。
     body: JSON.stringify({ token: idToken, hash_method: 1 }),
@@ -121,7 +122,6 @@ export async function probeZnca(
     },
     { variant: "token+hash_method(string)+na_id", body: { token: idToken, hash_method: "1", na_id: naId } },
     { variant: "hash_method=2(web service)", body: { token: idToken, hash_method: 2, na_id: naId } },
-    { variant: "token+hash_method+uuid", body: { token: idToken, hash_method: 1, uuid: crypto.randomUUID() } },
   ];
 
   const results: ZncaProbe[] = [];
@@ -131,6 +131,7 @@ export async function probeZnca(
         method: "POST",
         headers,
         body: JSON.stringify(entry.body),
+        signal: AbortSignal.timeout(12_000),
       });
       const text = await response.text().catch(() => "");
       results.push({ variant: entry.variant, status: response.status, body: text.slice(0, 220) });
