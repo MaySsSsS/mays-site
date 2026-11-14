@@ -37,21 +37,26 @@ export async function fetchZncaF(
   naId: string,
 ): Promise<ZncaF> {
   const base = (config.url ?? ZNCA_DEFAULT_URL).replace(/\/$/, "");
+  const isZncaServer = base.includes("fancy.org.uk");
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    // imink 只认这一个 Content-Type 写法，带上 charset 更稳
+    "Content-Type": "application/json; charset=utf-8",
     Accept: "application/json",
     "User-Agent": USER_AGENT,
-    "X-znca-Client-Version": ZNCA_CLIENT_VERSION,
-    "X-znca-Platform": ZNCA_PLATFORM,
-    "X-znca-Version": ZNCA_VERSION,
   };
+  if (isZncaServer) {
+    // znca 服务用这几个头选择用哪个版本的 NSO 客户端生成 f
+    headers["X-znca-Client-Version"] = ZNCA_CLIENT_VERSION;
+    headers["X-znca-Platform"] = ZNCA_PLATFORM;
+    headers["X-znca-Version"] = ZNCA_VERSION;
+  }
   if (config.apiKey) headers.Authorization = `Bearer ${config.apiKey}`;
 
   const response = await fetch(`${base}/f`, {
     method: "POST",
     headers,
-    // hash_method "1" = HashMethod.CORAL（NSO 客户端的登录方式）
-    body: JSON.stringify({ hash_method: "1", token: idToken, na_id: naId }),
+    // hash_method 1 = HashMethod.CORAL（NSO 客户端登录）。imink 要求数字，别传字符串。
+    body: JSON.stringify({ token: idToken, hash_method: 1, na_id: naId }),
   });
 
   if (!response.ok) {
