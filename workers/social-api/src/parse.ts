@@ -40,24 +40,43 @@ export interface MoonTitle {
   imageUri?: { small?: string; medium?: string; large?: string };
 }
 
+export interface MoonImage {
+  small?: string;
+  medium?: string;
+  large?: string;
+}
+
 export interface MoonPlayerTitle {
   applicationId?: string;
   playingTime?: number;
   firstPlayDate?: string | null;
+  meta?: MoonTitle & { shopUri?: string };
+}
+
+export interface MoonPlayerProfile {
+  playerId?: string;
+  nickname?: string;
+  imageUri?: string;
 }
 
 export interface MoonPlayer {
   playerId?: string;
   nickname?: string;
   imageUri?: string;
+  profile?: MoonPlayerProfile;
   playingTime?: number;
+  /** 旧版 moon：按游戏的时长在 playedApps 里。 */
   playedApps?: MoonPlayerTitle[];
+  /** 新版 moon（app.lp1.znma / v2）：按游戏的时长与元数据在 playedGames 里。 */
+  playedGames?: MoonPlayerTitle[];
 }
 
 export interface MoonDailySummary {
   date?: string;
   playingTime?: number;
   playedApps?: MoonTitle[];
+  /** 新版 moon 把玩家直接放在 players 里。 */
+  players?: MoonPlayer[];
   devicePlayers?: MoonPlayer[];
   anonymousPlayer?: MoonPlayer | null;
   lastPlayedAt?: number | null;
@@ -70,9 +89,9 @@ export interface MoonTotals {
 }
 
 /**
- * moon 的每日汇总里，每款游戏的时长只在 `devicePlayers[].playedApps[].playingTime`
- * （或旧设备的 `anonymousPlayer.playedApps[]`）里，`playedApps` 只提供标题元数据。
- * 所以既要按 applicationId 聚合时长，也要从 `playedApps` 拿名字和封面。
+ * moon 每日汇总里每款游戏的时长藏在玩家对象里：
+ * 新版是 `players[].playedGames[].playingTime`，旧版是 `devicePlayers[].playedApps[].playingTime`，
+ * 顶层 `playedApps` 只给标题元数据。两套结构都兼容，避免接口换版后再坏一次。
  */
 export function summariseMoon(summaries: MoonDailySummary[]): MoonTotals {
   const meta = new Map<string, MoonTitle>();
@@ -93,23 +112,28 @@ export function summariseMoon(summaries: MoonDailySummary[]): MoonTotals {
       }
     }
 
-    const allPlayers = [...(summary.devicePlayers ?? []), ...(summary.anonymousPlayer ? [summary.anonymousPlayer] : [])];
+    const allPlayers = [
+      ...(summary.players ?? []),
+      ...(summary.devicePlayers ?? []),
+      ...(summary.anonymousPlayer ? [summary.anonymousPlayer] : []),
+    ];
     for (const player of allPlayers) {
-      const key = player.playerId ?? player.nickname ?? "unknown";
-      if (player.playerId || player.nickname) {
-        const entry = players.get(key) ?? {
-          name: player.nickname ?? key,
-          minutes: 0,
-          imageUrl: player.imageUri ?? null,
-        };
+      const playerId = player.playerId ?? player.profile?.playerId;
+      const nickname = player.nickname ?? player.profile?.nickname;
+      const imageUri = player.imageUri ?? player.profile?.imageUri;
+      const key = playerId ?? nickname ?? "unknown";
+      if (playerId || nickname) {
+        const entry = players.get(key) ?? { name: nickname ?? key, minutes: 0, imageUrl: imageUri ?? null };
         entry.minutes += Math.max(0, Math.round(player.playingTime ?? 0));
         players.set(key, entry);
       }
-      for (const title of player.playedApps ?? []) {
-        if (!title.applicationId) continue;
+      for (const title of [...(player.playedGames ?? []), ...(player.playedApps ?? [])]) {
+        const applicationId = title.applicationId ?? title.meta?.applicationId;
+        if (!applicationId) continue;
+        if (title.meta) meta.set(applicationId, title.meta);
         minutesByApp.set(
-          title.applicationId,
-          (minutesByApp.get(title.applicationId) ?? 0) + Math.max(0, Math.round(title.playingTime ?? 0)),
+          applicationId,
+          (minutesByApp.get(applicationId) ?? 0) + Math.max(0, Math.round(title.playingTime ?? 0)),
         );
       }
     }

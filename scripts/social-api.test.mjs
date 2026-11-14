@@ -40,8 +40,11 @@ test("PSN 时长取自 playDuration，任天堂取自 moon 每日汇总", () => 
   const parse = read("workers/social-api/src/parse.ts");
   assert.ok(psn.includes("gamelist/v2/users/me/titles"), "PSN 游戏列表端点");
   assert.ok(psn.includes("playDuration"), "PSN 用 playDuration 算时长");
-  assert.ok(nintendo.includes("/daily_summaries"), "任天堂用每日汇总");
-  assert.ok(parse.includes("devicePlayers"), "任天堂按玩家维度汇总时长");
+  assert.ok(nintendo.includes("/v2/actions/playSummary/fetchDailySummaries"), "任天堂用 znma v2 每日汇总");
+  assert.ok(nintendo.includes("app.lp1.znma.srv.nintendo.net"), "任天堂走 znma 新域名（旧 /moon/v1 会 update_required）");
+  assert.ok(nintendo.includes("X-Moon-Model"), "moon 请求要带 X-Moon-Model");
+  assert.ok(parse.includes("devicePlayers"), "兼容旧版按玩家维度汇总时长");
+  assert.ok(parse.includes("playedGames"), "兼容新版 players[].playedGames");
   assert.ok(parse.includes("applicationId"), "按 applicationId 聚合");
 });
 
