@@ -120,6 +120,8 @@ export async function probeZnca(
       },
     },
     { variant: "token+hash_method(string)+na_id", body: { token: idToken, hash_method: "1", na_id: naId } },
+    { variant: "hash_method=2(web service)", body: { token: idToken, hash_method: 2, na_id: naId } },
+    { variant: "token+hash_method+uuid", body: { token: idToken, hash_method: 1, uuid: crypto.randomUUID() } },
   ];
 
   const results: ZncaProbe[] = [];
