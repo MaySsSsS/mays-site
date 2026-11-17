@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-16T08:47:49.258Z",
+  "lastUpdated": "2026-11-17T09:54:54.026Z",
   "player": {
     "steamid": "76561198378879040",
     "communityvisibilitystate": 3,
@@ -223,7 +223,7 @@
     {
       "appid": 730,
       "name": "Counter-Strike 2",
-      "playtime_2weeks": 6,
+      "playtime_2weeks": 2,
       "playtime_forever": 77848,
       "img_icon_url": "8dbc71957312bbd3baea65848b545be9eae2a355",
       "has_community_visible_stats": true,
@@ -2539,7 +2539,7 @@
     {
       "appid": 4115450,
       "name": "Phantom Blade Zero",
-      "playtime_2weeks": 72,
+      "playtime_2weeks": 1,
       "playtime_forever": 2704,
       "img_icon_url": "ce420dc458dd3d7af276f48fbaa44a05876760dc",
       "has_community_visible_stats": true,
